@@ -40,6 +40,7 @@ app.use("/api/uks", uksRoutes);
 app.use("/api/library", libraryRoutes);
 app.use("/api/ppdb", require("./routes/ppdbRoutes"));
 app.use("/api/dashboard", require("./routes/dashboardRoutes"));
+app.use("/api/attendance", require("./routes/attendanceRoutes"));
 app.get("/", (req, res) => {
   res.send({ message: "Welcome to SIAKAD SMP API" });
 });

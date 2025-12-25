@@ -550,3 +550,84 @@ exports.generateFullReport = async (req, res) => {
       .json({ message: "Gagal generate rapor lengkap", error: error.message });
   }
 };
+
+// --- Class Member Management ---
+
+exports.addStudentToClass = async (req, res) => {
+  try {
+    const { classId } = req.params;
+    const { studentId } = req.body;
+
+    const student = await User.findById(studentId);
+    if (!student)
+      return res.status(404).json({ message: "Siswa tidak ditemukan" });
+
+    const targetClass = await Class.findById(classId);
+    if (!targetClass)
+      return res.status(404).json({ message: "Kelas tidak ditemukan" });
+
+    // 1. Remove from old class if exists
+    if (student.profile.class && student.profile.class !== targetClass.name) {
+      await Class.updateOne(
+        { name: student.profile.class },
+        { $pull: { students: student._id } }
+      );
+    }
+
+    // 2. Update Student Profile
+    student.profile.class = targetClass.name;
+    await student.save();
+
+    // 3. Add to New Class (avoid duplicates)
+    await Class.findByIdAndUpdate(classId, {
+      $addToSet: { students: student._id },
+    });
+
+    res.json({ message: "Siswa berhasil ditambahkan ke kelas" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal tambah siswa ke kelas", error: error.message });
+  }
+};
+
+exports.removeStudentFromClass = async (req, res) => {
+  try {
+    const { classId } = req.params;
+    const { studentId } = req.body;
+
+    // 1. Update Student Profile
+    const student = await User.findById(studentId);
+    if (student) {
+      student.profile.class = ""; // Remove class assignment
+      await student.save();
+    }
+
+    // 2. Remove from Class
+    await Class.findByIdAndUpdate(classId, {
+      $pull: { students: studentId },
+    });
+
+    res.json({ message: "Siswa berhasil dihapus dari kelas" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal hapus siswa dari kelas", error: error.message });
+  }
+};
+
+exports.getClassMembers = async (req, res) => {
+  try {
+    const { classId } = req.params;
+    const cls = await Class.findById(classId).populate({
+      path: "students",
+      select: "username profile.fullName profile.nisn profile.gender",
+    });
+    if (!cls) return res.status(404).json({ message: "Kelas tidak ditemukan" });
+    res.json(cls.students);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal ambil anggota kelas", error: error.message });
+  }
+};

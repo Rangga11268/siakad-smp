@@ -61,6 +61,25 @@ router.post(
 );
 router.get("/class", auth, academicController.getClasses);
 
+// Class Members
+router.get(
+  "/class/:classId/students",
+  auth,
+  academicController.getClassMembers
+);
+router.post(
+  "/class/:classId/students",
+  auth,
+  checkRole(["admin"]),
+  academicController.addStudentToClass
+);
+router.delete(
+  "/class/:classId/students",
+  auth,
+  checkRole(["admin"]),
+  academicController.removeStudentFromClass
+);
+
 // TP Management (Hanya Guru & Admin)
 router.post(
   "/tp",

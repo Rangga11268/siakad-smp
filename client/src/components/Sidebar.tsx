@@ -9,6 +9,7 @@ import {
   LogOut,
   GraduationCap,
   Building2,
+  CheckCircle2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -40,9 +41,15 @@ const Sidebar = () => {
       roles: ["admin"],
     },
     {
-      title: "Akademik (Admin)",
+      title: "Data Mapel",
       icon: BookOpen,
       path: "/dashboard/academic/subjects",
+      roles: ["admin"],
+    },
+    {
+      title: "Data Kelas",
+      icon: Building2,
+      path: "/dashboard/academic/classes",
       roles: ["admin"],
     },
     {
@@ -55,6 +62,12 @@ const Sidebar = () => {
       title: "E-Rapor Siswa",
       icon: Users,
       path: "/dashboard/academic/report",
+      roles: ["admin", "teacher"],
+    },
+    {
+      title: "Absensi Harian",
+      icon: CheckCircle2,
+      path: "/dashboard/academic/attendance",
       roles: ["admin", "teacher"],
     },
     {
