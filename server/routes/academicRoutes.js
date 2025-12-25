@@ -5,6 +5,23 @@ const { auth, checkRole } = require("../middleware/authMiddleware");
 
 // TP Management (Hanya Guru & Admin)
 router.post(
+  "/subject",
+  auth,
+  checkRole(["admin"]),
+  academicController.createSubject
+);
+router.get("/subject", auth, academicController.getSubjects);
+
+router.post(
+  "/class",
+  auth,
+  checkRole(["admin"]),
+  academicController.createClass
+);
+router.get("/class", auth, academicController.getClasses);
+
+// TP Management (Hanya Guru & Admin)
+router.post(
   "/tp",
   auth,
   checkRole(["teacher", "admin"]),

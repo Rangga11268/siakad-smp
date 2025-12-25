@@ -1,11 +1,14 @@
-import { Outlet } from 'react-router-dom';
-import Sidebar from '@/components/Sidebar';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
-import { Bell, Menu } from 'lucide-react';
+import { Outlet } from "react-router-dom";
+import Sidebar from "@/components/Sidebar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Bell, Menu } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 
 const DashboardLayout = () => {
+  const { user } = useAuth();
+
   return (
     <div className="flex h-screen bg-neutral-50 dark:bg-neutral-900">
       {/* Desktop Sidebar */}
@@ -46,12 +49,20 @@ const DashboardLayout = () => {
 
             <div className="flex items-center space-x-3 border-l pl-4">
               <div className="text-right hidden sm:block">
-                <p className="text-sm font-medium">Budi Santoso</p>
-                <p className="text-xs text-muted-foreground">Administrator</p>
+                <p className="text-sm font-medium">
+                  {user?.profile?.fullName || user?.username || "User"}
+                </p>
+                <p className="text-xs text-muted-foreground capitalize">
+                  {user?.role || "Guest"}
+                </p>
               </div>
               <Avatar>
-                <AvatarImage src="https://github.com/shadcn.png" />
-                <AvatarFallback>CN</AvatarFallback>
+                <AvatarImage
+                  src={user?.profile?.avatar || "https://github.com/shadcn.png"}
+                />
+                <AvatarFallback>
+                  {user?.username?.substring(0, 2).toUpperCase() || "CN"}
+                </AvatarFallback>
               </Avatar>
             </div>
           </div>

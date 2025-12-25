@@ -2,15 +2,25 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import LoginPage from "@/pages/LoginPage";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import DashboardPage from "@/pages/DashboardPage";
+import MasterSubjectPage from "@/pages/admin/MasterSubjectPage";
+import MasterClassPage from "@/pages/admin/MasterClassPage";
+import InputGradePage from "@/pages/academic/InputGradePage";
 
 function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
 
-      {/* Protected Routes (Placeholder for now) */}
+      {/* Protected Routes */}
       <Route path="/dashboard" element={<DashboardLayout />}>
         <Route index element={<DashboardPage />} />
+
+        {/* Admin Routes */}
+        <Route path="academic/subjects" element={<MasterSubjectPage />} />
+        <Route path="academic/classes" element={<MasterClassPage />} />
+
+        {/* Teacher Routes */}
+        <Route path="academic/grades" element={<InputGradePage />} />
       </Route>
 
       <Route path="/" element={<Navigate to="/login" replace />} />

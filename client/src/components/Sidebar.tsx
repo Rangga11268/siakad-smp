@@ -6,17 +6,19 @@ import {
   HeartPulse,
   Library,
   Wallet,
-  Settings,
   LogOut,
   GraduationCap,
   Building2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
 
 const Sidebar = () => {
   const location = useLocation();
-  const role = "admin"; // TODO: Get from Auth Context
+  const { user, logout } = useAuth();
+
+  const role = user?.role || "student"; // Default fallback
 
   const menus = [
     {
@@ -26,10 +28,16 @@ const Sidebar = () => {
       roles: ["admin", "teacher", "student", "parent"],
     },
     {
-      title: "Akademik",
+      title: "Akademik (Admin)",
       icon: BookOpen,
-      path: "/dashboard/academic",
-      roles: ["admin", "teacher"],
+      path: "/dashboard/academic/subjects",
+      roles: ["admin"],
+    },
+    {
+      title: "Akademik (Guru)",
+      icon: BookOpen,
+      path: "/dashboard/academic/grades",
+      roles: ["teacher"],
     },
     {
       title: "Projek P5",
@@ -69,6 +77,9 @@ const Sidebar = () => {
     },
   ];
 
+  // Filter menu based on role
+  const filteredMenus = menus.filter((item) => item.roles.includes(role));
+
   return (
     <div className="flex h-full w-64 flex-col border-r bg-card text-card-foreground">
       <div className="flex h-16 items-center border-b px-6">
@@ -79,7 +90,7 @@ const Sidebar = () => {
 
       <div className="flex-1 overflow-y-auto py-4">
         <nav className="space-y-1 px-2">
-          {menus.map((item) => (
+          {filteredMenus.map((item) => (
             <Link key={item.path} to={item.path}>
               <Button
                 variant={
@@ -105,6 +116,7 @@ const Sidebar = () => {
         <Button
           variant="outline"
           className="w-full justify-start text-red-500 hover:text-red-600 hover:bg-red-50"
+          onClick={logout}
         >
           <LogOut className="mr-2 h-4 w-4" />
           Logout

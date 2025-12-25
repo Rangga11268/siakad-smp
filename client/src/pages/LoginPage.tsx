@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -12,20 +13,41 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2 } from "lucide-react";
+import { Loader2, AlertCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
-  const [loading, setLoading] = useState(false);
-  const [role, setRole] = useState("student");
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [formData, setFormData] = useState({
+    username: "",
+    password: "",
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
+
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate login
-    setTimeout(() => {
+    setError(null);
+
+    try {
+      await login(formData);
+      navigate("/dashboard");
+    } catch (err: any) {
+      console.error(err);
+      setError(
+        err.response?.data?.message ||
+          "Gagal login. Periksa koneksi atau kredensial."
+      );
+    } finally {
       setLoading(false);
-      window.location.href = "/dashboard";
-    }, 1500);
+    }
   };
 
   return (
@@ -61,23 +83,12 @@ const LoginPage = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleLogin} className="space-y-4">
-              {/* Role Selection Tabs (Simple) */}
-              <div className="grid grid-cols-4 gap-2 rounded-lg bg-muted p-1">
-                {["admin", "teacher", "student", "parent"].map((r) => (
-                  <button
-                    key={r}
-                    type="button"
-                    onClick={() => setRole(r)}
-                    className={`rounded-md py-1 text-xs font-medium capitalize transition-all ${
-                      role === r
-                        ? "bg-background shadow-sm text-foreground"
-                        : "text-muted-foreground hover:text-foreground"
-                    }`}
-                  >
-                    {r}
-                  </button>
-                ))}
-              </div>
+              {error && (
+                <div className="flex items-center rounded-md bg-destructive/15 p-3 text-sm text-destructive">
+                  <AlertCircle className="mr-2 h-4 w-4" />
+                  {error}
+                </div>
+              )}
 
               <div className="space-y-2">
                 <Label htmlFor="username">Username / NISN</Label>
@@ -86,6 +97,7 @@ const LoginPage = () => {
                   placeholder="Masukan ID pengguna"
                   required
                   className="bg-background/50"
+                  onChange={handleChange}
                 />
               </div>
               <div className="space-y-2">
@@ -96,6 +108,7 @@ const LoginPage = () => {
                   placeholder="••••••••"
                   required
                   className="bg-background/50"
+                  onChange={handleChange}
                 />
               </div>
 

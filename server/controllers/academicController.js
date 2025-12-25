@@ -2,6 +2,56 @@ const LearningGoal = require("../models/LearningGoal");
 const Assessment = require("../models/Assessment");
 const Grade = require("../models/Grade");
 const Subject = require("../models/Subject");
+const Class = require("../models/Class");
+
+// --- Master Data (Mapel & Kelas) ---
+
+// Mapel
+exports.createSubject = async (req, res) => {
+  try {
+    const newSubject = new Subject(req.body);
+    await newSubject.save();
+    res.status(201).json(newSubject);
+  } catch (error) {
+    res.status(500).json({ message: "Gagal buat mapel", error: error.message });
+  }
+};
+
+exports.getSubjects = async (req, res) => {
+  try {
+    const subjects = await Subject.find();
+    res.json(subjects);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal ambil mapel", error: error.message });
+  }
+};
+
+// Kelas
+exports.createClass = async (req, res) => {
+  try {
+    const newClass = new Class(req.body);
+    await newClass.save();
+    res.status(201).json(newClass);
+  } catch (error) {
+    res.status(500).json({ message: "Gagal buat kelas", error: error.message });
+  }
+};
+
+exports.getClasses = async (req, res) => {
+  try {
+    const classes = await Class.find().populate(
+      "homeroomTeacher",
+      "username profile.fullName"
+    ); // Assuming User model has profile
+    res.json(classes);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal ambil kelas", error: error.message });
+  }
+};
 
 // --- Tujuan Pembelajaran (TP) ---
 
