@@ -11,6 +11,7 @@ import StudentAffairsDashboard from "@/pages/student-affairs/StudentAffairsDashb
 import UksDashboard from "@/pages/uks/UksDashboard";
 import LibraryDashboard from "@/pages/library/LibraryDashboard";
 import FinanceDashboard from "@/pages/finance/FinanceDashboard";
+import AssetDashboard from "@/pages/assets/AssetDashboard";
 
 function App() {
   return (
@@ -39,6 +40,9 @@ function App() {
 
         {/* Finance Routes */}
         <Route path="finance" element={<FinanceDashboard />} />
+
+        {/* Assets / Sarpras Routes */}
+        <Route path="assets" element={<AssetDashboard />} />
 
         {/* Teacher Routes */}
         <Route path="academic/grades" element={<InputGradePage />} />

@@ -65,3 +65,14 @@ exports.getAssetsByLocation = async (req, res) => {
       .json({ message: "Gagal mengambil data aset", error: error.message });
   }
 };
+// Ambil Semua Aset
+exports.getAllAssets = async (req, res) => {
+  try {
+    const assets = await Asset.find().sort({ createdAt: -1 });
+    res.json(assets);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal ambil semua aset", error: error.message });
+  }
+};
