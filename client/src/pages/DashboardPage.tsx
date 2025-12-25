@@ -8,6 +8,15 @@ import {
 import { Users, BookOpen, AlertTriangle, Wallet } from "lucide-react";
 import { useState, useEffect } from "react";
 import api from "@/services/api";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 const DashboardPage = () => {
   const [statsData, setStatsData] = useState({
@@ -16,6 +25,16 @@ const DashboardPage = () => {
     incidentCount: 0,
     totalUnpaid: 0,
   });
+
+  const chartData = [
+    { name: "Jul", value: 4000000 },
+    { name: "Agu", value: 3000000 },
+    { name: "Sep", value: 2000000 },
+    { name: "Okt", value: 2780000 },
+    { name: "Nov", value: 1890000 },
+    { name: "Des", value: 2390000 },
+    { name: "Jan", value: 3490000 },
+  ];
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -32,24 +51,27 @@ const DashboardPage = () => {
   const stats = [
     {
       title: "Total Siswa",
-      value: statsData.studentCount.toString(),
+      value: (statsData?.studentCount || 0).toString(),
       icon: Users,
       desc: "Aktif Tahun Ini",
       color: "text-blue-600",
+      bgColor: "bg-blue-100",
     },
     {
       title: "Rata-rata Nilai",
-      value: statsData.averageGrade.toString(),
+      value: (statsData?.averageGrade || 0).toString(),
       icon: BookOpen,
       desc: "Seluruh Mata Pelajaran",
       color: "text-green-600",
+      bgColor: "bg-green-100",
     },
     {
       title: "Laporan Insiden",
-      value: statsData.incidentCount.toString(),
+      value: (statsData?.incidentCount || 0).toString(),
       icon: AlertTriangle,
       desc: "Status Open/FollowUp",
       color: "text-orange-600",
+      bgColor: "bg-orange-100",
     },
     {
       title: "Tagihan Belum Lunas",
@@ -57,10 +79,11 @@ const DashboardPage = () => {
         style: "currency",
         currency: "IDR",
         maximumFractionDigits: 0,
-      }).format(statsData.totalUnpaid),
+      }).format(statsData?.totalUnpaid || 0),
       icon: Wallet,
       desc: "Total Tunggakan",
       color: "text-red-600",
+      bgColor: "bg-red-100",
     },
   ];
 
@@ -84,11 +107,11 @@ const DashboardPage = () => {
       color: "bg-emerald-100 text-emerald-600",
     },
     {
-      label: "Tambah Aset",
-      href: "/dashboard/assets",
+      label: "PPDB Admin",
+      href: "/dashboard/ppdb",
       icon: Users,
       color: "bg-purple-100 text-purple-600",
-    }, // Use Assets icon
+    },
   ];
 
   return (
@@ -126,12 +149,7 @@ const DashboardPage = () => {
               <CardTitle className="text-sm font-medium text-muted-foreground">
                 {stat.title}
               </CardTitle>
-              <div
-                className={`p-2 rounded-lg bg-opacity-10 ${stat.color.replace(
-                  "text-",
-                  "bg-"
-                )}`}
-              >
+              <div className={`p-2 rounded-lg ${stat.bgColor}`}>
                 <stat.icon className={`h-4 w-4 ${stat.color}`} />
               </div>
             </CardHeader>
@@ -147,14 +165,54 @@ const DashboardPage = () => {
         {/* Main Chart Area */}
         <Card className="col-span-4 shadow-md border-none">
           <CardHeader>
-            <CardTitle>Aktivitas Akademik</CardTitle>
+            <CardTitle>Arus Kas Masuk (SPP)</CardTitle>
             <CardDescription>
-              Tren rata-rata nilai siswa per semester.
+              Tren pembayaran siswa 6 bulan terakhir.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="h-[300px] flex items-center justify-center bg-indigo-50/50 rounded-xl border-2 border-dashed border-indigo-100 text-indigo-300">
-              <p>Grafik Analisis (Segera)</p>
+            <div className="h-[300px] w-full">
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart data={chartData}>
+                  <defs>
+                    <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.3} />
+                      <stop offset="95%" stopColor="#4f46e5" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis
+                    dataKey="name"
+                    stroke="#888888"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                  />
+                  <YAxis
+                    stroke="#888888"
+                    fontSize={12}
+                    tickLine={false}
+                    axisLine={false}
+                    tickFormatter={(value) => `Rp${value / 1000000}jt`}
+                  />
+                  <Tooltip
+                    formatter={(value: any) =>
+                      new Intl.NumberFormat("id-ID", {
+                        style: "currency",
+                        currency: "IDR",
+                      }).format(value)
+                    }
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="value"
+                    stroke="#4f46e5"
+                    strokeWidth={3}
+                    fillOpacity={1}
+                    fill="url(#colorValue)"
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
             </div>
           </CardContent>
         </Card>
@@ -194,9 +252,11 @@ const DashboardPage = () => {
                 <div className="flex gap-4 items-start">
                   <div className="w-2 h-2 mt-2 rounded-full bg-blue-500 shrink-0" />
                   <div>
-                    <p className="text-sm font-medium">Rapat Dewan Guru</p>
+                    <p className="text-sm font-medium">
+                      Pembukaan PPDB Gelombang 1
+                    </p>
                     <p className="text-xs text-muted-foreground">
-                      Besok, 08:00 WIB di Ruang Guru
+                      Segera verifikasi data pendaftar baru.
                     </p>
                   </div>
                 </div>

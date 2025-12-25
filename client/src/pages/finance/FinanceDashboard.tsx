@@ -47,6 +47,7 @@ import api from "@/services/api";
 
 const FinanceDashboard = () => {
   const [billings, setBillings] = useState([]);
+  const [classes, setClasses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openGenerate, setOpenGenerate] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -62,13 +63,25 @@ const FinanceDashboard = () => {
     title: "SPP Januari 2025",
     amount: "150000",
     dueDate: "",
+    type: "SPP",
+    targetClass: "",
     month: new Date().getMonth() + 1,
     year: new Date().getFullYear(),
   });
 
   useEffect(() => {
     fetchBillings();
+    fetchClasses();
   }, [statusFilter]);
+
+  const fetchClasses = async () => {
+    try {
+      const res = await api.get("/academic/class");
+      setClasses(res.data);
+    } catch (e) {
+      console.error("Gagal load kelas", e);
+    }
+  };
 
   const fetchBillings = async () => {
     setLoading(true);
@@ -121,17 +134,19 @@ const FinanceDashboard = () => {
 
     setSubmitting(true);
     try {
-      await api.post("/finance/generate", {
+      const res = await api.post("/finance/generate", {
         ...formData,
         amount: parseInt(formData.amount),
+        // If targetClass is empty string, send null or let backend handle it (backend checks if truthy)
       });
       setOpenGenerate(false);
       fetchBillings();
       toast({
         title: "Berhasil",
-        description: "Tagihan massal berhasil dibuat.",
+        description: res.data.message || "Tagihan massal berhasil dibuat.",
       });
     } catch (error) {
+      console.log(error);
       toast({
         variant: "destructive",
         title: "Gagal",
@@ -144,9 +159,6 @@ const FinanceDashboard = () => {
 
   const handlePay = async (id: string, currentStatus: string) => {
     if (currentStatus === "paid") return;
-    // Removed raw confirm for better UX or keep as simple prevention
-    // Ideally use a Dialog but specific confirm is fine for now, or Toast action
-
     try {
       await api.post("/finance/pay", { billingId: id });
       fetchBillings();
@@ -178,11 +190,11 @@ const FinanceDashboard = () => {
               <Plus className="mr-2 h-4 w-4" /> Generate Tagihan Massal
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle>Buat Tagihan (Massal)</DialogTitle>
               <DialogDescription>
-                Membuat tagihan untuk semua siswa aktif.
+                Membuat tagihan untuk siswa sesuai kriteria.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
@@ -194,8 +206,50 @@ const FinanceDashboard = () => {
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
                   }
+                  placeholder="Misal: SPP Februari 2025"
                 />
               </div>
+
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right">Target Kelas</Label>
+                <Select
+                  value={formData.targetClass}
+                  onValueChange={(v) =>
+                    setFormData({ ...formData, targetClass: v })
+                  }
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Semua Siswa" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all_classes">Semua Siswa</SelectItem>
+                    {classes.map((c: any) => (
+                      <SelectItem key={c._id} value={c.name}>
+                        {c.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right">Jenis Tagihan</Label>
+                <Select
+                  value={formData.type}
+                  onValueChange={(v) => setFormData({ ...formData, type: v })}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="SPP">SPP Bulanan</SelectItem>
+                    <SelectItem value="Gedung">Uang Gedung</SelectItem>
+                    <SelectItem value="Seragam">Seragam</SelectItem>
+                    <SelectItem value="Lainnya">Lainnya</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label className="text-right">Nominal (Rp)</Label>
                 <div className="col-span-3 relative">
@@ -229,7 +283,7 @@ const FinanceDashboard = () => {
             </div>
             <DialogFooter>
               <Button onClick={handleGenerate} disabled={submitting}>
-                {submitting ? "Memproses..." : "Generate"}
+                {submitting ? "Memproses..." : "Generate & Kirim"}
               </Button>
             </DialogFooter>
           </DialogContent>

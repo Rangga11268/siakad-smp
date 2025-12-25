@@ -25,7 +25,9 @@ exports.getDashboardStats = async (req, res) => {
       { $group: { _id: null, avg: { $avg: "$score" } } },
     ]);
     const averageGrade =
-      averageGradeData.length > 0 ? averageGradeData[0].avg.toFixed(1) : 0;
+      averageGradeData.length > 0 && averageGradeData[0].avg !== null
+        ? averageGradeData[0].avg.toFixed(1)
+        : 0;
 
     res.json({
       studentCount,
@@ -34,11 +36,9 @@ exports.getDashboardStats = async (req, res) => {
       averageGrade,
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: "Gagal ambil statistik dashboard",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Gagal ambil statistik dashboard",
+      error: error.message,
+    });
   }
 };

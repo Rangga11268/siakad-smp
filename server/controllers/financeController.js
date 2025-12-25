@@ -2,30 +2,60 @@ const Billing = require("../models/Billing");
 const User = require("../models/User");
 
 // Buat Tagihan Massal (Contoh: SPP Bulanan)
+// Buat Tagihan Massal (Contoh: SPP Bulanan)
 exports.generateMonthlyBilling = async (req, res) => {
   try {
-    const { title, amount, dueDate, month, year } = req.body;
+    const { title, amount, dueDate, type, targetClass } = req.body;
 
-    // Ambil semua siswa aktif
-    const students = await User.find({ role: "student", isActive: true });
+    let query = { role: "student", isActive: true };
+    if (targetClass) {
+      query["profile.class"] = targetClass;
+    }
+
+    // Ambil siswa sesuai filter
+    const students = await User.find(query);
 
     if (!students.length)
-      return res.status(400).json({ message: "Tidak ada siswa aktif" });
+      return res
+        .status(400)
+        .json({ message: "Tidak ada siswa yang sesuai kriteria" });
 
-    const billings = students.map((student) => ({
-      student: student._id,
-      title: `${title} - ${student.username}`,
-      amount,
-      type: "SPP",
-      dueDate,
-      status: "unpaid",
-    }));
+    const billings = [];
+    let skipped = 0;
 
-    await Billing.insertMany(billings);
+    for (const student of students) {
+      const billTitle = `${title} - ${student.username}`;
 
-    res
-      .status(201)
-      .json({ message: `Berhasil membuat ${billings.length} tagihan` });
+      // Cek duplikasi (optional but good)
+      const exists = await Billing.findOne({
+        student: student._id,
+        title: billTitle,
+        status: { $ne: "cancelled" },
+      });
+
+      if (!exists) {
+        billings.push({
+          student: student._id,
+          title: billTitle,
+          amount,
+          type: type || "SPP",
+          dueDate,
+          status: "unpaid",
+        });
+      } else {
+        skipped++;
+      }
+    }
+
+    if (billings.length > 0) {
+      await Billing.insertMany(billings);
+    }
+
+    res.status(201).json({
+      message: `Berhasil membuat ${billings.length} tagihan. ${skipped} dilewati (duplikat).`,
+      generated: billings.length,
+      skipped,
+    });
   } catch (error) {
     res
       .status(500)

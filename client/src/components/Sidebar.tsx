@@ -34,6 +34,12 @@ const Sidebar = () => {
       roles: ["admin"],
     },
     {
+      title: "PPDB (Admin)",
+      icon: Users,
+      path: "/dashboard/ppdb",
+      roles: ["admin"],
+    },
+    {
       title: "Akademik (Admin)",
       icon: BookOpen,
       path: "/dashboard/academic/subjects",

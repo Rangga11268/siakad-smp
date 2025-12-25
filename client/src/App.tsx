@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 import LoginPage from "@/pages/LoginPage";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import DashboardPage from "@/pages/DashboardPage";
@@ -13,6 +13,9 @@ import UksDashboard from "@/pages/uks/UksDashboard";
 import LibraryDashboard from "@/pages/library/LibraryDashboard";
 import LearningGoalPage from "@/pages/academic/LearningGoalPage";
 import ReportCardPage from "@/pages/academic/ReportCardPage";
+import PPDBRegisterPage from "@/pages/public/PPDBRegisterPage";
+import PPDBStatusPage from "./pages/public/PPDBStatusPage";
+import PPDBAdminPage from "@/pages/admin/PPDBAdminPage";
 
 import FinanceDashboard from "@/pages/finance/FinanceDashboard";
 import AssetDashboard from "@/pages/assets/AssetDashboard";
@@ -26,6 +29,10 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
 
+        {/* Public PPDB Routes */}
+        <Route path="/ppdb/register" element={<PPDBRegisterPage />} />
+        <Route path="/ppdb/status" element={<PPDBStatusPage />} />
+
         {/* Protected Routes */}
         <Route path="/dashboard" element={<DashboardLayout />}>
           <Route index element={<DashboardPage />} />
@@ -34,6 +41,7 @@ function App() {
           <Route path="academic/subjects" element={<MasterSubjectPage />} />
           <Route path="academic/classes" element={<MasterClassPage />} />
           <Route path="academic/students" element={<MasterStudentPage />} />
+          <Route path="ppdb" element={<PPDBAdminPage />} />
           <Route
             path="academic/learning-goals"
             element={<LearningGoalPage />}
