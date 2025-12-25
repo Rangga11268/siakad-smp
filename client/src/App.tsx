@@ -4,6 +4,7 @@ import DashboardLayout from "@/layouts/DashboardLayout";
 import DashboardPage from "@/pages/DashboardPage";
 import MasterSubjectPage from "@/pages/admin/MasterSubjectPage";
 import MasterClassPage from "@/pages/admin/MasterClassPage";
+import MasterStudentPage from "@/pages/admin/MasterStudentPage";
 import InputGradePage from "@/pages/academic/InputGradePage";
 import P5Dashboard from "@/pages/p5/P5Dashboard";
 import P5AssessmentPage from "@/pages/p5/P5AssessmentPage";
@@ -28,6 +29,7 @@ function App() {
         {/* Admin Routes */}
         <Route path="academic/subjects" element={<MasterSubjectPage />} />
         <Route path="academic/classes" element={<MasterClassPage />} />
+        <Route path="academic/students" element={<MasterStudentPage />} />
 
         <Route path="p5" element={<P5Dashboard />} />
         <Route path="p5/:projectId" element={<P5AssessmentPage />} />

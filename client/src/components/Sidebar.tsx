@@ -28,6 +28,12 @@ const Sidebar = () => {
       roles: ["admin", "teacher", "student", "parent"],
     },
     {
+      title: "Data Siswa",
+      icon: Users,
+      path: "/dashboard/academic/students",
+      roles: ["admin"],
+    },
+    {
       title: "Akademik (Admin)",
       icon: BookOpen,
       path: "/dashboard/academic/subjects",

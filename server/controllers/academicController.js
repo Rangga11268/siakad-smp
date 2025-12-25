@@ -71,14 +71,62 @@ exports.getStudentsByLevel = async (req, res) => {
       }
     });
 
-    // Remove duplicates if any (though students should be unique to a class)
-    // const uniqueStudents = Array.from(new Set(allStudents.map(s => s._id))).map(id => allStudents.find(s => s._id === id));
-
     res.json(allStudents);
   } catch (error) {
     res
       .status(500)
       .json({ message: "Gagal ambil siswa per level", error: error.message });
+  }
+};
+
+// --- Master Data Siswa ---
+const User = require("../models/User");
+const bcrypt = require("bcryptjs");
+
+exports.getAllStudents = async (req, res) => {
+  try {
+    const students = await User.find({ role: "student" }).select("-password");
+    res.json(students);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal ambil data siswa", error: error.message });
+  }
+};
+
+exports.createStudent = async (req, res) => {
+  try {
+    const { username, password, fullName, nisn, gender, level, className } =
+      req.body;
+
+    const existing = await User.findOne({ username });
+    if (existing)
+      return res.status(400).json({ message: "Username sudah dipakai" });
+
+    const hashedPassword = await bcrypt.hash(password || "123456", 10);
+
+    const newStudent = new User({
+      username,
+      email: `${username}@sekolah.id`, // Dummy email generator
+      password: hashedPassword,
+      role: "student",
+      consentGiven: true,
+      consentDate: new Date(),
+      profile: {
+        fullName,
+        nisn,
+        gender,
+        level,
+        class: className,
+      },
+    });
+
+    await newStudent.save();
+    res.status(201).json(newStudent);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal tambah siswa", error: error.message });
   }
 };
 

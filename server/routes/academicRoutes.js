@@ -12,6 +12,20 @@ router.post(
 );
 router.get("/subject", auth, academicController.getSubjects);
 
+// Master Siswa
+router.post(
+  "/students",
+  auth,
+  checkRole(["admin"]),
+  academicController.createStudent
+);
+router.get(
+  "/students",
+  auth,
+  checkRole(["admin", "teacher"]),
+  academicController.getAllStudents
+);
+
 router.post(
   "/class",
   auth,
