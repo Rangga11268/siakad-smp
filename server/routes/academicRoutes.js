@@ -12,6 +12,15 @@ router.post(
 );
 router.get("/subject", auth, academicController.getSubjects);
 
+// Academic Year
+router.post(
+  "/years",
+  auth,
+  checkRole(["admin"]),
+  academicController.createAcademicYear
+);
+router.get("/years", auth, academicController.getAcademicYears);
+
 // Master Siswa
 router.post(
   "/students",
@@ -24,6 +33,20 @@ router.get(
   auth,
   checkRole(["admin", "teacher"]),
   academicController.getAllStudents
+);
+
+router.get(
+  "/students/:id",
+  auth,
+  checkRole(["admin", "teacher"]),
+  academicController.getStudentById
+);
+
+router.put(
+  "/students/:id",
+  auth,
+  checkRole(["admin"]),
+  academicController.updateStudent
 );
 
 router.post(

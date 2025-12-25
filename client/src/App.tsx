@@ -11,6 +11,7 @@ import P5AssessmentPage from "@/pages/p5/P5AssessmentPage";
 import StudentAffairsDashboard from "@/pages/student-affairs/StudentAffairsDashboard";
 import UksDashboard from "@/pages/uks/UksDashboard";
 import LibraryDashboard from "@/pages/library/LibraryDashboard";
+import LearningGoalPage from "@/pages/academic/LearningGoalPage";
 
 import FinanceDashboard from "@/pages/finance/FinanceDashboard";
 import AssetDashboard from "@/pages/assets/AssetDashboard";
@@ -32,6 +33,10 @@ function App() {
           <Route path="academic/subjects" element={<MasterSubjectPage />} />
           <Route path="academic/classes" element={<MasterClassPage />} />
           <Route path="academic/students" element={<MasterStudentPage />} />
+          <Route
+            path="academic/learning-goals"
+            element={<LearningGoalPage />}
+          />
 
           <Route path="p5" element={<P5Dashboard />} />
           <Route path="p5/:projectId" element={<P5AssessmentPage />} />

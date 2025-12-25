@@ -17,6 +17,34 @@ exports.createSubject = async (req, res) => {
   }
 };
 
+const AcademicYear = require("../models/AcademicYear");
+
+// --- Master Data (Mapel & Kelas) ---
+
+// Academic Year
+exports.createAcademicYear = async (req, res) => {
+  try {
+    const newYear = new AcademicYear(req.body);
+    await newYear.save();
+    res.status(201).json(newYear);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal buat tahun ajaran", error: error.message });
+  }
+};
+
+exports.getAcademicYears = async (req, res) => {
+  try {
+    const years = await AcademicYear.find().sort({ startDate: -1 });
+    res.json(years);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal ambil tahun ajaran", error: error.message });
+  }
+};
+
 exports.getSubjects = async (req, res) => {
   try {
     const subjects = await Subject.find();
@@ -96,8 +124,20 @@ exports.getAllStudents = async (req, res) => {
 
 exports.createStudent = async (req, res) => {
   try {
-    const { username, password, fullName, nisn, gender, level, className } =
-      req.body;
+    const {
+      username,
+      password,
+      fullName,
+      nisn,
+      gender,
+      level,
+      className,
+      birthPlace,
+      birthDate,
+      address,
+      physical,
+      family,
+    } = req.body;
 
     const existing = await User.findOne({ username });
     if (existing)
@@ -118,6 +158,11 @@ exports.createStudent = async (req, res) => {
         gender,
         level,
         class: className,
+        birthPlace,
+        birthDate,
+        address,
+        physical,
+        family,
       },
     });
 
@@ -127,6 +172,65 @@ exports.createStudent = async (req, res) => {
     res
       .status(500)
       .json({ message: "Gagal tambah siswa", error: error.message });
+  }
+};
+
+exports.getStudentById = async (req, res) => {
+  try {
+    const student = await User.findById(req.params.id).select("-password");
+    if (!student)
+      return res.status(404).json({ message: "Siswa tidak ditemukan" });
+    res.json(student);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal ambil detail siswa", error: error.message });
+  }
+};
+
+exports.updateStudent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      fullName,
+      nisn,
+      gender,
+      level,
+      className,
+      birthPlace,
+      birthDate,
+      address,
+      physical,
+      family,
+      mutations,
+    } = req.body;
+
+    const student = await User.findById(id);
+    if (!student)
+      return res.status(404).json({ message: "Siswa tidak ditemukan" });
+
+    // Update Profile Fields Deeply
+    student.profile.fullName = fullName || student.profile.fullName;
+    student.profile.nisn = nisn || student.profile.nisn;
+    student.profile.gender = gender || student.profile.gender;
+    student.profile.level = level || student.profile.level;
+    student.profile.class = className || student.profile.class;
+    student.profile.birthPlace = birthPlace || student.profile.birthPlace;
+    student.profile.birthDate = birthDate || student.profile.birthDate;
+    student.profile.address = address || student.profile.address;
+
+    if (physical)
+      student.profile.physical = { ...student.profile.physical, ...physical };
+    if (family)
+      student.profile.family = { ...student.profile.family, ...family };
+    if (mutations) student.profile.mutations = mutations;
+
+    await student.save();
+    res.json(student);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal update siswa", error: error.message });
   }
 };
 

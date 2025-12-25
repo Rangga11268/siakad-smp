@@ -40,6 +40,12 @@ const Sidebar = () => {
       roles: ["admin"],
     },
     {
+      title: "Tujuan Pembelajaran",
+      icon: BookOpen,
+      path: "/dashboard/academic/learning-goals",
+      roles: ["admin", "teacher"],
+    },
+    {
       title: "Akademik (Guru)",
       icon: BookOpen,
       path: "/dashboard/academic/grades",

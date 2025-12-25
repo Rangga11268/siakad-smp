@@ -28,6 +28,35 @@ const userSchema = new mongoose.Schema(
       birthPlace: String,
       birthDate: Date,
       avatar: String, // URL
+
+      // Data Fisik & Kesehatan
+      physical: {
+        height: Number, // cm
+        weight: Number, // kg
+        headCircumference: Number, // cm
+        bloodType: String,
+      },
+
+      // Data Keluarga & Sosio-Ekonomi
+      family: {
+        fatherName: String,
+        motherName: String,
+        guardianName: String,
+        parentJob: String, // PNS, Wiraswasta, Buruh, dll
+        parentIncome: String, // Range: < 1 Juta, 1-3 Juta, dll
+        kipStatus: { type: Boolean, default: false },
+        kipNumber: String,
+      },
+
+      // Riwayat Mutasi
+      mutations: [
+        {
+          type: { type: String, enum: ["Masuk", "Keluar", "Pindah", "Lulus"] },
+          date: Date,
+          reason: String,
+          schoolName: String, // Asal atau Tujuan
+        },
+      ],
     },
 
     // Parent specific relations
