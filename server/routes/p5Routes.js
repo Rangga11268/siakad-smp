@@ -11,4 +11,18 @@ router.post(
 );
 router.get("/", auth, p5Controller.getProjects);
 
+// Assessment Routes
+router.post(
+  "/assess",
+  auth,
+  checkRole(["admin", "teacher"]),
+  p5Controller.inputAssessment
+);
+router.get(
+  "/assess/:projectId",
+  auth,
+  checkRole(["admin", "teacher"]),
+  p5Controller.getProjectAssessments
+);
+
 module.exports = router;

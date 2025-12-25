@@ -52,8 +52,42 @@ exports.getProjects = async (req, res) => {
   }
 };
 
-// Penilaian P5 (Sementara di-handle via update project atau schema terpisah,
-// ini contoh update simple untuk logic penilaian nanti bisa dikembangkan lebih detail per siswa)
-// Catatan: Biasanya nilai P5 melekat ke Siswa, schema saat ini masih di ProjectP5.
-// Kita asumsikan untuk penilaian siswa akan dibuat collection terpisah atau di-embed jika tidak banyak.
-// Untuk MVP, kita lewati dulu detail penilaian per individu sampai ada request spesifik UI-nya.
+// Penilaian P5
+const ProjectAssessment = require("../models/ProjectAssessment");
+
+exports.inputAssessment = async (req, res) => {
+  try {
+    const { projectId, studentId, scores, finalNotes, facilitatorId } =
+      req.body;
+
+    const assessment = await ProjectAssessment.findOneAndUpdate(
+      { project: projectId, student: studentId },
+      {
+        facilitator: facilitatorId || req.user.userId,
+        scores,
+        finalNotes,
+      },
+      { new: true, upsert: true } // Create if not exists
+    );
+
+    res.json(assessment);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal simpan penilaian P5", error: error.message });
+  }
+};
+
+exports.getProjectAssessments = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const assessments = await ProjectAssessment.find({
+      project: projectId,
+    }).populate("student", "username profile.fullName profile.nisn");
+    res.json(assessments);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal ambil penilaian P5", error: error.message });
+  }
+};

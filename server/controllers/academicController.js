@@ -53,6 +53,35 @@ exports.getClasses = async (req, res) => {
   }
 };
 
+// Ambil Siswa berdasarkan Level (untuk P5)
+exports.getStudentsByLevel = async (req, res) => {
+  try {
+    const { level } = req.params;
+    // Cari semua kelas di level ini
+    const classes = await Class.find({ level }).populate(
+      "students",
+      "username profile.fullName profile.nisn"
+    );
+
+    // Gabungkan semua siswa
+    let allStudents = [];
+    classes.forEach((cls) => {
+      if (cls.students) {
+        allStudents = [...allStudents, ...cls.students];
+      }
+    });
+
+    // Remove duplicates if any (though students should be unique to a class)
+    // const uniqueStudents = Array.from(new Set(allStudents.map(s => s._id))).map(id => allStudents.find(s => s._id === id));
+
+    res.json(allStudents);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal ambil siswa per level", error: error.message });
+  }
+};
+
 // --- Tujuan Pembelajaran (TP) ---
 
 // Buat TP baru

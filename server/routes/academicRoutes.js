@@ -29,6 +29,13 @@ router.post(
 );
 router.get("/tp", auth, academicController.getLearningGoals);
 
+// Grade Management
+router.get(
+  "/students/level/:level",
+  auth,
+  academicController.getStudentsByLevel
+);
+
 // Assessment Management
 router.post(
   "/assessment",
