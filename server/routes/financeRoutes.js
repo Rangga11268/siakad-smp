@@ -11,6 +11,12 @@ router.post(
   financeController.generateMonthlyBilling
 );
 router.post("/pay", auth, checkRole(["admin"]), financeController.payBilling);
+router.get(
+  "/all",
+  auth,
+  checkRole(["admin"]),
+  financeController.getAllBillings
+);
 
 // Siswa/Ortu
 router.get("/my-billings", auth, financeController.getMyBillings);

@@ -72,3 +72,27 @@ exports.getMyBillings = async (req, res) => {
       .json({ message: "Gagal ambil tagihan", error: error.message });
   }
 };
+
+// Ambil Semua Tagihan (Admin)
+exports.getAllBillings = async (req, res) => {
+  try {
+    const { status, type, studentId } = req.query;
+    let query = {};
+    if (status) query.status = status;
+    if (type) query.type = type;
+    if (studentId) query.student = studentId;
+
+    const billings = await Billing.find(query)
+      .populate(
+        "student",
+        "username profile.fullName profile.nisn profile.class"
+      )
+      .sort({ createdAt: -1 });
+
+    res.json(billings);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal ambil semua tagihan", error: error.message });
+  }
+};
