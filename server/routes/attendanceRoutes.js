@@ -30,4 +30,12 @@ router.post(
   attendanceController.recordSelfAttendance
 );
 
+// Absen Mapel
+router.post(
+  "/subject",
+  auth,
+  // checkRole(["student", "teacher"]), // Both can trigger
+  attendanceController.recordSubjectAttendance
+);
+
 module.exports = router;

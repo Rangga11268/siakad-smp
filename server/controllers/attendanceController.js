@@ -135,3 +135,49 @@ exports.recordSelfAttendance = async (req, res) => {
       .json({ message: "Gagal absen mandiri", error: error.message });
   }
 };
+// Absen Mapel (Siswa/Guru)
+exports.recordSubjectAttendance = async (req, res) => {
+  try {
+    const studentId = req.user.id;
+    const { scheduleId, status, note, date } = req.body; // status defaults to Present if self-absen
+
+    const today = date ? new Date(date) : new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const schedule = await mongoose.model("Schedule").findById(scheduleId);
+    if (!schedule)
+      return res.status(404).json({ message: "Jadwal tidak ditemukan" });
+
+    // Cek Duplikasi per Mapel & Hari
+    const existing = await Attendance.findOne({
+      student: studentId,
+      schedule: scheduleId,
+      date: today,
+    });
+
+    if (existing) {
+      return res
+        .status(400)
+        .json({ message: "Sudah absen untuk mapel ini hari ini." });
+    }
+
+    const newAttendance = new Attendance({
+      student: studentId,
+      class: schedule.class,
+      subject: schedule.subject,
+      schedule: schedule._id,
+      date: today,
+      status: status || "Present",
+      note: note || "Absen Mapel",
+      recordedBy: req.user.id,
+      academicYear: schedule.academicYear,
+    });
+
+    await newAttendance.save();
+    res.json({ message: "Berhasil absen mapel", attendance: newAttendance });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal absen mapel", error: error.message });
+  }
+};

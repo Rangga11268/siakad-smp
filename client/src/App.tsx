@@ -11,7 +11,7 @@ import P5AssessmentPage from "@/pages/p5/P5AssessmentPage";
 import P5ReportPage from "@/pages/p5/P5ReportPage";
 import StudentAffairsDashboard from "@/pages/student-affairs/StudentAffairsDashboard";
 import BKLetterPage from "@/pages/student-affairs/BKLetterPage";
-import ParentDashboard from "@/pages/parent/ParentDashboard";
+// import ParentDashboard from "@/pages/parent/ParentDashboard";
 import UksDashboard from "@/pages/uks/UksDashboard";
 import LibraryDashboard from "@/pages/library/LibraryDashboard";
 import LearningGoalPage from "@/pages/academic/LearningGoalPage";
@@ -21,6 +21,8 @@ import ReportCardPage from "@/pages/academic/ReportCardPage";
 import PPDBRegisterPage from "@/pages/public/PPDBRegisterPage";
 import PPDBStatusPage from "./pages/public/PPDBStatusPage";
 import PPDBAdminPage from "@/pages/admin/PPDBAdminPage";
+import SchedulePage from "@/pages/academic/SchedulePage";
+import StudentAttendancePage from "@/pages/student/StudentAttendancePage";
 
 import FinanceDashboard from "@/pages/finance/FinanceDashboard";
 import AssetDashboard from "@/pages/assets/AssetDashboard";
@@ -55,6 +57,13 @@ function App() {
             element={<LearningGoalPage />}
           />
           <Route path="academic/report" element={<ReportCardPage />} />
+          <Route path="academic/schedule" element={<SchedulePage />} />
+
+          {/* Student Routes */}
+          <Route
+            path="student/attendance"
+            element={<StudentAttendancePage />}
+          />
 
           <Route path="p5" element={<P5Dashboard />} />
           <Route path="p5/:projectId" element={<P5AssessmentPage />} />
