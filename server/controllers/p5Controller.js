@@ -40,7 +40,14 @@ exports.createProject = async (req, res) => {
 exports.getProjects = async (req, res) => {
   try {
     const { level, academicYear } = req.query;
-    const projects = await ProjectP5.find({ level, academicYear }).populate(
+
+    let query = {};
+    if (academicYear) query.academicYear = academicYear;
+    if (level) query.level = level;
+
+    console.log("Fetching P5 Projects with query:", query);
+
+    const projects = await ProjectP5.find(query).populate(
       "facilitators",
       "username profile.fullName"
     );

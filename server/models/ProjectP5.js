@@ -7,9 +7,9 @@ const projectP5Schema = new mongoose.Schema(
     description: String,
 
     academicYear: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "AcademicYear",
+      type: String, // Changed from ObjectId to String for flexibility
       required: true,
+      default: "2024/2025",
     },
     level: { type: Number, required: true }, // 7, 8, 9
 

@@ -29,6 +29,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useToast } from "@/components/ui/use-toast";
 
 // Interface for Project P5
 interface ProjectP5 {
@@ -63,7 +64,12 @@ const P5Dashboard = () => {
 
   const fetchProjects = async () => {
     try {
-      const res = await api.get("/p5");
+      const res = await api.get("/p5", {
+        params: {
+          academicYear: "2024/2025",
+          // level: formData.level // Optional: if we want to filter by Tab later
+        },
+      });
       setProjects(res.data);
     } catch (error) {
       console.error("Gagal load project P5", error);
@@ -72,7 +78,18 @@ const P5Dashboard = () => {
     }
   };
 
+  const { toast } = useToast();
+
   const handleCreate = async () => {
+    if (!formData.title || !formData.theme) {
+      toast({
+        variant: "destructive",
+        title: "Data Tidak Lengkap",
+        description: "Judul dan Tema wajib diisi.",
+      });
+      return;
+    }
+
     setSubmitting(true);
     try {
       // Hardcoded target for MVP
@@ -93,14 +110,22 @@ const P5Dashboard = () => {
         ...formData,
         level: parseInt(formData.level),
         targets: defaultTargets, // Default targets for testing
-        academicYear: "64e0e0e0e0e0e0e0e0e0e0e0", // Dummy ObjectId
+        academicYear: "2024/2025", // Now sending String
       });
       setOpenDialog(false);
       setFormData({ ...formData, title: "", theme: "", description: "" });
       fetchProjects();
+      toast({
+        title: "Berhasil!",
+        description: "Projek P5 berhasil dibuat.",
+      });
     } catch (error) {
       console.error("Gagal buat project", error);
-      alert("Gagal membuat projek");
+      toast({
+        variant: "destructive",
+        title: "Gagal Membuat Projek",
+        description: "Terjadi kesalahan sistem. Cek koneksi server.",
+      });
     } finally {
       setSubmitting(false);
     }

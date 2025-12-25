@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/select";
 import { Plus, Search, Trash2, Loader2 } from "lucide-react";
 import api from "@/services/api";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Subject {
   _id: string;
@@ -50,8 +51,10 @@ const MasterSubjectPage = () => {
     code: "",
     name: "",
     level: "7",
-    kktpType: "Interval",
+    kktpType: "interval",
   });
+
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchSubjects();
@@ -63,12 +66,26 @@ const MasterSubjectPage = () => {
       setSubjects(res.data);
     } catch (error) {
       console.error("Gagal ambil mapel", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Gagal memuat data mata pelajaran.",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const handleCreate = async () => {
+    if (!formData.code || !formData.name) {
+      toast({
+        variant: "destructive",
+        title: "Validasi Gagal",
+        description: "Kode dan Nama Mapel wajib diisi.",
+      });
+      return;
+    }
+
     setSubmitting(true);
     try {
       await api.post("/academic/subject", {
@@ -76,11 +93,20 @@ const MasterSubjectPage = () => {
         level: parseInt(formData.level),
       });
       setOpenDialog(false);
-      setFormData({ code: "", name: "", level: "7", kktpType: "Interval" }); // Reset
+      setFormData({ code: "", name: "", level: "7", kktpType: "interval" }); // Reset
       fetchSubjects(); // Refresh
+      toast({
+        title: "Berhasil!",
+        description: "Mata pelajaran berhasil ditambahkan.",
+      });
     } catch (error) {
       console.error("Gagal simpan mapel", error);
-      alert("Gagal menyimpan data mata pelajaran");
+      toast({
+        variant: "destructive",
+        title: "Gagal Simpan",
+        description:
+          "Terjadi kesalahan saat menyimpan mapel. Cek koneksi atau data duplikat.",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -183,8 +209,8 @@ const MasterSubjectPage = () => {
                     <SelectValue placeholder="Pilih Jenis KKTP" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Interval">Interval Nilai</SelectItem>
-                    <SelectItem value="Rubrik">Rubrik (Deskripsi)</SelectItem>
+                    <SelectItem value="interval">Interval Nilai</SelectItem>
+                    <SelectItem value="rubric">Rubrik (Deskripsi)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
