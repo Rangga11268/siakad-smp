@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/components/ui/use-toast";
 
 interface Student {
   _id: string;
@@ -60,12 +61,18 @@ const MasterStudentPage = () => {
     className: "7A",
   });
 
+  const { toast } = useToast();
+
   const fetchStudents = async () => {
     try {
       const { data } = await api.get("/academic/students");
       setStudents(data);
     } catch (error) {
-      console.error("Gagal ambil siswa:", error);
+      toast({
+        variant: "destructive",
+        title: "Gagal memuat data",
+        description: "Tidak dapat mengambil daftar siswa terbaru.",
+      });
     } finally {
       setLoading(false);
     }
@@ -90,8 +97,16 @@ const MasterStudentPage = () => {
         level: "7",
         className: "7A",
       });
+      toast({
+        title: "Berhasil!",
+        description: "Data siswa baru telah ditambahkan.",
+      });
     } catch (error) {
-      alert("Gagal tambah siswa. Pastikan username/NISN unik.");
+      toast({
+        variant: "destructive",
+        title: "Gagal tambah siswa",
+        description: "Username/NISN mungkin sudah terdaftar.",
+      });
     } finally {
       setSubmitLoading(false);
     }
