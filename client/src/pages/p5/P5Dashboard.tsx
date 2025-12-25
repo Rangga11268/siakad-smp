@@ -11,6 +11,24 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Calendar, User, Loader2 } from "lucide-react";
 import api from "@/services/api";
 import { useNavigate } from "react-router-dom";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Interface for Project P5
 interface ProjectP5 {
@@ -27,21 +45,66 @@ const P5Dashboard = () => {
   const [projects, setProjects] = useState<ProjectP5[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const [openDialog, setOpenDialog] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Form
+  const [formData, setFormData] = useState({
+    title: "",
+    theme: "",
+    description: "",
+    level: "7",
+    academicYear: "671234567890abcdef123456", // Hardcoded active AY ID for now or fetch
+  });
 
   useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        // Fetch all projects for now (or filter by teacher's level)
-        const res = await api.get("/p5");
-        setProjects(res.data);
-      } catch (error) {
-        console.error("Gagal load project P5", error);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchProjects();
   }, []);
+
+  const fetchProjects = async () => {
+    try {
+      const res = await api.get("/p5");
+      setProjects(res.data);
+    } catch (error) {
+      console.error("Gagal load project P5", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreate = async () => {
+    setSubmitting(true);
+    try {
+      // Hardcoded target for MVP
+      const defaultTargets = [
+        {
+          dimension: "Beriman, Bertakwa",
+          element: "Akhlak Pribadi",
+          subElement: "Integritas",
+        },
+        {
+          dimension: "Gotong Royong",
+          element: "Kolaborasi",
+          subElement: "Kerjasama",
+        },
+      ];
+
+      await api.post("/p5", {
+        ...formData,
+        level: parseInt(formData.level),
+        targets: defaultTargets, // Default targets for testing
+        academicYear: "64e0e0e0e0e0e0e0e0e0e0e0", // Dummy ObjectId
+      });
+      setOpenDialog(false);
+      setFormData({ ...formData, title: "", theme: "", description: "" });
+      fetchProjects();
+    } catch (error) {
+      console.error("Gagal buat project", error);
+      alert("Gagal membuat projek");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -54,9 +117,116 @@ const P5Dashboard = () => {
             Kelola projek, tema, dan penilaian siswa.
           </p>
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700">
-          <Plus className="mr-2 h-4 w-4" /> Buat Projek Baru
-        </Button>
+
+        <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+          <DialogTrigger asChild>
+            <Button className="bg-blue-600 hover:bg-blue-700">
+              <Plus className="mr-2 h-4 w-4" /> Buat Projek Baru
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Buat Projek P5 Baru</DialogTitle>
+              <DialogDescription>
+                Tentukan tema dan deskripsi projek untuk tahun ajaran ini.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="title" className="text-right">
+                  Judul
+                </Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) =>
+                    setFormData({ ...formData, title: e.target.value })
+                  }
+                  className="col-span-3"
+                  placeholder="Contoh: Suara Demokrasi"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="theme" className="text-right">
+                  Tema
+                </Label>
+                <Select
+                  value={formData.theme}
+                  onValueChange={(v) => setFormData({ ...formData, theme: v })}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Pilih Tema" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Gaya Hidup Berkelanjutan">
+                      Gaya Hidup Berkelanjutan
+                    </SelectItem>
+                    <SelectItem value="Kearifan Lokal">
+                      Kearifan Lokal
+                    </SelectItem>
+                    <SelectItem value="Bhinneka Tunggal Ika">
+                      Bhinneka Tunggal Ika
+                    </SelectItem>
+                    <SelectItem value="Bangunlah Jiwa dan Raganya">
+                      Bangunlah Jiwa dan Raganya
+                    </SelectItem>
+                    <SelectItem value="Suara Demokrasi">
+                      Suara Demokrasi
+                    </SelectItem>
+                    <SelectItem value="Rekayasa dan Teknologi">
+                      Rekayasa dan Teknologi
+                    </SelectItem>
+                    <SelectItem value="Kewirausahaan">Kewirausahaan</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="level" className="text-right">
+                  Fase/Kelas
+                </Label>
+                <Select
+                  value={formData.level}
+                  onValueChange={(v) => setFormData({ ...formData, level: v })}
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Pilih Kelas" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="7">Kelas 7</SelectItem>
+                    <SelectItem value="8">Kelas 8</SelectItem>
+                    <SelectItem value="9">Kelas 9</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="desc" className="text-right">
+                  Deskripsi
+                </Label>
+                <Input
+                  id="desc"
+                  value={formData.description}
+                  onChange={(e) =>
+                    setFormData({ ...formData, description: e.target.value })
+                  }
+                  className="col-span-3"
+                  placeholder="Deskripsi singkat kegiatan..."
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                type="submit"
+                disabled={submitting}
+                onClick={handleCreate}
+              >
+                {submitting && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}{" "}
+                Simpan
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       {loading ? (

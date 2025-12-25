@@ -7,6 +7,7 @@ import MasterClassPage from "@/pages/admin/MasterClassPage";
 import InputGradePage from "@/pages/academic/InputGradePage";
 import P5Dashboard from "@/pages/p5/P5Dashboard";
 import P5AssessmentPage from "@/pages/p5/P5AssessmentPage";
+import StudentAffairsDashboard from "@/pages/student-affairs/StudentAffairsDashboard";
 
 function App() {
   return (
@@ -21,9 +22,11 @@ function App() {
         <Route path="academic/subjects" element={<MasterSubjectPage />} />
         <Route path="academic/classes" element={<MasterClassPage />} />
 
-        {/* P5 Routes */}
         <Route path="p5" element={<P5Dashboard />} />
         <Route path="p5/:projectId" element={<P5AssessmentPage />} />
+
+        {/* Student Affairs Routes */}
+        <Route path="student-affairs" element={<StudentAffairsDashboard />} />
 
         {/* Teacher Routes */}
         <Route path="academic/grades" element={<InputGradePage />} />

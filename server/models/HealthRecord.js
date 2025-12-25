@@ -7,21 +7,22 @@ const healthRecordSchema = new mongoose.Schema(
       ref: "User",
       required: true,
     },
-
+    academicYear: { type: mongoose.Schema.Types.ObjectId, ref: "AcademicYear" },
     date: { type: Date, default: Date.now },
 
-    // Fisik
+    // Anthropometry for Stunting Check
     height: Number, // cm
     weight: Number, // kg
-    bmi: Number, // Auto-calculated logic in controller
-    status: String, // "Normal", "Underweight", "Overweight", "Obese"
+    bmi: Number, // calculated backend/frontend
+    headCircumference: Number, // cm (Lingkar Kepala)
 
-    // Keluhan / Sakit
-    complaint: String, // "Pusing", "Demam"
-    diagnosis: String,
-    treatment: String, // "Obat Paracetamol", "Istirahat"
+    // Vision/Hearing
+    visionLeft: String, // Normal, Minus, Plus
+    visionRight: String,
+    hearing: String, // Normal, Gangguan
 
-    handledBy: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // Petugas UKS
+    dentalHealth: String, // Karies, Sehat
+    notes: String,
   },
   { timestamps: true }
 );

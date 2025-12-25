@@ -45,25 +45,12 @@ interface Student {
   profile?: { fullName: string; nisn: string };
 }
 
-interface Assessment {
-  student: string;
-  scores: {
-    targetId: string;
-    score: string;
-    notes: string;
-    dimension: string;
-    element: string;
-  }[];
-  finalNotes: string;
-}
-
 const P5AssessmentPage = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
   const [project, setProject] = useState<ProjectP5 | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
 
   // State to hold temporary scores for all students: { [studentId]: { [targetId]: score } }
   const [inputs, setInputs] = useState<Record<string, Record<string, string>>>(

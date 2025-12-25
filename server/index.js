@@ -23,7 +23,7 @@ mongoose
 const authRoutes = require("./routes/authRoutes");
 const academicRoutes = require("./routes/academicRoutes");
 const p5Routes = require("./routes/p5Routes");
-const bkRoutes = require("./routes/bkRoutes");
+const studentAffairsRoutes = require("./routes/studentAffairsRoutes");
 const assetRoutes = require("./routes/assetRoutes");
 const financeRoutes = require("./routes/financeRoutes");
 const uksRoutes = require("./routes/uksRoutes");
@@ -33,7 +33,7 @@ const libraryRoutes = require("./routes/libraryRoutes");
 app.use("/api/auth", authRoutes);
 app.use("/api/academic", academicRoutes);
 app.use("/api/p5", p5Routes);
-app.use("/api/bk", bkRoutes);
+app.use("/api/bk", studentAffairsRoutes);
 app.use("/api/assets", assetRoutes);
 app.use("/api/finance", financeRoutes);
 app.use("/api/uks", uksRoutes);
