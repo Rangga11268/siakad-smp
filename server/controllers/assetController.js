@@ -53,26 +53,16 @@ exports.updateAssetCondition = async (req, res) => {
   }
 };
 
-// List Aset by Lokasi
-exports.getAssetsByLocation = async (req, res) => {
+// List Aset (Bisa filter by location)
+exports.getAssets = async (req, res) => {
   try {
     const { location } = req.query;
-    const assets = await Asset.find({ location });
+    const filter = location ? { location } : {};
+    const assets = await Asset.find(filter).sort({ createdAt: -1 });
     res.json(assets);
   } catch (error) {
     res
       .status(500)
       .json({ message: "Gagal mengambil data aset", error: error.message });
-  }
-};
-// Ambil Semua Aset
-exports.getAllAssets = async (req, res) => {
-  try {
-    const assets = await Asset.find().sort({ createdAt: -1 });
-    res.json(assets);
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Gagal ambil semua aset", error: error.message });
   }
 };

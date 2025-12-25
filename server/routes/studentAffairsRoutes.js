@@ -26,4 +26,29 @@ router.post(
 );
 router.get("/achievements", auth, studentAffairsController.getAchievements);
 
+// Update Incident Status
+router.put(
+  "/incidents/:id",
+  auth,
+  checkRole(["admin", "teacher"]),
+  studentAffairsController.updateIncidentStatus
+);
+
+// Counseling
+router.post(
+  "/counseling",
+  auth,
+  checkRole(["admin", "teacher"]),
+  studentAffairsController.addCounselingSession
+);
+router.get("/counseling", auth, studentAffairsController.getCounselingSessions);
+
+// Stats & Alerts
+router.get(
+  "/stats/violations",
+  auth,
+  checkRole(["admin", "teacher"]),
+  studentAffairsController.getViolationStats
+);
+
 module.exports = router;

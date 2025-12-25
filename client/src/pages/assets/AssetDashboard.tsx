@@ -121,6 +121,46 @@ const AssetDashboard = () => {
     }
   };
 
+  // QR Code State
+  const [qrCodeData, setQrCodeData] = useState<{
+    code: string;
+    name: string;
+  } | null>(null);
+  const [openQrDialog, setOpenQrDialog] = useState(false);
+
+  const handleShowQr = (asset: any) => {
+    setQrCodeData({ code: asset.code, name: asset.name });
+    setOpenQrDialog(true);
+  };
+
+  const handlePrintQr = () => {
+    const printWindow = window.open("", "_blank");
+    if (printWindow && qrCodeData) {
+      printWindow.document.write(`
+        <html>
+          <head>
+            <title>QR Code - ${qrCodeData.name}</title>
+            <style>
+              body { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; font-family: sans-serif; }
+              img { width: 300px; height: 300px; }
+              .label { margin-top: 20px; font-size: 24px; font-weight: bold; }
+              .code { font-size: 18px; color: #555; }
+            </style>
+          </head>
+          <body>
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${qrCodeData.code}" />
+            <div class="label">${qrCodeData.name}</div>
+            <div class="code">${qrCodeData.code}</div>
+            <script>
+              window.onload = () => { window.print(); window.close(); }
+            </script>
+          </body>
+        </html>
+      `);
+      printWindow.document.close();
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -238,6 +278,40 @@ const AssetDashboard = () => {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* QR Dialog */}
+        <Dialog open={openQrDialog} onOpenChange={setOpenQrDialog}>
+          <DialogContent className="sm:max-w-sm">
+            <DialogHeader>
+              <DialogTitle>QR Code Aset</DialogTitle>
+              <DialogDescription>
+                Scan QR ini untuk melihat detail aset.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex flex-col items-center justify-center p-4">
+              {qrCodeData && (
+                <>
+                  <img
+                    src={`https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${qrCodeData.code}`}
+                    alt="QR Code"
+                    className="border rounded-lg shadow-sm"
+                  />
+                  <div className="mt-4 text-center">
+                    <p className="text-lg font-bold">{qrCodeData.name}</p>
+                    <p className="text-sm text-muted-foreground font-mono">
+                      {qrCodeData.code}
+                    </p>
+                  </div>
+                </>
+              )}
+            </div>
+            <DialogFooter className="sm:justify-center">
+              <Button onClick={handlePrintQr} className="w-full">
+                <Box className="mr-2 h-4 w-4" /> Cetak Label QR
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Card>
@@ -251,13 +325,14 @@ const AssetDashboard = () => {
                 <TableHead>Lokasi</TableHead>
                 <TableHead>Kondisi</TableHead>
                 <TableHead>Nilai Awal</TableHead>
+                <TableHead className="text-right">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {assets.length === 0 && (
                 <TableRow>
                   <TableCell
-                    colSpan={6}
+                    colSpan={7}
                     className="text-center text-muted-foreground"
                   >
                     Belum ada data aset.
@@ -290,6 +365,15 @@ const AssetDashboard = () => {
                     </Badge>
                   </TableCell>
                   <TableCell>{formatRupiah(asset.purchasePrice)}</TableCell>
+                  <TableCell className="text-right">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleShowQr(asset)}
+                    >
+                      <Box className="w-4 h-4 mr-1" /> QR
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

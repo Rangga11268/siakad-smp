@@ -10,6 +10,6 @@ router.patch(
   checkRole(["admin"]),
   assetController.updateAssetCondition
 );
-router.get("/", auth, assetController.getAssetsByLocation);
+router.get("/", auth, assetController.getAssets);
 
 module.exports = router;
