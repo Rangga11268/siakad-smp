@@ -126,3 +126,66 @@ exports.getAllBillings = async (req, res) => {
       .json({ message: "Gagal ambil semua tagihan", error: error.message });
   }
 };
+
+// Laporan Piutang (Aging Report)
+exports.getAgingReport = async (req, res) => {
+  try {
+    const today = new Date();
+
+    // Find all unpaid bills
+    const unpaidBills = await Billing.find({ status: "unpaid" }).populate(
+      "student",
+      "profile.fullName profile.class profile.phone"
+    );
+
+    // Group by Student
+    const studentDebt = {};
+
+    unpaidBills.forEach((bill) => {
+      const studentId = bill.student._id.toString();
+      if (!studentDebt[studentId]) {
+        studentDebt[studentId] = {
+          student: bill.student,
+          totalDebt: 0,
+          breakdown: {
+            current: 0, // < 30 days
+            medium: 0, // 30-60 days
+            bad: 0, // > 60 days
+          },
+          bills: [],
+        };
+      }
+
+      const diffTime = Math.abs(today - new Date(bill.dueDate));
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      const isOverdue = today > bill.dueDate;
+
+      studentDebt[studentId].totalDebt += bill.amount;
+      studentDebt[studentId].bills.push(bill);
+
+      if (!isOverdue) {
+        studentDebt[studentId].breakdown.current += bill.amount;
+      } else if (diffDays <= 30) {
+        studentDebt[studentId].breakdown.current += bill.amount;
+      } else if (diffDays <= 60) {
+        studentDebt[studentId].breakdown.medium += bill.amount;
+      } else {
+        studentDebt[studentId].breakdown.bad += bill.amount;
+      }
+    });
+
+    // Convert to Array
+    const report = Object.values(studentDebt).sort(
+      (a, b) => b.totalDebt - a.totalDebt
+    );
+
+    res.json(report);
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        message: "Gagal generate laporan piutang",
+        error: error.message,
+      });
+  }
+};

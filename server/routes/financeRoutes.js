@@ -17,6 +17,12 @@ router.get(
   checkRole(["admin"]),
   financeController.getAllBillings
 );
+router.get(
+  "/aging-report",
+  auth,
+  checkRole(["admin"]),
+  financeController.getAgingReport
+);
 
 // Siswa/Ortu
 router.get("/my-billings", auth, financeController.getMyBillings);

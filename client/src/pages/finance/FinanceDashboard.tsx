@@ -7,6 +7,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -41,6 +42,8 @@ import {
   Wallet,
   CheckCircle,
   XCircle,
+  Printer,
+  AlertOctagon,
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import api from "@/services/api";
@@ -48,12 +51,14 @@ import api from "@/services/api";
 const FinanceDashboard = () => {
   const [billings, setBillings] = useState([]);
   const [classes, setClasses] = useState([]);
+  const [agingReport, setAgingReport] = useState([]);
   const [loading, setLoading] = useState(true);
   const [openGenerate, setOpenGenerate] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   // Filter States
   const [statusFilter, setStatusFilter] = useState("all");
+  const [activeTab, setActiveTab] = useState("overview");
 
   // Stats
   const [stats, setStats] = useState({ total: 0, paid: 0, unpaid: 0 });
@@ -74,6 +79,12 @@ const FinanceDashboard = () => {
     fetchClasses();
   }, [statusFilter]);
 
+  useEffect(() => {
+    if (activeTab === "report") {
+      fetchAgingReport();
+    }
+  }, [activeTab]);
+
   const fetchClasses = async () => {
     try {
       const res = await api.get("/academic/class");
@@ -92,6 +103,18 @@ const FinanceDashboard = () => {
       calculateStats(res.data);
     } catch (error) {
       console.error("Gagal load tagihan", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchAgingReport = async () => {
+    setLoading(true);
+    try {
+      const res = await api.get("/finance/aging-report");
+      setAgingReport(res.data);
+    } catch (error) {
+      console.error("Gagal load laporan", error);
     } finally {
       setLoading(false);
     }
@@ -290,126 +313,218 @@ const FinanceDashboard = () => {
         </Dialog>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Tagihan (Filter)
-            </CardTitle>
-            <Wallet className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatRupiah(stats.total)}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-green-600">
-              Lunas / Masuk
-            </CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {formatRupiah(stats.paid)}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-red-600">
-              Belum Bayar
-            </CardTitle>
-            <XCircle className="h-4 w-4 text-red-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              {formatRupiah(stats.unpaid)}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <Tabs
+        defaultValue="overview"
+        onValueChange={setActiveTab}
+        className="space-y-4"
+      >
+        <TabsList>
+          <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="report">Laporan Piutang (Aging)</TabsTrigger>
+        </TabsList>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div className="flex gap-2">
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Semua Status</SelectItem>
-                  <SelectItem value="paid">Lunas</SelectItem>
-                  <SelectItem value="unpaid">Belum Lunas</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+        <TabsContent value="overview" className="space-y-4">
+          {/* Stats Cards */}
+          <div className="grid gap-4 md:grid-cols-3">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">
+                  Total Tagihan (Filter)
+                </CardTitle>
+                <Wallet className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {formatRupiah(stats.total)}
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-green-600">
+                  Lunas / Masuk
+                </CardTitle>
+                <CheckCircle className="h-4 w-4 text-green-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-green-600">
+                  {formatRupiah(stats.paid)}
+                </div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-red-600">
+                  Belum Bayar
+                </CardTitle>
+                <XCircle className="h-4 w-4 text-red-600" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-red-600">
+                  {formatRupiah(stats.unpaid)}
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Siswa</TableHead>
-                <TableHead>Tagihan</TableHead>
-                <TableHead>Nominal</TableHead>
-                <TableHead>Jatuh Tempo</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Aksi</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {billings.map((bill: any) => (
-                <TableRow key={bill._id}>
-                  <TableCell>
-                    <div className="font-medium">
-                      {bill.student?.profile?.fullName}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {bill.student?.profile?.nisn}
-                    </div>
-                  </TableCell>
-                  <TableCell>{bill.title}</TableCell>
-                  <TableCell>{formatRupiah(bill.amount)}</TableCell>
-                  <TableCell>
-                    {new Date(bill.dueDate).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        bill.status === "paid" ? "default" : "destructive"
-                      }
-                      className={bill.status === "paid" ? "bg-green-600" : ""}
-                    >
-                      {bill.status === "paid" ? "Lunas" : "Belum Bayar"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    {bill.status === "unpaid" && (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handlePay(bill._id, bill.status)}
+
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex gap-2">
+                  <Select value={statusFilter} onValueChange={setStatusFilter}>
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Semua Status</SelectItem>
+                      <SelectItem value="paid">Lunas</SelectItem>
+                      <SelectItem value="unpaid">Belum Lunas</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Siswa</TableHead>
+                    <TableHead>Tagihan</TableHead>
+                    <TableHead>Nominal</TableHead>
+                    <TableHead>Jatuh Tempo</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Aksi</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {billings.map((bill: any) => (
+                    <TableRow key={bill._id}>
+                      <TableCell>
+                        <div className="font-medium">
+                          {bill.student?.profile?.fullName}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          {bill.student?.profile?.nisn}
+                        </div>
+                      </TableCell>
+                      <TableCell>{bill.title}</TableCell>
+                      <TableCell>{formatRupiah(bill.amount)}</TableCell>
+                      <TableCell>
+                        {new Date(bill.dueDate).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          variant={
+                            bill.status === "paid" ? "default" : "destructive"
+                          }
+                          className={
+                            bill.status === "paid" ? "bg-green-600" : ""
+                          }
+                        >
+                          {bill.status === "paid" ? "Lunas" : "Belum Bayar"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {bill.status === "unpaid" && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handlePay(bill._id, bill.status)}
+                          >
+                            Verifikasi Bayar
+                          </Button>
+                        )}
+                        {bill.status === "paid" && (
+                          <span className="text-xs text-muted-foreground">
+                            {new Date(bill.paidDate).toLocaleDateString()}
+                          </span>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="report" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Laporan Piutang (Aging Report)</CardTitle>
+              <CardDescription>
+                Monitor tunggakan siswa berdasarkan lama keterlambatan.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Siswa</TableHead>
+                    <TableHead>Kelas</TableHead>
+                    <TableHead className="text-right">
+                      Total Tunggakan
+                    </TableHead>
+                    <TableHead className="text-right">
+                      Lancar (Current)
+                    </TableHead>
+                    <TableHead className="text-right text-orange-600">
+                      30-60 Hari
+                    </TableHead>
+                    <TableHead className="text-right text-red-600">
+                      &gt; 60 Hari (Macet)
+                    </TableHead>
+                    <TableHead>Aksi</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {agingReport.map((item: any) => (
+                    <TableRow key={item.student._id}>
+                      <TableCell className="font-medium">
+                        {item.student?.profile?.fullName}
+                      </TableCell>
+                      <TableCell>{item.student?.profile?.class}</TableCell>
+                      <TableCell className="text-right font-bold">
+                        {formatRupiah(item.totalDebt)}
+                      </TableCell>
+                      <TableCell className="text-right text-green-700">
+                        {formatRupiah(item.breakdown.current)}
+                      </TableCell>
+                      <TableCell className="text-right text-orange-600 font-medium">
+                        {formatRupiah(item.breakdown.medium)}
+                      </TableCell>
+                      <TableCell className="text-right text-red-600 font-bold">
+                        {item.breakdown.bad > 0 && (
+                          <div className="flex items-center justify-end gap-1">
+                            <AlertOctagon className="h-4 w-4" />
+                            {formatRupiah(item.breakdown.bad)}
+                          </div>
+                        )}
+                        {item.breakdown.bad === 0 && formatRupiah(0)}
+                      </TableCell>
+                      <TableCell>
+                        <Button size="sm" variant="outline">
+                          <Printer className="h-3 w-3 mr-2" /> Tagih
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {agingReport.length === 0 && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={7}
+                        className="text-center py-8 text-muted-foreground"
                       >
-                        Verifikasi Bayar
-                      </Button>
-                    )}
-                    {bill.status === "paid" && (
-                      <span className="text-xs text-muted-foreground">
-                        {new Date(bill.paidDate).toLocaleDateString()}
-                      </span>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+                        Tidak ada data piutang.
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
