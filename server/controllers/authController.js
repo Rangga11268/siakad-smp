@@ -37,6 +37,7 @@ exports.register = async (req, res) => {
 exports.login = async (req, res) => {
   try {
     const { username, password } = req.body;
+    console.log("Login Attempt:", username);
 
     // Cari user
     const user = await User.findOne({ username });

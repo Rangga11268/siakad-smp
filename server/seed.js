@@ -51,14 +51,13 @@ const seedUsers = async () => {
     ];
 
     for (const user of users) {
-      const exists = await User.findOne({ username: user.username });
-      if (!exists) {
-        const hashedPassword = await bcrypt.hash(user.password, 10);
-        await User.create({ ...user, password: hashedPassword });
-        console.log(`User ${user.username} created`);
-      } else {
-        console.log(`User ${user.username} already exists`);
-      }
+      const hashedPassword = await bcrypt.hash(user.password, 10);
+      await User.findOneAndUpdate(
+        { username: user.username },
+        { ...user, password: hashedPassword },
+        { upsert: true, new: true }
+      );
+      console.log(`User ${user.username} seeded/updated`);
     }
 
     console.log("Seeding Completed");
