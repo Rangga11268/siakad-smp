@@ -98,3 +98,37 @@ exports.getProjectAssessments = async (req, res) => {
       .json({ message: "Gagal ambil penilaian P5", error: error.message });
   }
 };
+
+// Ambil Data Rapor P5 (Project + Nilai Siswa)
+exports.getP5ReportData = async (req, res) => {
+  try {
+    const { projectId, studentId } = req.params;
+
+    // 1. Get Project Details
+    const project = await ProjectP5.findById(projectId);
+    if (!project)
+      return res.status(404).json({ message: "Projek tidak ditemukan" });
+
+    // 2. Get Student Profile
+    const User = require("../models/User");
+    const student = await User.findById(studentId).select("username profile");
+    if (!student)
+      return res.status(404).json({ message: "Siswa tidak ditemukan" });
+
+    // 3. Get Assessment
+    const assessment = await ProjectAssessment.findOne({
+      project: projectId,
+      student: studentId,
+    });
+
+    res.json({
+      project,
+      student,
+      assessment: assessment || { scores: [], finalNotes: "" },
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal ambil data rapor P5", error: error.message });
+  }
+};

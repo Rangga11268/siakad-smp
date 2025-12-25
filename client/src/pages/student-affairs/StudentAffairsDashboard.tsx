@@ -44,11 +44,15 @@ import {
   Loader2,
   HeartHandshake,
   Siren,
+  Printer,
 } from "lucide-react";
 import api from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
 
+import { useNavigate } from "react-router-dom";
+
 const StudentAffairsDashboard = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("incidents");
   const [incidents, setIncidents] = useState([]);
   const [achievements, setAchievements] = useState([]);
@@ -467,23 +471,47 @@ const StudentAffairsDashboard = () => {
                         {stat.totalPoints}
                       </TableCell>
                       <TableCell>
-                        {stat.totalPoints >= 100 ? (
-                          <Badge className="bg-red-700">DO / KELUAR</Badge>
-                        ) : stat.totalPoints >= 75 ? (
-                          <Badge variant="destructive">
-                            SURAT PERINGATAN 3
-                          </Badge>
-                        ) : stat.totalPoints >= 50 ? (
-                          <Badge variant="destructive">PANGGILAN ORTU</Badge>
-                        ) : stat.totalPoints >= 25 ? (
-                          <Badge className="bg-orange-500">
-                            PEMBINAAN WALI KELAS
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="text-green-600">
-                            AMAN
-                          </Badge>
-                        )}
+                        <div className="flex flex-col gap-2">
+                          {stat.totalPoints >= 100 ? (
+                            <Badge className="bg-red-700 w-fit">
+                              DO / KELUAR
+                            </Badge>
+                          ) : stat.totalPoints >= 75 ? (
+                            <Badge variant="destructive" className="w-fit">
+                              SURAT PERINGATAN 3
+                            </Badge>
+                          ) : stat.totalPoints >= 50 ? (
+                            <Badge variant="destructive" className="w-fit">
+                              PANGGILAN ORTU
+                            </Badge>
+                          ) : stat.totalPoints >= 25 ? (
+                            <Badge className="bg-orange-500 w-fit">
+                              PEMBINAAN WALI KELAS
+                            </Badge>
+                          ) : (
+                            <Badge
+                              variant="outline"
+                              className="text-green-600 w-fit"
+                            >
+                              AMAN
+                            </Badge>
+                          )}
+
+                          {stat.totalPoints >= 25 && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="w-fit"
+                              onClick={() =>
+                                navigate(
+                                  `/dashboard/student-affairs/letter/${stat._id}`
+                                )
+                              }
+                            >
+                              <Printer className="mr-2 h-3 w-3" /> Cetak Surat
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

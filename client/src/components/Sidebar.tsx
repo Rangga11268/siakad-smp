@@ -10,6 +10,7 @@ import {
   GraduationCap,
   Building2,
   CheckCircle2,
+  Printer,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -87,6 +88,12 @@ const Sidebar = () => {
       icon: Users,
       path: "/dashboard/p5",
       roles: ["admin", "teacher", "student"],
+    },
+    {
+      title: "Cetak Rapor P5",
+      icon: Printer,
+      path: "/dashboard/p5/report",
+      roles: ["admin", "teacher"],
     },
     {
       title: "Kesiswaan (BK)",

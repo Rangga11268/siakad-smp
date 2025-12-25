@@ -186,3 +186,40 @@ exports.getAchievements = async (req, res) => {
       .json({ message: "Gagal ambil data prestasi", error: error.message });
   }
 };
+
+// --- Letter Generator (Surat Panggilan) ---
+exports.getSummonLetterData = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+
+    // 1. Get Student & Parent Info
+    const student = await User.findById(studentId).select("username profile");
+    if (!student)
+      return res.status(404).json({ message: "Siswa tidak ditemukan" });
+
+    // 2. Calculate Total Points & Recent Incidents
+    const incidents = await StudentIncident.find({ student: studentId }).sort({
+      date: -1,
+    });
+    const totalPoints = incidents.reduce((sum, inc) => sum + inc.point, 0);
+
+    // 3. Determine Letter Type
+    let letterType = "Surat Pemberitahuan";
+    if (totalPoints >= 100) letterType = "Surat Keputusan (DO)";
+    else if (totalPoints >= 75) letterType = "Surat Peringatan 3 (SP3)";
+    else if (totalPoints >= 50) letterType = "Surat Panggilan Orang Tua (SP2)";
+    else if (totalPoints >= 25) letterType = "Surat Peringatan 1 (SP1)";
+
+    res.json({
+      student,
+      totalPoints,
+      letterType,
+      incidents: incidents.slice(0, 5), // Top 5 recent violations
+      date: new Date(),
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal generate surat", error: error.message });
+  }
+};

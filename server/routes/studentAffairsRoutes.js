@@ -51,4 +51,11 @@ router.get(
   studentAffairsController.getViolationStats
 );
 
+router.get(
+  "/letter/:studentId",
+  auth,
+  checkRole(["admin", "teacher"]),
+  studentAffairsController.getSummonLetterData
+);
+
 module.exports = router;

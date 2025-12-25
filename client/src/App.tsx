@@ -8,7 +8,9 @@ import MasterStudentPage from "@/pages/admin/MasterStudentPage";
 import InputGradePage from "@/pages/academic/InputGradePage";
 import P5Dashboard from "@/pages/p5/P5Dashboard";
 import P5AssessmentPage from "@/pages/p5/P5AssessmentPage";
+import P5ReportPage from "@/pages/p5/P5ReportPage";
 import StudentAffairsDashboard from "@/pages/student-affairs/StudentAffairsDashboard";
+import BKLetterPage from "@/pages/student-affairs/BKLetterPage";
 import UksDashboard from "@/pages/uks/UksDashboard";
 import LibraryDashboard from "@/pages/library/LibraryDashboard";
 import LearningGoalPage from "@/pages/academic/LearningGoalPage";
@@ -55,9 +57,14 @@ function App() {
 
           <Route path="p5" element={<P5Dashboard />} />
           <Route path="p5/:projectId" element={<P5AssessmentPage />} />
+          <Route path="p5/report" element={<P5ReportPage />} />
 
           {/* Student Affairs Routes */}
           <Route path="student-affairs" element={<StudentAffairsDashboard />} />
+          <Route
+            path="student-affairs/letter/:studentId"
+            element={<BKLetterPage />}
+          />
 
           {/* UKS Routes */}
           <Route path="uks" element={<UksDashboard />} />

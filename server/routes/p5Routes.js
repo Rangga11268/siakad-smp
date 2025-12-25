@@ -25,4 +25,6 @@ router.get(
   p5Controller.getProjectAssessments
 );
 
+router.get("/report/:projectId/:studentId", auth, p5Controller.getP5ReportData);
+
 module.exports = router;

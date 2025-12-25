@@ -152,13 +152,6 @@ const seedData = async () => {
       studentIds.push(user._id);
     }
 
-    // Update Class with students array (if schema has it, my Class model might need update or seed just links it)
-    // Note: My Class model earlier didn't explicitly show students array but controller used it.
-    // Usually it's better to store reference in Class or rely on User profile.class.
-    // AcademicController `getStudentsByLevel` relies on `Class.find().populate('students')`?
-    // Let's check Schema one sec (from memory, I don't recall linking).
-    // Actually `Class` usually has `students` array or we search `User` by class.
-    // I'll update Class to hav students array just in case.
     await Class.findByIdAndUpdate(class7A._id, { students: studentIds });
 
     console.log("Students Seeded & Linked to 7A");
