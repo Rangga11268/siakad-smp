@@ -87,3 +87,51 @@ exports.getStudentSummary = async (req, res) => {
       .json({ message: "Gagal ambil rekap absensi", error: error.message });
   }
 };
+// Absen Mandiri (Siswa)
+exports.recordSelfAttendance = async (req, res) => {
+  try {
+    const studentId = req.user.id; // From Auth Middleware
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // Cek apakah sudah absen hari ini
+    const existing = await Attendance.findOne({
+      student: studentId,
+      date: today,
+    });
+
+    if (existing) {
+      return res.status(400).json({ message: "Anda sudah absen hari ini." });
+    }
+
+    // Cari kelas siswa untuk data lengkap (optional but good for consistency)
+    const studentUser = await User.findById(studentId);
+    if (!studentUser)
+      return res.status(404).json({ message: "Siswa tidak ditemukan." });
+
+    // Cari Class ID berdasarkan nama kelas di profile
+    // Note: Schema Attendance butuh Class ID.
+    // Kita cari Class model
+    const studentClass = await Class.findOne({
+      name: studentUser.profile.class,
+    });
+
+    // Default status Present
+    const newAttendance = new Attendance({
+      student: studentId,
+      class: studentClass ? studentClass._id : null, // Bisa null jika belum masuk kelas, tapi idealnya punya kelas
+      date: today,
+      status: "Present",
+      academicYear: req.body.academicYear, // Client harus kirim atau kita ambil active year
+      note: "Absen Mandiri via Dashboard",
+      recordedBy: studentId,
+    });
+
+    await newAttendance.save();
+    res.json({ message: "Berhasil absen masuk!", attendance: newAttendance });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal absen mandiri", error: error.message });
+  }
+};

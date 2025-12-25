@@ -16,7 +16,7 @@ router.post(
 router.post(
   "/borrow",
   auth,
-  checkRole(["admin", "teacher"]),
+  checkRole(["admin", "teacher", "student"]), // Self-service borrowing
   libraryController.borrowBook
 ); // Admin borrows for student or student borrows? Context: Admin/Librarian usually scans.
 router.post(
@@ -24,6 +24,20 @@ router.post(
   auth,
   checkRole(["admin", "teacher"]),
   libraryController.returnBook
+);
+
+router.post(
+  "/approve",
+  auth,
+  checkRole(["admin", "teacher"]),
+  libraryController.approveLoan
+);
+
+router.post(
+  "/reject",
+  auth,
+  checkRole(["admin", "teacher"]),
+  libraryController.rejectLoan
 );
 
 router.get(

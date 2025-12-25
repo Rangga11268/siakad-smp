@@ -36,9 +36,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Search,
   Plus,
-  Filter,
   Wallet,
   CheckCircle,
   XCircle,
@@ -47,8 +45,10 @@ import {
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import api from "@/services/api";
+import { useAuth } from "@/context/AuthContext";
 
 const FinanceDashboard = () => {
+  const { user } = useAuth();
   const [billings, setBillings] = useState([]);
   const [classes, setClasses] = useState([]);
   const [agingReport, setAgingReport] = useState([]);
@@ -207,110 +207,112 @@ const FinanceDashboard = () => {
             Monitoring pembayaran siswa dan generate tagihan rutin.
           </p>
         </div>
-        <Dialog open={openGenerate} onOpenChange={setOpenGenerate}>
-          <DialogTrigger asChild>
-            <Button className="bg-emerald-600 hover:bg-emerald-700">
-              <Plus className="mr-2 h-4 w-4" /> Generate Tagihan Massal
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle>Buat Tagihan (Massal)</DialogTitle>
-              <DialogDescription>
-                Membuat tagihan untuk siswa sesuai kriteria.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label className="text-right">Judul</Label>
-                <Input
-                  className="col-span-3"
-                  value={formData.title}
-                  onChange={(e) =>
-                    setFormData({ ...formData, title: e.target.value })
-                  }
-                  placeholder="Misal: SPP Februari 2025"
-                />
-              </div>
-
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label className="text-right">Target Kelas</Label>
-                <Select
-                  value={formData.targetClass}
-                  onValueChange={(v) =>
-                    setFormData({ ...formData, targetClass: v })
-                  }
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Semua Siswa" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all_classes">Semua Siswa</SelectItem>
-                    {classes.map((c: any) => (
-                      <SelectItem key={c._id} value={c.name}>
-                        {c.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label className="text-right">Jenis Tagihan</Label>
-                <Select
-                  value={formData.type}
-                  onValueChange={(v) => setFormData({ ...formData, type: v })}
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="SPP">SPP Bulanan</SelectItem>
-                    <SelectItem value="Gedung">Uang Gedung</SelectItem>
-                    <SelectItem value="Seragam">Seragam</SelectItem>
-                    <SelectItem value="Lainnya">Lainnya</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label className="text-right">Nominal (Rp)</Label>
-                <div className="col-span-3 relative">
-                  <span className="absolute left-3 top-2.5 text-muted-foreground text-sm">
-                    Rp
-                  </span>
+        {user?.role !== "student" && (
+          <Dialog open={openGenerate} onOpenChange={setOpenGenerate}>
+            <DialogTrigger asChild>
+              <Button className="bg-emerald-600 hover:bg-emerald-700">
+                <Plus className="mr-2 h-4 w-4" /> Generate Tagihan Massal
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle>Buat Tagihan (Massal)</DialogTitle>
+                <DialogDescription>
+                  Membuat tagihan untuk siswa sesuai kriteria.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label className="text-right">Judul</Label>
                   <Input
-                    className="pl-9"
-                    value={formData.amount}
-                    onChange={handleAmountChange}
-                    placeholder="0"
+                    className="col-span-3"
+                    value={formData.title}
+                    onChange={(e) =>
+                      setFormData({ ...formData, title: e.target.value })
+                    }
+                    placeholder="Misal: SPP Februari 2025"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {formData.amount
-                      ? formatRupiah(parseInt(formData.amount))
-                      : "Rp 0"}
-                  </p>
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label className="text-right">Target Kelas</Label>
+                  <Select
+                    value={formData.targetClass}
+                    onValueChange={(v) =>
+                      setFormData({ ...formData, targetClass: v })
+                    }
+                  >
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Semua Siswa" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all_classes">Semua Siswa</SelectItem>
+                      {classes.map((c: any) => (
+                        <SelectItem key={c._id} value={c.name}>
+                          {c.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label className="text-right">Jenis Tagihan</Label>
+                  <Select
+                    value={formData.type}
+                    onValueChange={(v) => setFormData({ ...formData, type: v })}
+                  >
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="SPP">SPP Bulanan</SelectItem>
+                      <SelectItem value="Gedung">Uang Gedung</SelectItem>
+                      <SelectItem value="Seragam">Seragam</SelectItem>
+                      <SelectItem value="Lainnya">Lainnya</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label className="text-right">Nominal (Rp)</Label>
+                  <div className="col-span-3 relative">
+                    <span className="absolute left-3 top-2.5 text-muted-foreground text-sm">
+                      Rp
+                    </span>
+                    <Input
+                      className="pl-9"
+                      value={formData.amount}
+                      onChange={handleAmountChange}
+                      placeholder="0"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">
+                      {formData.amount
+                        ? formatRupiah(parseInt(formData.amount))
+                        : "Rp 0"}
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-4 items-center gap-4">
+                  <Label className="text-right">Jatuh Tempo</Label>
+                  <Input
+                    type="date"
+                    className="col-span-3"
+                    value={formData.dueDate}
+                    onChange={(e) =>
+                      setFormData({ ...formData, dueDate: e.target.value })
+                    }
+                  />
                 </div>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label className="text-right">Jatuh Tempo</Label>
-                <Input
-                  type="date"
-                  className="col-span-3"
-                  value={formData.dueDate}
-                  onChange={(e) =>
-                    setFormData({ ...formData, dueDate: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button onClick={handleGenerate} disabled={submitting}>
-                {submitting ? "Memproses..." : "Generate & Kirim"}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              <DialogFooter>
+                <Button onClick={handleGenerate} disabled={submitting}>
+                  {submitting ? "Memproses..." : "Generate & Kirim"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <Tabs
@@ -320,7 +322,9 @@ const FinanceDashboard = () => {
       >
         <TabsList>
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="report">Laporan Piutang (Aging)</TabsTrigger>
+          {user?.role !== "student" && (
+            <TabsTrigger value="report">Laporan Piutang (Aging)</TabsTrigger>
+          )}
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
@@ -397,7 +401,14 @@ const FinanceDashboard = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {billings.map((bill: any) => (
+                  {(user?.role === "student"
+                    ? billings.filter(
+                        (b: any) =>
+                          b.student?._id === (user as any).id ||
+                          b.student?._id === (user as any)._id
+                      )
+                    : billings
+                  ).map((bill: any) => (
                     <TableRow key={bill._id}>
                       <TableCell>
                         <div className="font-medium">
@@ -425,15 +436,16 @@ const FinanceDashboard = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {bill.status === "unpaid" && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => handlePay(bill._id, bill.status)}
-                          >
-                            Verifikasi Bayar
-                          </Button>
-                        )}
+                        {bill.status === "unpaid" &&
+                          user?.role !== "student" && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handlePay(bill._id, bill.status)}
+                            >
+                              Verifikasi Bayar
+                            </Button>
+                          )}
                         {bill.status === "paid" && (
                           <span className="text-xs text-muted-foreground">
                             {new Date(bill.paidDate).toLocaleDateString()}

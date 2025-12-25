@@ -26,6 +26,8 @@ exports.addBook = async (req, res) => {
       stock,
       location,
       coverImage,
+      pdfUrl,
+      synopsis,
     } = req.body;
 
     const newBook = new Book({
@@ -39,6 +41,8 @@ exports.addBook = async (req, res) => {
       available: stock, // Initially available
       location,
       coverImage,
+      pdfUrl,
+      synopsis,
     });
 
     await newBook.save();
@@ -55,6 +59,7 @@ exports.addBook = async (req, res) => {
 exports.borrowBook = async (req, res) => {
   try {
     const { studentId, bookId } = req.body;
+    const isStudent = req.user.role === "student";
 
     const book = await Book.findById(bookId);
     if (!book) return res.status(404).json({ message: "Buku tidak ditemukan" });
@@ -62,32 +67,98 @@ exports.borrowBook = async (req, res) => {
       return res.status(400).json({ message: "Stok buku habis" });
 
     // Check active loan
+    // Allow multiple requests? Maybe limit Pending + Borrowed
     const activeLoan = await Loan.findOne({
-      student: studentId,
-      status: "Borrowed",
+      student: isStudent ? req.user.id : studentId,
+      book: bookId,
+      status: { $in: ["Borrowed", "Pending"] },
     });
-    // Optional: Limit max borrowings per student
+
+    if (activeLoan) {
+      return res
+        .status(400)
+        .json({ message: "Anda sudah meminjam atau mengajukan buku ini." });
+    }
 
     const dueDate = new Date();
     dueDate.setDate(dueDate.getDate() + 7); // 7 days loan
 
+    // Logic: Student -> Pending, Admin -> Borrowed
+    const status = isStudent ? "Pending" : "Borrowed";
+
     const loan = new Loan({
-      student: studentId,
+      student: isStudent ? req.user.id : studentId,
       book: bookId,
       dueDate,
+      status,
     });
 
     await loan.save();
 
-    // Update book stock
-    book.available -= 1;
-    await book.save();
+    // Only decrement available stock if directly borrowed (Admin)
+    // For Pending, we might want to reserve? But for now simple: decrement only on approve.
+    // OPTIONAL: Reserve stock on Pending to avoid overbooking.
+    // Let's decrement on Approve for simplicity, OR decrement now but restore on Reject.
+    // DECISION: Decrement ONLY on Borrowed status to strictly reflect physical availability.
+    if (status === "Borrowed") {
+      book.available -= 1;
+      await book.save();
+    }
 
     res.status(201).json(loan);
   } catch (error) {
     res
       .status(500)
       .json({ message: "Gagal pinjam buku", error: error.message });
+  }
+};
+
+exports.approveLoan = async (req, res) => {
+  try {
+    const { loanId } = req.body;
+    const loan = await Loan.findById(loanId);
+    if (!loan)
+      return res.status(404).json({ message: "Peminjaman tidak ditemukan" });
+    if (loan.status !== "Pending")
+      return res.status(400).json({ message: "Status bukan Pending" });
+
+    const book = await Book.findById(loan.book);
+    if (book.available < 1)
+      return res
+        .status(400)
+        .json({ message: "Stok buku habis, tidak bisa setujui." });
+
+    loan.status = "Borrowed";
+    loan.borrowDate = new Date(); // Reset borrow date to approval time
+    // Recalculate due date?
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 7);
+    loan.dueDate = dueDate;
+
+    await loan.save();
+
+    book.available -= 1;
+    await book.save();
+
+    res.json(loan);
+  } catch (error) {
+    res.status(500).json({ message: "Gagal menyetujui", error: error.message });
+  }
+};
+
+exports.rejectLoan = async (req, res) => {
+  try {
+    const { loanId } = req.body;
+    const loan = await Loan.findById(loanId);
+    if (!loan)
+      return res.status(404).json({ message: "Peminjaman tidak ditemukan" });
+
+    loan.status = "Rejected";
+    await loan.save();
+
+    res.json(loan);
+  } catch (error) {
+    res.status(500).json({ message: "Gagal menolak", error: error.message });
   }
 };
 

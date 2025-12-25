@@ -126,4 +126,12 @@ router.post(
   academicController.generateReport
 );
 
+// Student Grades
+router.get(
+  "/my-grades",
+  auth,
+  checkRole(["student"]),
+  academicController.getMyGrades
+);
+
 module.exports = router;

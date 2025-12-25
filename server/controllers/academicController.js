@@ -657,3 +657,45 @@ exports.getClassMembers = async (req, res) => {
       .json({ message: "Gagal ambil anggota kelas", error: error.message });
   }
 };
+// --- Student Specific Features ---
+
+exports.getMyGrades = async (req, res) => {
+  try {
+    const studentId = req.user.id;
+    const { academicYear, semester } = req.query;
+
+    // Logic mirip generateFullReport tapi lebih ringkas atau sama
+    // Kita bisa reuse logic atau buat query sederhana
+    // Ambil nilai per mapel
+
+    const grades = await Grade.find({ student: studentId }).populate({
+      path: "assessment",
+      match: { academicYear, semester }, // Filter by active year/semester
+      populate: { path: "subject" },
+    });
+
+    // Group by Subject
+    const grouped = {};
+    grades.forEach((g) => {
+      if (!g.assessment || !g.assessment.subject) return;
+      const subjName = g.assessment.subject.name;
+      if (!grouped[subjName]) {
+        grouped[subjName] = { score: 0, count: 0, subject: subjName };
+      }
+      grouped[subjName].score += g.score;
+      grouped[subjName].count += 1;
+    });
+
+    // Calculate Average per Subject
+    const result = Object.values(grouped).map((item) => ({
+      subject: item.subject,
+      average: Math.round(item.score / item.count),
+    }));
+
+    res.json(result);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal ambil niali saya", error: error.message });
+  }
+};

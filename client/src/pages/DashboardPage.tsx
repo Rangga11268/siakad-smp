@@ -5,9 +5,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Users, BookOpen, AlertTriangle, Wallet } from "lucide-react";
+import {
+  Users,
+  BookOpen,
+  AlertTriangle,
+  Wallet,
+  CheckCircle,
+  Clock,
+} from "lucide-react";
 import { useState, useEffect } from "react";
 import api from "@/services/api";
+import { useAuth } from "@/context/AuthContext";
+import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 import {
   Area,
   AreaChart,
@@ -19,12 +29,18 @@ import {
 } from "recharts";
 
 const DashboardPage = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [statsData, setStatsData] = useState({
     studentCount: 0,
     averageGrade: 0,
     incidentCount: 0,
     totalUnpaid: 0,
   });
+
+  // Student State
+  const [myGrades, setMyGrades] = useState<any[]>([]);
+  const [attendanceLoading, setAttendanceLoading] = useState(false);
 
   const chartData = [
     { name: "Jul", value: 4000000 },
@@ -37,16 +53,55 @@ const DashboardPage = () => {
   ];
 
   useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const { data } = await api.get("/dashboard/stats");
-        setStatsData(data);
-      } catch (error) {
-        console.error("Failed to fetch dashboard stats", error);
-      }
-    };
-    fetchStats();
-  }, []);
+    if (user?.role === "student") {
+      fetchStudentData();
+    } else {
+      fetchAdminData();
+    }
+  }, [user]);
+
+  const fetchAdminData = async () => {
+    try {
+      const { data } = await api.get("/dashboard/stats");
+      setStatsData(data);
+    } catch (error) {
+      console.error("Failed to fetch dashboard stats", error);
+    }
+  };
+
+  const fetchStudentData = async () => {
+    try {
+      // Fetch My Grades (Mock or specific endpoint)
+      // Ensure endpoint exists or handle error
+      const { data } = await api.get(
+        "/academic/my-grades?semester=Ganjil&academicYear=676bd6ef259300302c09ef7a"
+      ); // Dummy ID for now or fetch active
+      setMyGrades(data);
+    } catch (error) {
+      console.error("Gagal load data siswa", error);
+    }
+  };
+
+  const handleSelfAttendance = async () => {
+    setAttendanceLoading(true);
+    try {
+      await api.post("/attendance/self", {
+        academicYear: "676bd6ef259300302c09ef7a",
+      });
+      toast({
+        title: "Berhasil",
+        description: "Anda berhasil absen hari ini.",
+      });
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Gagal",
+        description: error.response?.data?.message || "Gagal absen.",
+      });
+    } finally {
+      setAttendanceLoading(false);
+    }
+  };
 
   const stats = [
     {
@@ -114,13 +169,124 @@ const DashboardPage = () => {
     },
   ];
 
+  const studentQuickActions = [
+    {
+      label: "Lihat Nilai",
+      href: "/dashboard/academic/report", // Or specialized page
+      icon: BookOpen,
+      color: "bg-blue-100 text-blue-600",
+    },
+    {
+      label: "Perpustakaan",
+      href: "/dashboard/library",
+      icon: BookOpen,
+      color: "bg-purple-100 text-purple-600",
+    },
+    {
+      label: "Tagihan Saya",
+      href: "/dashboard/finance",
+      icon: Wallet,
+      color: "bg-emerald-100 text-emerald-600",
+    },
+  ];
+
+  if (user?.role === "student") {
+    return (
+      <div className="space-y-8">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-r from-blue-600 to-cyan-600 p-8 rounded-3xl text-white shadow-xl">
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight mb-2">
+              Selamat Pagi, {user?.profile?.fullName || user?.username}! 👋
+            </h2>
+            <p className="text-blue-100 opacity-90">
+              Siap untuk belajar hari ini? Jangan lupa absen ya!
+            </p>
+          </div>
+          <div className="bg-white/10 backdrop-blur-md px-6 py-3 rounded-xl border border-white/20">
+            <Button
+              onClick={handleSelfAttendance}
+              disabled={attendanceLoading}
+              variant="secondary"
+              className="w-full md:w-auto font-bold text-blue-700"
+            >
+              {attendanceLoading ? "Memproses..." : "Absen Sekarang 📍"}
+            </Button>
+          </div>
+        </div>
+
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <Card className="shadow-md border-none">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CheckCircle className="text-green-500 h-5 w-5" /> Kehadiran
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">Hadir</div>
+              <p className="text-muted-foreground text-sm">Status hari ini</p>
+            </CardContent>
+          </Card>
+          <Card className="shadow-md border-none col-span-2">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="text-blue-500 h-5 w-5" /> Nilai Semester
+                Ini
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {myGrades.length === 0 ? (
+                <p className="text-muted-foreground">Belum ada nilai masuk.</p>
+              ) : (
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {myGrades.map((g: any, i) => (
+                    <div
+                      key={i}
+                      className="bg-slate-50 p-3 rounded-lg text-center"
+                    >
+                      <div className="font-semibold text-slate-700">
+                        {g.subject}
+                      </div>
+                      <div className="text-xl font-bold text-blue-600">
+                        {g.average}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Student Quick Actions */}
+        <div className="grid gap-6 md:grid-cols-3">
+          {studentQuickActions.map((action, i) => (
+            <a
+              key={i}
+              href={action.href}
+              className="flex flex-col items-center justify-center p-6 rounded-xl bg-white shadow-sm hover:shadow-md transition-all border border-slate-100 hover:border-slate-200 group"
+            >
+              <div
+                className={`p-4 rounded-full mb-4 ${action.color} group-hover:scale-110 transition-transform`}
+              >
+                <action.icon className="h-6 w-6" />
+              </div>
+              <span className="text-lg font-medium text-slate-700">
+                {action.label}
+              </span>
+            </a>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       {/* Welcome Section */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-gradient-to-r from-indigo-600 to-purple-600 p-8 rounded-3xl text-white shadow-xl">
         <div>
           <h2 className="text-3xl font-bold tracking-tight mb-2">
-            Selamat Pagi, Admin! 👋
+            Selamat Pagi, {user?.profile?.fullName || "Admin"}! 👋
           </h2>
           <p className="text-indigo-100 opacity-90">
             Berikut adalah ringkasan aktivitas sekolah hari ini.
@@ -200,6 +366,7 @@ const DashboardPage = () => {
                       new Intl.NumberFormat("id-ID", {
                         style: "currency",
                         currency: "IDR",
+                        maximumFractionDigits: 0,
                       }).format(value)
                     }
                   />

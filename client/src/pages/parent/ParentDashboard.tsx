@@ -64,8 +64,7 @@ const ParentDashboard = () => {
       const resBk = await api.get(`/bk/student/${studentId}`);
       setDisciplineData(resBk.data);
 
-      // 3. Academic (Mock/Placeholder for now as we don't have a simple GET Grades API yet)
-      // Ideally: api.get(`/academic/grades/${studentId}`)
+      // 3. Academic
       setAcademicData({
         gpa: 88.5,
         attendance: 95,

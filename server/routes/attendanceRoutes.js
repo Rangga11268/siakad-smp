@@ -22,4 +22,12 @@ router.get(
 // Get Stat (Siswa bisa lihat sendiri, Guru/Admin lihat semua)
 router.get("/stats/:studentId", auth, attendanceController.getStudentSummary);
 
+// Absen Mandiri (Siswa)
+router.post(
+  "/self",
+  auth,
+  checkRole(["student"]),
+  attendanceController.recordSelfAttendance
+);
+
 module.exports = router;

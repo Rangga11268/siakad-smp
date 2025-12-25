@@ -14,6 +14,8 @@ const bookSchema = new mongoose.Schema(
 
     location: String, // Rak A1, Lemari B
     coverImage: String, // URL
+    pdfUrl: String, // URL for E-Book
+    synopsis: String, // Short description
   },
   { timestamps: true }
 );

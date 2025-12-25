@@ -14,7 +14,7 @@ const loanSchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ["Borrowed", "Returned", "Overdue", "Lost"],
+      enum: ["Borrowed", "Returned", "Overdue", "Lost", "Pending", "Rejected"],
       default: "Borrowed",
     },
 
