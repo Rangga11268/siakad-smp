@@ -129,7 +129,7 @@ exports.returnBook = async (req, res) => {
 
 exports.getMyLoans = async (req, res) => {
   try {
-    const loans = await Loan.find({ student: req.user.userId })
+    const loans = await Loan.find({ student: req.user.id })
       .populate("book", "title author")
       .sort({ borrowDate: -1 });
     res.json(loans);

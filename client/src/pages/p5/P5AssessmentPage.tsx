@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { ArrowLeft, Save, Loader2, CheckCircle } from "lucide-react";
 import api from "@/services/api";
+import { useToast } from "@/components/ui/use-toast";
 
 interface ProjectP5 {
   _id: string;
@@ -52,13 +53,13 @@ const P5AssessmentPage = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // State to hold temporary scores for all students: { [studentId]: { [targetId]: score } }
   const [inputs, setInputs] = useState<Record<string, Record<string, string>>>(
     {}
   );
 
-  // State to track which students have been saved/synced
   const [savedStatus, setSavedStatus] = useState<Record<string, boolean>>({});
+
+  const { toast } = useToast();
 
   useEffect(() => {
     if (projectId) fetchData();
@@ -66,33 +67,26 @@ const P5AssessmentPage = () => {
 
   const fetchData = async () => {
     try {
-      // 1. Get Project
-      const projectRes = await api.get(`/p5`); // Currently fetches all, need detail endpoint?
-      // Wait, p5Controller only has getProjects (plural). I need getProject (detail).
-      // For now I filter client side or just use the list.
-      // Ideally I should add getProjectById. But let's filter for MVP.
+      const projectRes = await api.get(`/p5`);
       const foundProject = projectRes.data.find(
         (p: any) => p._id === projectId
       );
       setProject(foundProject);
 
       if (foundProject) {
-        // 2. Get Students by Level
         const studentRes = await api.get(
           `/academic/students/level/${foundProject.level}`
         );
         setStudents(studentRes.data);
 
-        // 3. Get Existing Assessments
         const assessRes = await api.get(`/p5/assess/${projectId}`);
         const existingAssessments = assessRes.data;
 
-        // Map existing to state
         const initialInputs: any = {};
         const status: any = {};
 
         existingAssessments.forEach((assess: any) => {
-          const studentId = assess.student._id; // populate returns object
+          const studentId = assess.student._id;
           status[studentId] = true;
           initialInputs[studentId] = {};
           assess.scores.forEach((s: any) => {
@@ -121,7 +115,6 @@ const P5AssessmentPage = () => {
         [targetId]: value,
       },
     }));
-    // Mark as unsaved
     setSavedStatus((prev) => ({ ...prev, [studentId]: false }));
   };
 
@@ -131,32 +124,35 @@ const P5AssessmentPage = () => {
     const studentScores = inputs[studentId] || {};
     const scoresPayload = Object.keys(studentScores).map((targetId) => {
       const target = project.targets.find(
-        (t) =>
-          t._id === targetId || t._id === undefined /* handle missing id case */
+        (t) => t._id === targetId || t._id === undefined
       );
-      // Note: if backend project targets dont have id, we need to rely on index or something.
-      // But mongoose subdocs usually have _id.
 
       return {
         targetId,
         score: studentScores[targetId],
-        dimension: target?.dimension, // Optional, backend might need it or just targetId
+        dimension: target?.dimension,
         element: target?.element,
       };
     });
 
     try {
-      // setSaving(true); // Maybe localized loading?
       await api.post("/p5/assess", {
         projectId: project._id,
         studentId,
         scores: scoresPayload,
-        finalNotes: "Penilaian Formatif", // Placeholder
+        finalNotes: "Penilaian Formatif",
       });
       setSavedStatus((prev) => ({ ...prev, [studentId]: true }));
+      toast({
+        title: "Tersimpan",
+        description: "Nilai berhasil disimpan.",
+      });
     } catch (error) {
-      console.error("Gagal simpan", error);
-      alert("Gagal simpan nilai");
+      toast({
+        variant: "destructive",
+        title: "Gagal",
+        description: "Gagal simpan nilai.",
+      });
     }
   };
 

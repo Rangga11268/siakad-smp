@@ -77,7 +77,7 @@ exports.addVisit = async (req, res) => {
 
     const visit = new UksVisit({
       student: studentId,
-      staff: req.user.userId,
+      staff: req.user.id,
       complaint,
       diagnosis,
       treatment,

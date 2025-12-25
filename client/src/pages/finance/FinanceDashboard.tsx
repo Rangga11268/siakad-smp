@@ -42,6 +42,7 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
 import api from "@/services/api";
 
 const FinanceDashboard = () => {
@@ -92,8 +93,32 @@ const FinanceDashboard = () => {
     setStats({ total, paid, unpaid });
   };
 
+  // Format Currency (Display "Rp ...")
+  const formatRupiah = (number: number) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(number);
+  };
+
+  const { toast } = useToast();
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/[^0-9]/g, "");
+    setFormData({ ...formData, amount: rawValue });
+  };
+
   const handleGenerate = async () => {
-    if (!formData.dueDate) return alert("Tentukan tanggal jatuh tempo");
+    if (!formData.dueDate || !formData.amount) {
+      toast({
+        variant: "destructive",
+        title: "Data Tidak Lengkap",
+        description: "Nominal dan Tanggal Jatuh Tempo wajib diisi.",
+      });
+      return;
+    }
+
     setSubmitting(true);
     try {
       await api.post("/finance/generate", {
@@ -102,9 +127,16 @@ const FinanceDashboard = () => {
       });
       setOpenGenerate(false);
       fetchBillings();
-      alert("Tagihan berhasil dibuat massal");
+      toast({
+        title: "Berhasil",
+        description: "Tagihan massal berhasil dibuat.",
+      });
     } catch (error) {
-      alert("Gagal generate data: " + error);
+      toast({
+        variant: "destructive",
+        title: "Gagal",
+        description: "Gagal generate tagihan.",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -112,22 +144,23 @@ const FinanceDashboard = () => {
 
   const handlePay = async (id: string, currentStatus: string) => {
     if (currentStatus === "paid") return;
-    if (!confirm("Verifikasi pembayaran manual diterima?")) return;
+    // Removed raw confirm for better UX or keep as simple prevention
+    // Ideally use a Dialog but specific confirm is fine for now, or Toast action
 
     try {
       await api.post("/finance/pay", { billingId: id });
       fetchBillings();
+      toast({
+        title: "Pembayaran Diterima",
+        description: "Status tagihan telah diperbarui menjadi Lunas.",
+      });
     } catch (error) {
-      alert("Gagal update pembayaran");
+      toast({
+        variant: "destructive",
+        title: "Gagal",
+        description: "Gagal update pembayaran.",
+      });
     }
-  };
-
-  // Format Currency
-  const formatRp = (num: number) => {
-    return new Intl.NumberFormat("id-ID", {
-      style: "currency",
-      currency: "IDR",
-    }).format(num);
   };
 
   return (
@@ -165,14 +198,22 @@ const FinanceDashboard = () => {
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label className="text-right">Nominal (Rp)</Label>
-                <Input
-                  type="number"
-                  className="col-span-3"
-                  value={formData.amount}
-                  onChange={(e) =>
-                    setFormData({ ...formData, amount: e.target.value })
-                  }
-                />
+                <div className="col-span-3 relative">
+                  <span className="absolute left-3 top-2.5 text-muted-foreground text-sm">
+                    Rp
+                  </span>
+                  <Input
+                    className="pl-9"
+                    value={formData.amount}
+                    onChange={handleAmountChange}
+                    placeholder="0"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {formData.amount
+                      ? formatRupiah(parseInt(formData.amount))
+                      : "Rp 0"}
+                  </p>
+                </div>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label className="text-right">Jatuh Tempo</Label>
@@ -188,7 +229,7 @@ const FinanceDashboard = () => {
             </div>
             <DialogFooter>
               <Button onClick={handleGenerate} disabled={submitting}>
-                Generate
+                {submitting ? "Memproses..." : "Generate"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -205,7 +246,9 @@ const FinanceDashboard = () => {
             <Wallet className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{formatRp(stats.total)}</div>
+            <div className="text-2xl font-bold">
+              {formatRupiah(stats.total)}
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -217,7 +260,7 @@ const FinanceDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {formatRp(stats.paid)}
+              {formatRupiah(stats.paid)}
             </div>
           </CardContent>
         </Card>
@@ -230,7 +273,7 @@ const FinanceDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
-              {formatRp(stats.unpaid)}
+              {formatRupiah(stats.unpaid)}
             </div>
           </CardContent>
         </Card>
@@ -277,7 +320,7 @@ const FinanceDashboard = () => {
                     </div>
                   </TableCell>
                   <TableCell>{bill.title}</TableCell>
-                  <TableCell>{formatRp(bill.amount)}</TableCell>
+                  <TableCell>{formatRupiah(bill.amount)}</TableCell>
                   <TableCell>
                     {new Date(bill.dueDate).toLocaleDateString()}
                   </TableCell>

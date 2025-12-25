@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/select";
 import { BookOpen, RefreshCw, Plus, Search } from "lucide-react";
 import api from "@/services/api";
+import { useToast } from "@/components/ui/use-toast";
 
 const LibraryDashboard = () => {
   const [activeTab, setActiveTab] = useState("books");
@@ -59,6 +60,8 @@ const LibraryDashboard = () => {
     bookId: "",
   });
 
+  const { toast } = useToast();
+
   useEffect(() => {
     fetchData();
     fetchStudents();
@@ -75,6 +78,11 @@ const LibraryDashboard = () => {
       setLoans(resLoans.data);
     } catch (error) {
       console.error("Gagal load data perpustakaan", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Gagal memuat data perpustakaan.",
+      });
     } finally {
       setLoading(false);
     }
@@ -82,7 +90,7 @@ const LibraryDashboard = () => {
 
   const fetchStudents = async () => {
     try {
-      const res = await api.get("/academic/students/level/7"); // MVP
+      const res = await api.get("/academic/students");
       setStudents(res.data);
     } catch (error) {
       console.error("Gagal load siswa", error);
@@ -90,6 +98,15 @@ const LibraryDashboard = () => {
   };
 
   const handleAddBook = async () => {
+    if (!bookForm.title || !bookForm.author) {
+      toast({
+        variant: "destructive",
+        title: "Data Tidak Lengkap",
+        description: "Judul dan Penulis buku wajib diisi.",
+      });
+      return;
+    }
+
     setSubmitting(true);
     try {
       await api.post("/library/books", {
@@ -107,34 +124,66 @@ const LibraryDashboard = () => {
         location: "",
       });
       fetchData();
+      toast({
+        title: "Berhasil",
+        description: "Buku baru ditambahkan ke katalog.",
+      });
     } catch (error) {
-      alert("Gagal tambah buku");
+      toast({
+        variant: "destructive",
+        title: "Gagal",
+        description: "Gagal tambah buku.",
+      });
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleBorrow = async () => {
+    if (!loanForm.studentId || !loanForm.bookId) {
+      toast({
+        variant: "destructive",
+        title: "Data Tidak Lengkap",
+        description: "Pilih siswa dan buku yang dipinjam.",
+      });
+      return;
+    }
+
     setSubmitting(true);
     try {
       await api.post("/library/borrow", loanForm);
       setOpenLoanDialog(false);
       setLoanForm({ studentId: "", bookId: "" });
       fetchData();
+      toast({
+        title: "Peminjaman Berhasil",
+        description: "Buku berhasil dipinjam.",
+      });
     } catch (error) {
-      alert("Gagal pinjam buku: Stok habis atau error lain");
+      toast({
+        variant: "destructive",
+        title: "Gagal",
+        description: "Stok buku habis atau siswa masih meminjam.",
+      });
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleReturn = async (loanId: string) => {
-    if (!confirm("Konfirmasi pengembalian buku?")) return;
     try {
       await api.post("/library/return", { loanId });
       fetchData();
+      toast({
+        title: "Pengembalian Berhasil",
+        description: "Buku telah dikembalikan ke stok.",
+      });
     } catch (error) {
-      alert("Gagal mengembalikan buku");
+      toast({
+        variant: "destructive",
+        title: "Gagal",
+        description: "Gagal kembalikan buku.",
+      });
     }
   };
 

@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/select";
 import { HeartPulse, NotebookPen, Plus, Loader2 } from "lucide-react";
 import api from "@/services/api";
+import { useToast } from "@/components/ui/use-toast";
 
 const UksDashboard = () => {
   const [activeTab, setActiveTab] = useState("records");
@@ -65,6 +66,8 @@ const UksDashboard = () => {
     status: "Istirahat",
   });
 
+  const { toast } = useToast();
+
   useEffect(() => {
     fetchData();
     fetchStudents();
@@ -81,6 +84,11 @@ const UksDashboard = () => {
       setVisits(resVisits.data);
     } catch (error) {
       console.error("Gagal load data UKS", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Gagal memuat data UKS.",
+      });
     } finally {
       setLoading(false);
     }
@@ -88,7 +96,7 @@ const UksDashboard = () => {
 
   const fetchStudents = async () => {
     try {
-      const res = await api.get("/academic/students/level/7"); // MVP: fetch class 7 first
+      const res = await api.get("/academic/students");
       setStudents(res.data);
     } catch (error) {
       console.error("Gagal load siswa", error);
@@ -96,6 +104,15 @@ const UksDashboard = () => {
   };
 
   const handleAddRecord = async () => {
+    if (!recordForm.studentId || !recordForm.height || !recordForm.weight) {
+      toast({
+        variant: "destructive",
+        title: "Data Tidak Lengkap",
+        description: "Data Siswa, TB, dan BB wajib diisi.",
+      });
+      return;
+    }
+
     setSubmitting(true);
     try {
       await api.post("/uks/records", {
@@ -114,14 +131,31 @@ const UksDashboard = () => {
         notes: "",
       });
       fetchData();
+      toast({
+        title: "Berhasil",
+        description: "Data kesehatan tersimpan.",
+      });
     } catch (error) {
-      alert("Gagal simpan data kesehatan");
+      toast({
+        variant: "destructive",
+        title: "Gagal",
+        description: "Gagal simpan data kesehatan.",
+      });
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleAddVisit = async () => {
+    if (!visitForm.studentId || !visitForm.complaint) {
+      toast({
+        variant: "destructive",
+        title: "Data Tidak Lengkap",
+        description: "Siswa dan Keluhan wajib diisi.",
+      });
+      return;
+    }
+
     setSubmitting(true);
     try {
       await api.post("/uks/visits", visitForm);
@@ -135,8 +169,16 @@ const UksDashboard = () => {
         status: "Istirahat",
       });
       fetchData();
+      toast({
+        title: "Berhasil",
+        description: "Kunjungan berhasil dicatat.",
+      });
     } catch (error) {
-      alert("Gagal simpan kunjungan");
+      toast({
+        variant: "destructive",
+        title: "Gagal",
+        description: "Gagal simpan kunjungan.",
+      });
     } finally {
       setSubmitting(false);
     }

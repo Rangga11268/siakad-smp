@@ -11,7 +11,7 @@ exports.reportIncident = async (req, res) => {
 
     const newIncident = new StudentIncident({
       student: studentId,
-      reporter: req.user.userId,
+      reporter: req.user.id,
       type,
       description,
       point,

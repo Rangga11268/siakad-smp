@@ -38,6 +38,7 @@ import {
 } from "@/components/ui/select";
 import { AlertTriangle, Trophy, Search, Plus, Loader2 } from "lucide-react";
 import api from "@/services/api";
+import { useToast } from "@/components/ui/use-toast";
 
 const StudentAffairsDashboard = () => {
   const [activeTab, setActiveTab] = useState("incidents");
@@ -68,9 +69,11 @@ const StudentAffairsDashboard = () => {
     description: "",
   });
 
+  const { toast } = useToast();
+
   useEffect(() => {
     fetchData();
-    fetchStudents(); // Load students for dropdown (can be optimized)
+    fetchStudents();
   }, []);
 
   const fetchData = async () => {
@@ -84,19 +87,20 @@ const StudentAffairsDashboard = () => {
       setAchievements(resAchievements.data);
     } catch (error) {
       console.error("Gagal load data BK", error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Gagal memuat data BK.",
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const fetchStudents = async () => {
-    // Ideally use a search endpoint, but for MVP fetching all students (or fetching per class)
-    // Here using a dummy/hardcoded or assuming we have an endpoint.
-    // Reusing getStudentsByLevel logic but across all levels?
-    // Let's assume we fetch all from a generic endpoint or fetch level 7,8,9
     try {
-      // Quick hack: fetch all classes and aggregate, or just one level for demo
-      const res = await api.get("/academic/students/level/7");
+      // Fetches ALL students now
+      const res = await api.get("/academic/students");
       setStudents(res.data);
     } catch (error) {
       console.error("Gagal load siswa", error);
@@ -104,6 +108,15 @@ const StudentAffairsDashboard = () => {
   };
 
   const handleReportIncident = async () => {
+    if (!incidentForm.studentId || !incidentForm.description) {
+      toast({
+        variant: "destructive",
+        title: "Data Tidak Lengkap",
+        description: "Siswa dan Keterangan wajib diisi.",
+      });
+      return;
+    }
+
     setSubmitting(true);
     try {
       await api.post("/bk/incidents", {
@@ -119,14 +132,31 @@ const StudentAffairsDashboard = () => {
         sanction: "",
       });
       fetchData(); // Refresh list
+      toast({
+        title: "Berhasil",
+        description: "Laporan pelanggaran tersimpan.",
+      });
     } catch (error) {
-      alert("Gagal lapor pelanggaran");
+      toast({
+        variant: "destructive",
+        title: "Gagal",
+        description: "Gagal melapor pelanggaran.",
+      });
     } finally {
       setSubmitting(false);
     }
   };
 
   const handleAddAchievement = async () => {
+    if (!achievementForm.studentId || !achievementForm.title) {
+      toast({
+        variant: "destructive",
+        title: "Data Tidak Lengkap",
+        description: "Siswa dan Judul Prestasi wajib diisi.",
+      });
+      return;
+    }
+
     setSubmitting(true);
     try {
       await api.post("/bk/achievements", achievementForm);
@@ -139,8 +169,16 @@ const StudentAffairsDashboard = () => {
         description: "",
       });
       fetchData();
+      toast({
+        title: "Berhasil",
+        description: "Prestasi berhasil dicatat.",
+      });
     } catch (error) {
-      alert("Gagal tambah prestasi");
+      toast({
+        variant: "destructive",
+        title: "Gagal",
+        description: "Gagal menambah prestasi.",
+      });
     } finally {
       setSubmitting(false);
     }

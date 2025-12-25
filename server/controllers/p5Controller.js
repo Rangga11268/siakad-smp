@@ -70,7 +70,7 @@ exports.inputAssessment = async (req, res) => {
     const assessment = await ProjectAssessment.findOneAndUpdate(
       { project: projectId, student: studentId },
       {
-        facilitator: facilitatorId || req.user.userId,
+        facilitator: facilitatorId || req.user.id,
         scores,
         finalNotes,
       },

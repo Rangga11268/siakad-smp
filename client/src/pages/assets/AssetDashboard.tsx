@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import { Box, Plus, Search, MapPin } from "lucide-react";
 import api from "@/services/api";
+import { useToast } from "@/components/ui/use-toast";
 
 const AssetDashboard = () => {
   const [assets, setAssets] = useState([]);
@@ -62,7 +63,32 @@ const AssetDashboard = () => {
     }
   };
 
+  // Format Currency
+  const formatRupiah = (number: number) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(number);
+  };
+
+  const { toast } = useToast();
+
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const rawValue = e.target.value.replace(/[^0-9]/g, "");
+    setFormData({ ...formData, purchasePrice: rawValue });
+  };
+
   const handleCreate = async () => {
+    if (!formData.code || !formData.name || !formData.purchasePrice) {
+      toast({
+        variant: "destructive",
+        title: "Data Tidak Lengkap",
+        description: "Kode, Nama Barang, dan Harga wajib diisi.",
+      });
+      return;
+    }
+
     setSubmitting(true);
     try {
       await api.post("/assets", {
@@ -80,8 +106,16 @@ const AssetDashboard = () => {
         purchasePrice: "",
       });
       fetchAssets();
+      toast({
+        title: "Berhasil",
+        description: "Aset baru berhasil didaftarkan.",
+      });
     } catch (error) {
-      alert("Gagal tambah aset");
+      toast({
+        variant: "destructive",
+        title: "Gagal",
+        description: "Gagal tambah aset.",
+      });
     } finally {
       setSubmitting(false);
     }
@@ -179,14 +213,22 @@ const AssetDashboard = () => {
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
                 <Label className="text-right">Harga Beli</Label>
-                <Input
-                  type="number"
-                  className="col-span-3"
-                  value={formData.purchasePrice}
-                  onChange={(e) =>
-                    setFormData({ ...formData, purchasePrice: e.target.value })
-                  }
-                />
+                <div className="col-span-3 relative">
+                  <span className="absolute left-3 top-2.5 text-muted-foreground text-sm">
+                    Rp
+                  </span>
+                  <Input
+                    className="pl-9"
+                    value={formData.purchasePrice}
+                    onChange={handlePriceChange}
+                    placeholder="0"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {formData.purchasePrice
+                      ? formatRupiah(parseInt(formData.purchasePrice))
+                      : "Rp 0"}
+                  </p>
+                </div>
               </div>
             </div>
             <DialogFooter>
@@ -247,12 +289,7 @@ const AssetDashboard = () => {
                       {asset.condition}
                     </Badge>
                   </TableCell>
-                  <TableCell>
-                    {new Intl.NumberFormat("id-ID", {
-                      style: "currency",
-                      currency: "IDR",
-                    }).format(asset.purchasePrice)}
-                  </TableCell>
+                  <TableCell>{formatRupiah(asset.purchasePrice)}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

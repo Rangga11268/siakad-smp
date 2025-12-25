@@ -55,7 +55,7 @@ const P5Dashboard = () => {
     theme: "",
     description: "",
     level: "7",
-    academicYear: "671234567890abcdef123456", // Hardcoded active AY ID for now or fetch
+    academicYear: "671234567890abcdef123456",
   });
 
   useEffect(() => {
@@ -67,7 +67,6 @@ const P5Dashboard = () => {
       const res = await api.get("/p5", {
         params: {
           academicYear: "2024/2025",
-          // level: formData.level // Optional: if we want to filter by Tab later
         },
       });
       setProjects(res.data);
@@ -92,7 +91,6 @@ const P5Dashboard = () => {
 
     setSubmitting(true);
     try {
-      // Hardcoded target for MVP
       const defaultTargets = [
         {
           dimension: "Beriman, Bertakwa",
@@ -109,8 +107,8 @@ const P5Dashboard = () => {
       await api.post("/p5", {
         ...formData,
         level: parseInt(formData.level),
-        targets: defaultTargets, // Default targets for testing
-        academicYear: "2024/2025", // Now sending String
+        targets: defaultTargets,
+        academicYear: "2024/2025",
       });
       setOpenDialog(false);
       setFormData({ ...formData, title: "", theme: "", description: "" });
