@@ -1,3 +1,4 @@
+const express = require("express");
 const router = express.Router();
 const journalController = require("../controllers/journalController");
 const { auth, checkRole } = require("../middleware/authMiddleware");

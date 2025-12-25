@@ -94,7 +94,7 @@ const JournalPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
-    try {
+
     const submitData = new FormData();
     Object.entries(formData).forEach(([key, value]) => {
       submitData.append(key, value);
@@ -288,13 +288,13 @@ const JournalPage = () => {
                 </div>
 
                 <div className="space-y-2">
-                   <Label>Lampiran (PDF/Gambar/Doc)</Label>
-                   <Input 
-                      type="file" 
-                      onChange={(e) => {
-                        if(e.target.files) setFile(e.target.files[0])
-                      }} 
-                    />
+                  <Label>Lampiran (PDF/Gambar/Doc)</Label>
+                  <Input
+                    type="file"
+                    onChange={(e) => {
+                      if (e.target.files) setFile(e.target.files[0]);
+                    }}
+                  />
                 </div>
 
                 <div className="flex justify-end">
@@ -402,16 +402,18 @@ const JournalTable = ({
               <TableCell>{j.subject?.name}</TableCell>
               <TableCell>{j.topic}</TableCell>
               <TableCell>
-                 {j.attachment ? (
-                    <a 
-                      href={`http://localhost:5000${j.attachment}`} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-blue-600 underline text-xs"
-                    >
-                      Unduh
-                    </a>
-                 ) : "-"}
+                {j.attachment ? (
+                  <a
+                    href={`http://localhost:5000${j.attachment}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-blue-600 underline text-xs"
+                  >
+                    Unduh
+                  </a>
+                ) : (
+                  "-"
+                )}
               </TableCell>
               <TableCell className="max-w-[200px] truncate" title={j.notes}>
                 {j.notes || "-"}
