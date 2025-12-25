@@ -4,16 +4,8 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, School, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
@@ -40,109 +32,152 @@ const LoginPage = () => {
       await login(formData);
       navigate("/dashboard");
     } catch (err: any) {
-      console.error(err);
-      setError(
-        err.response?.data?.message ||
-          "Gagal login. Periksa koneksi atau kredensial."
-      );
+      setError("Login gagal. Periksa username/password Anda.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex h-screen items-center justify-center bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 p-4">
-      {/* Background Shapes */}
-      <div className="absolute inset-0 overflow-hidden">
+    <div className="flex min-h-screen w-full overflow-hidden bg-slate-50 dark:bg-slate-950">
+      {/* Left Side - Visual / Branding */}
+      <div className="hidden lg:flex w-1/2 relative bg-indigo-950 text-white items-center justify-center overflow-hidden">
+        {/* Animated Background Elements */}
         <motion.div
-          animate={{ scale: [1, 1.2, 1], rotate: [0, 90, 0] }}
-          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-          className="absolute -left-20 -top-20 h-96 w-96 rounded-full bg-blue-400 opacity-20 blur-3xl"
+          animate={{ rotate: 360 }}
+          transition={{ duration: 50, repeat: Infinity, ease: "linear" }}
+          className="absolute -top-1/2 -left-1/2 w-[1000px] h-[1000px] rounded-[40%] bg-gradient-to-tr from-indigo-600/30 to-purple-600/30 blur-3xl"
         />
         <motion.div
-          animate={{ scale: [1, 1.1, 1], rotate: [0, -90, 0] }}
-          transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
-          className="absolute -bottom-20 -right-20 h-96 w-96 rounded-full bg-pink-400 opacity-20 blur-3xl"
+          animate={{ rotate: -360 }}
+          transition={{ duration: 60, repeat: Infinity, ease: "linear" }}
+          className="absolute -bottom-1/2 -right-1/2 w-[800px] h-[800px] rounded-[45%] bg-gradient-to-bl from-blue-600/20 to-pink-600/20 blur-3xl"
         />
+
+        <div className="relative z-10 p-12 max-w-lg">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <div className="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-2xl flex items-center justify-center mb-8 border border-white/20">
+              <School className="w-8 h-8 text-indigo-300" />
+            </div>
+            <h1 className="text-4xl font-bold mb-4 tracking-tight leading-tight">
+              Selamat Datang di <br />{" "}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-indigo-200">
+                SIAKAD SMP Gak Ada Nama
+              </span>
+            </h1>
+            <p className="text-lg text-indigo-200/80 leading-relaxed">
+              Sistem Informasi Akademik Terintegrasi. Mengelola Akademik,
+              Kesiswaan, Keuangan, dan Ekosistem Sekolah dalam satu platform
+              modern.
+            </p>
+
+            <div className="mt-8 flex gap-4 text-sm font-medium text-indigo-300/60">
+              <span>• Kurikulum Merdeka</span>
+              <span>• Integrasi P5</span>
+              <span>• Digital School</span>
+            </div>
+          </motion.div>
+        </div>
       </div>
 
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="z-10 w-full max-w-md"
-      >
-        <Card className="border-none bg-white/90 shadow-2xl backdrop-blur-md dark:bg-black/80">
-          <CardHeader className="space-y-1 text-center">
-            <CardTitle className="text-3xl font-bold tracking-tight text-primary">
-              SIAKAD SMP
-            </CardTitle>
-            <CardDescription className="text-muted-foreground">
-              Sistem Informasi Akademik & Manajemen Sekolah
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleLogin} className="space-y-4">
-              {error && (
-                <div className="flex items-center rounded-md bg-destructive/15 p-3 text-sm text-destructive">
-                  <AlertCircle className="mr-2 h-4 w-4" />
-                  {error}
-                </div>
-              )}
+      {/* Right Side - Login Form */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 relative">
+        <div className="w-full max-w-md space-y-8">
+          <div className="text-center lg:text-left">
+            <h2 className="text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">
+              Portal Masuk
+            </h2>
+            <p className="text-muted-foreground mt-2">
+              Silahkan masuk menggunakan akun Sekolah Anda.
+            </p>
+          </div>
 
+          <form onSubmit={handleLogin} className="space-y-6">
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                className="p-3 rounded-lg bg-red-50 text-red-600 text-sm flex items-center gap-2 border border-red-100"
+              >
+                <AlertCircle className="w-4 h-4" /> {error}
+              </motion.div>
+            )}
+
+            <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="username">Username / NISN</Label>
                 <Input
                   id="username"
-                  placeholder="Masukan ID pengguna"
-                  required
-                  className="bg-background/50"
+                  placeholder="admin / guru / siswa"
+                  className="h-12 bg-white/50 backdrop-blur-sm focus:bg-white transition-all border-slate-200"
+                  value={formData.username}
                   onChange={handleChange}
+                  required
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <div className="flex justify-between">
+                  <Label htmlFor="password">Password</Label>
+                  <a
+                    href="#"
+                    className="text-xs text-indigo-600 hover:text-indigo-500 font-medium"
+                  >
+                    Lupa Password?
+                  </a>
+                </div>
                 <Input
                   id="password"
                   type="password"
-                  placeholder="••••••••"
-                  required
-                  className="bg-background/50"
+                  className="h-12 bg-white/50 backdrop-blur-sm focus:bg-white transition-all border-slate-200 font-l"
+                  value={formData.password}
                   onChange={handleChange}
+                  required
                 />
               </div>
+            </div>
 
-              <div className="flex items-center space-x-2">
-                <Checkbox id="consent" required />
-                <Label
-                  htmlFor="consent"
-                  className="text-xs leading-none text-muted-foreground"
-                >
-                  Saya setuju data saya diproses sesuai kebijakan privasi
-                  sekolah (UU PDP).
-                </Label>
-              </div>
-
-              <Button
-                type="submit"
-                className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white"
-                disabled={loading}
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="consent"
+                required
+                className="data-[state=checked]:bg-indigo-600 border-slate-300"
+              />
+              <Label
+                htmlFor="consent"
+                className="text-sm text-muted-foreground font-normal"
               >
-                {loading ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  "Masuk Sistem"
-                )}
-              </Button>
-            </form>
-          </CardContent>
-          <CardFooter className="justify-center">
-            <p className="text-xs text-muted-foreground">
-              © 2025 Sekolah Menengah Pertama
-            </p>
-          </CardFooter>
-        </Card>
-      </motion.div>
+                Saya menyetujui{" "}
+                <span className="text-indigo-600 underline cursor-pointer">
+                  Kebijakan Privasi
+                </span>{" "}
+                sekolah.
+              </Label>
+            </div>
+
+            <Button
+              className="w-full h-12 text-base font-medium bg-indigo-600 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-600/20"
+              disabled={loading}
+            >
+              {loading ? (
+                <Loader2 className="animate-spin mr-2" />
+              ) : (
+                <span className="flex items-center gap-2">
+                  Masuk ke Dashboard <ArrowRight className="w-4 h-4" />
+                </span>
+              )}
+            </Button>
+          </form>
+
+          <div className="pt-6 text-center text-xs text-slate-400">
+            &copy; 2025 SMP Gak Ada Nama. All rights reserved. <br />
+            Powered by SiakadEngine v1.0
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

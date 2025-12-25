@@ -10,12 +10,15 @@ import P5AssessmentPage from "@/pages/p5/P5AssessmentPage";
 import StudentAffairsDashboard from "@/pages/student-affairs/StudentAffairsDashboard";
 import UksDashboard from "@/pages/uks/UksDashboard";
 import LibraryDashboard from "@/pages/library/LibraryDashboard";
+
 import FinanceDashboard from "@/pages/finance/FinanceDashboard";
 import AssetDashboard from "@/pages/assets/AssetDashboard";
+import LandingPage from "@/pages/LandingPage";
 
 function App() {
   return (
     <Routes>
+      <Route path="/" element={<LandingPage />} />
       <Route path="/login" element={<LoginPage />} />
 
       {/* Protected Routes */}
@@ -48,7 +51,7 @@ function App() {
         <Route path="academic/grades" element={<InputGradePage />} />
       </Route>
 
-      <Route path="/" element={<Navigate to="/login" replace />} />
+      {/* <Route path="/" element={<Navigate to="/login" replace />} /> Note: Root is now LandingPage */}
     </Routes>
   );
 }
