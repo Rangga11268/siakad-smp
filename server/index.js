@@ -38,6 +38,7 @@ app.use("/api/assets", assetRoutes);
 app.use("/api/finance", financeRoutes);
 app.use("/api/uks", uksRoutes);
 app.use("/api/library", libraryRoutes);
+app.use("/api/dashboard", require("./routes/dashboardRoutes"));
 app.get("/", (req, res) => {
   res.send({ message: "Welcome to SIAKAD SMP API" });
 });

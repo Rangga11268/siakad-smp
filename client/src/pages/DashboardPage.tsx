@@ -6,35 +6,60 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Users, BookOpen, AlertTriangle, Wallet } from "lucide-react";
+import { useState, useEffect } from "react";
+import api from "@/services/api";
 
 const DashboardPage = () => {
+  const [statsData, setStatsData] = useState({
+    studentCount: 0,
+    averageGrade: 0,
+    incidentCount: 0,
+    totalUnpaid: 0,
+  });
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const { data } = await api.get("/dashboard/stats");
+        setStatsData(data);
+      } catch (error) {
+        console.error("Failed to fetch dashboard stats", error);
+      }
+    };
+    fetchStats();
+  }, []);
+
   const stats = [
     {
       title: "Total Siswa",
-      value: "350",
+      value: statsData.studentCount.toString(),
       icon: Users,
       desc: "Aktif Tahun Ini",
       color: "text-blue-600",
     },
     {
       title: "Rata-rata Nilai",
-      value: "82.5",
+      value: statsData.averageGrade.toString(),
       icon: BookOpen,
-      desc: "Semester Ganjil",
+      desc: "Seluruh Mata Pelajaran",
       color: "text-green-600",
     },
     {
       title: "Laporan Insiden",
-      value: "5",
+      value: statsData.incidentCount.toString(),
       icon: AlertTriangle,
-      desc: "Perlu Penanganan",
+      desc: "Status Open/FollowUp",
       color: "text-orange-600",
     },
     {
       title: "Tagihan Belum Lunas",
-      value: "Rp 15jt",
+      value: new Intl.NumberFormat("id-ID", {
+        style: "currency",
+        currency: "IDR",
+        maximumFractionDigits: 0,
+      }).format(statsData.totalUnpaid),
       icon: Wallet,
-      desc: "Bulan Januari",
+      desc: "Total Tunggakan",
       color: "text-red-600",
     },
   ];
