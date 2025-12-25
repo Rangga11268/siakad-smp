@@ -167,6 +167,15 @@ exports.createStudent = async (req, res) => {
     });
 
     await newStudent.save();
+
+    // [New] Sync with Class Model
+    if (className) {
+      await Class.updateOne(
+        { name: className }, // Assuming name is unique or combine with level
+        { $addToSet: { students: newStudent._id } }
+      );
+    }
+
     res.status(201).json(newStudent);
   } catch (error) {
     res
@@ -209,6 +218,9 @@ exports.updateStudent = async (req, res) => {
     if (!student)
       return res.status(404).json({ message: "Siswa tidak ditemukan" });
 
+    // Check if class changed
+    const oldClass = student.profile.class;
+
     // Update Profile Fields Deeply
     student.profile.fullName = fullName || student.profile.fullName;
     student.profile.nisn = nisn || student.profile.nisn;
@@ -226,6 +238,23 @@ exports.updateStudent = async (req, res) => {
     if (mutations) student.profile.mutations = mutations;
 
     await student.save();
+
+    // [New] Sync with Class Model if class changed
+    if (className && className !== oldClass) {
+      // Remove from old class
+      if (oldClass) {
+        await Class.updateOne(
+          { name: oldClass },
+          { $pull: { students: student._id } }
+        );
+      }
+      // Add to new class
+      await Class.updateOne(
+        { name: className },
+        { $addToSet: { students: student._id } }
+      );
+    }
+
     res.json(student);
   } catch (error) {
     res
@@ -422,5 +451,102 @@ exports.generateReport = async (req, res) => {
     res
       .status(500)
       .json({ message: "Gagal generate rapor", error: error.message });
+  }
+};
+
+// Generate Rapor Lengkap (Semua Mapel)
+exports.generateFullReport = async (req, res) => {
+  try {
+    const { studentId, academicYear, semester } = req.query; // Use query params for GET
+
+    const subjects = await Subject.find();
+    const reportData = [];
+
+    for (const subj of subjects) {
+      // Re-use logic or call function if refactored. For now, inline simplified logic.
+      const grades = await Grade.find({ student: studentId }).populate({
+        path: "assessment",
+        match: { subject: subj._id, academicYear, semester }, // Filter by semester too
+        populate: { path: "learningGoals" },
+      });
+
+      // Filter grades that match assessment (because populate match might return null assessment)
+      const validGrades = grades.filter((g) => g.assessment);
+
+      if (!validGrades.length) {
+        reportData.push({
+          subject: subj,
+          score: 0,
+          description: "Belum ada nilai.",
+          predikat: "D",
+        });
+        continue;
+      }
+
+      // Calculate Score & Description
+      let tpScores = {};
+      let totalScore = 0;
+      let countScore = 0;
+
+      validGrades.forEach((g) => {
+        totalScore += g.score;
+        countScore++;
+
+        g.assessment.learningGoals.forEach((tp) => {
+          if (!tpScores[tp._id])
+            tpScores[tp._id] = { desc: tp.description, total: 0, count: 0 };
+          tpScores[tp._id].total += g.score;
+          tpScores[tp._id].count++;
+        });
+      });
+
+      const finalScore = Math.round(totalScore / countScore);
+
+      // Determine Predikat
+      let predikat = "D";
+      if (finalScore >= 90) predikat = "A";
+      else if (finalScore >= 80) predikat = "B";
+      else if (finalScore >= 70) predikat = "C";
+
+      // Description Logic
+      let highest = { avg: -1, desc: "" };
+      let lowest = { avg: 101, desc: "" };
+
+      Object.values(tpScores).forEach((t) => {
+        const avg = t.total / t.count;
+        if (avg > highest.avg) highest = { avg, desc: t.desc };
+        if (avg < lowest.avg) lowest = { avg, desc: t.desc };
+      });
+
+      let description = "";
+      if (highest.desc && lowest.desc && highest.desc !== lowest.desc) {
+        description = `Ananda menunjukkan penguasaan yang sangat baik dalam ${highest.desc}, dan perlu peningkatan dalam ${lowest.desc}.`;
+      } else if (highest.desc) {
+        description = `Ananda memiliki pemahaman yang baik dalam ${highest.desc}.`;
+      } else {
+        description = "Cukup baik.";
+      }
+
+      reportData.push({
+        subject: subj,
+        score: finalScore,
+        predikat,
+        description,
+      });
+    }
+
+    // Get Student Data
+    const student = await User.findById(studentId).select("-password");
+
+    res.json({
+      student,
+      academicYear,
+      semester,
+      reports: reportData,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal generate rapor lengkap", error: error.message });
   }
 };

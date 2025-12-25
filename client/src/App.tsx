@@ -12,6 +12,7 @@ import StudentAffairsDashboard from "@/pages/student-affairs/StudentAffairsDashb
 import UksDashboard from "@/pages/uks/UksDashboard";
 import LibraryDashboard from "@/pages/library/LibraryDashboard";
 import LearningGoalPage from "@/pages/academic/LearningGoalPage";
+import ReportCardPage from "@/pages/academic/ReportCardPage";
 
 import FinanceDashboard from "@/pages/finance/FinanceDashboard";
 import AssetDashboard from "@/pages/assets/AssetDashboard";
@@ -37,6 +38,7 @@ function App() {
             path="academic/learning-goals"
             element={<LearningGoalPage />}
           />
+          <Route path="academic/report" element={<ReportCardPage />} />
 
           <Route path="p5" element={<P5Dashboard />} />
           <Route path="p5/:projectId" element={<P5AssessmentPage />} />

@@ -46,6 +46,12 @@ const Sidebar = () => {
       roles: ["admin", "teacher"],
     },
     {
+      title: "E-Rapor Siswa",
+      icon: Users,
+      path: "/dashboard/academic/report",
+      roles: ["admin", "teacher"],
+    },
+    {
       title: "Akademik (Guru)",
       icon: BookOpen,
       path: "/dashboard/academic/grades",

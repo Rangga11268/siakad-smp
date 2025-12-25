@@ -10,6 +10,10 @@ router.post(
   checkRole(["admin"]),
   academicController.createSubject
 );
+// Report
+router.post("/report/generate", auth, academicController.generateReport);
+router.get("/report/full", auth, academicController.generateFullReport);
+
 router.get("/subject", auth, academicController.getSubjects);
 
 // Academic Year
