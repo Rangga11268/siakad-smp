@@ -3,6 +3,8 @@ const StudentAchievement = require("../models/StudentAchievement");
 const CounselingSession = require("../models/CounselingSession");
 const User = require("../models/User");
 
+const { sendWhatsApp } = require("../services/whatsappService");
+
 // --- Incidents / Pelanggaran ---
 
 exports.reportIncident = async (req, res) => {
@@ -21,6 +23,49 @@ exports.reportIncident = async (req, res) => {
     });
 
     await newIncident.save();
+
+    // --- WA Alert Logic ---
+    try {
+      // 1. Calculate Total Points
+      const allIncidents = await StudentIncident.find({ student: studentId });
+      const totalPoints = allIncidents.reduce((sum, inc) => sum + inc.point, 0);
+
+      // 2. Check Threshold & Get Contact
+      if (totalPoints >= 25) {
+        const student = await User.findById(studentId).select(
+          "profile.fullName profile.phone profile.class"
+        );
+        const targetPhone = student?.profile?.phone;
+
+        if (targetPhone) {
+          let alertMsg = `*SIAKAD SMP - PEMBERITAHUAN PELANGGARAN*\n\n`;
+          alertMsg += `Yth. Orang Tua / Wali Siswa,\n`;
+          alertMsg += `Nama: ${student.profile.fullName}\n`;
+          alertMsg += `Kelas: ${student.profile.class}\n\n`;
+          alertMsg += `Telah tercatat melakukan pelanggaran: *${type}*\n`;
+          alertMsg += `Keterangan: ${description}\n`;
+          alertMsg += `Poin Tambahan: ${point}\n`;
+          alertMsg += `*Total Poin Saat Ini: ${totalPoints}*\n\n`;
+
+          if (totalPoints >= 100)
+            alertMsg += `⚠️ STATUS: DO / KELUAR (Hubungi Sekolah Segera)\n`;
+          else if (totalPoints >= 75)
+            alertMsg += `⚠️ STATUS: SP3 (Peringatan Terakhir)\n`;
+          else if (totalPoints >= 50)
+            alertMsg += `⚠️ STATUS: SP2 (Panggilan Orang Tua)\n`;
+          else if (totalPoints >= 25)
+            alertMsg += `⚠️ STATUS: Waspada (Pembinaan)\n`;
+
+          alertMsg += `\nMohon perhatian Bapak/Ibu. Terima kasih.`;
+
+          await sendWhatsApp(targetPhone, alertMsg);
+        }
+      }
+    } catch (waError) {
+      console.error("WA Alert Failed:", waError.message);
+      // Continue, do not fail the request
+    }
+
     res.status(201).json(newIncident);
   } catch (error) {
     res
