@@ -13,17 +13,15 @@ const projectP5Schema = new mongoose.Schema(
     },
     level: { type: Number, required: true }, // 7, 8, 9
 
-    // Team Teaching: Multiple facilitators
-    facilitators: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }], // Teachers
+    // Team Teaching: Banyak fasilitator
+    facilitators: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
 
-    // Dimensions and Elements targeted
-    // Since Dimensions are static, we might just store strings/codes or create a separate MasterData schema for them.
-    // For simplicity now, store structured objects.
+    // Dimensi dan Elemen yang dinilai
     targets: [
       {
-        dimension: String, // "Beriman, Bertakwa..."
-        element: String, // "Akhlak kepada alam"
-        subElement: String, // "Menjaga lingkungan..."
+        dimension: String,
+        element: String,
+        subElement: String,
       },
     ],
 
