@@ -10,6 +10,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Plus, Search, Trash2, Loader2 } from "lucide-react";
 import api from "@/services/api";
 
@@ -25,6 +42,16 @@ const MasterSubjectPage = () => {
   const [subjects, setSubjects] = useState<Subject[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [openDialog, setOpenDialog] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Form State
+  const [formData, setFormData] = useState({
+    code: "",
+    name: "",
+    level: "7",
+    kktpType: "Interval",
+  });
 
   useEffect(() => {
     fetchSubjects();
@@ -42,8 +69,21 @@ const MasterSubjectPage = () => {
   };
 
   const handleCreate = async () => {
-    // Todo: Show Dialog Form
-    alert("Fitur Tambah Mapel akan menggunakan Dialog Form (Next Step)");
+    setSubmitting(true);
+    try {
+      await api.post("/academic/subject", {
+        ...formData,
+        level: parseInt(formData.level),
+      });
+      setOpenDialog(false);
+      setFormData({ code: "", name: "", level: "7", kktpType: "Interval" }); // Reset
+      fetchSubjects(); // Refresh
+    } catch (error) {
+      console.error("Gagal simpan mapel", error);
+      alert("Gagal menyimpan data mata pelajaran");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const filteredSubjects = subjects.filter(
@@ -63,12 +103,106 @@ const MasterSubjectPage = () => {
             Kelola mata pelajaran dan Tujuan Pembelajaran (TP).
           </p>
         </div>
-        <Button
-          className="bg-blue-600 hover:bg-blue-700"
-          onClick={handleCreate}
-        >
-          <Plus className="mr-2 h-4 w-4" /> Tambah Mapel
-        </Button>
+
+        <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+          <DialogTrigger asChild>
+            <Button className="bg-blue-600 hover:bg-blue-700">
+              <Plus className="mr-2 h-4 w-4" /> Tambah Mapel
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Tambah Mata Pelajaran</DialogTitle>
+              <DialogDescription>
+                Masukan detail mata pelajaran baru untuk kurikulum merdeka.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="code" className="text-right">
+                  Kode
+                </Label>
+                <Input
+                  id="code"
+                  placeholder="Contoh: MAT"
+                  className="col-span-3"
+                  value={formData.code}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      code: e.target.value.toUpperCase(),
+                    })
+                  }
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="name" className="text-right">
+                  Nama
+                </Label>
+                <Input
+                  id="name"
+                  placeholder="Contoh: Matematika"
+                  className="col-span-3"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="level" className="text-right">
+                  Kelas
+                </Label>
+                <Select
+                  value={formData.level}
+                  onValueChange={(val) =>
+                    setFormData({ ...formData, level: val })
+                  }
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Pilih Kelas" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="7">Kelas 7</SelectItem>
+                    <SelectItem value="8">Kelas 8</SelectItem>
+                    <SelectItem value="9">Kelas 9</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="kktp" className="text-right">
+                  KKTP
+                </Label>
+                <Select
+                  value={formData.kktpType}
+                  onValueChange={(val) =>
+                    setFormData({ ...formData, kktpType: val })
+                  }
+                >
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Pilih Jenis KKTP" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Interval">Interval Nilai</SelectItem>
+                    <SelectItem value="Rubrik">Rubrik (Deskripsi)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button
+                type="submit"
+                disabled={submitting}
+                onClick={handleCreate}
+              >
+                {submitting && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
+                Simpan
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
 
       <Card>

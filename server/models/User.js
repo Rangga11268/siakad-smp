@@ -32,8 +32,6 @@ const userSchema = new mongoose.Schema(
 
     // Parent specific relations
     children: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
-
-    timestamps: true,
   },
   { timestamps: true }
 );
