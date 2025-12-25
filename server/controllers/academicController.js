@@ -1,8 +1,10 @@
+const mongoose = require("mongoose");
 const LearningGoal = require("../models/LearningGoal");
 const Assessment = require("../models/Assessment");
 const Grade = require("../models/Grade");
 const Subject = require("../models/Subject");
 const Class = require("../models/Class");
+const Attendance = require("../models/Attendance");
 
 // --- Master Data (Mapel & Kelas) ---
 
@@ -538,11 +540,35 @@ exports.generateFullReport = async (req, res) => {
     // Get Student Data
     const student = await User.findById(studentId).select("-password");
 
+    // Get Attendance Stats
+    const attendanceStats = await Attendance.aggregate([
+      { $match: { student: new mongoose.Types.ObjectId(studentId) } }, // Add date range/academic year filter if needed
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
+    const attendanceSummary = {
+      sakit: 0,
+      izin: 0,
+      alpha: 0,
+    };
+
+    attendanceStats.forEach((stat) => {
+      if (stat._id === "Sick") attendanceSummary.sakit = stat.count;
+      else if (stat._id === "Permission") attendanceSummary.izin = stat.count;
+      else if (stat._id === "Alpha") attendanceSummary.alpha = stat.count;
+    });
+
     res.json({
       student,
       academicYear,
       semester,
       reports: reportData,
+      attendance: attendanceSummary,
     });
   } catch (error) {
     res

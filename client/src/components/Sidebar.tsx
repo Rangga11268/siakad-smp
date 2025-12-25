@@ -59,6 +59,12 @@ const Sidebar = () => {
       roles: ["admin", "teacher"],
     },
     {
+      title: "Jurnal Mengajar",
+      icon: BookOpen,
+      path: "/dashboard/academic/journal",
+      roles: ["admin", "teacher"],
+    },
+    {
       title: "E-Rapor Siswa",
       icon: Users,
       path: "/dashboard/academic/report",

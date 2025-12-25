@@ -296,6 +296,37 @@ const ReportCardPage = () => {
             </div>
           </div>
 
+          {/* Tabel Absensi */}
+          <div className="mb-8 break-inside-avoid">
+            <h3 className="font-bold mb-2">B. Ketidakhadiran</h3>
+            <div className="border border-slate-400 w-1/2">
+              <table className="w-full text-sm">
+                <tbody>
+                  <tr>
+                    <td className="p-2 border-b border-slate-400 w-2/3">
+                      Sakit
+                    </td>
+                    <td className="p-2 border-b border-slate-400 text-center font-bold px-4">
+                      {reportData.attendance?.sakit || 0} Hari
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="p-2 border-b border-slate-400">Izin</td>
+                    <td className="p-2 border-b border-slate-400 text-center font-bold px-4">
+                      {reportData.attendance?.izin || 0} Hari
+                    </td>
+                  </tr>
+                  <tr>
+                    <td className="p-2">Tanpa Keterangan</td>
+                    <td className="p-2 text-center font-bold px-4">
+                      {reportData.attendance?.alpha || 0} Hari
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
           {/* Tanda Tangan */}
           <div className="grid grid-cols-3 gap-4 mt-16 text-center text-sm break-inside-avoid">
             <div>

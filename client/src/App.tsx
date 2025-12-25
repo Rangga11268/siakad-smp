@@ -13,6 +13,7 @@ import UksDashboard from "@/pages/uks/UksDashboard";
 import LibraryDashboard from "@/pages/library/LibraryDashboard";
 import LearningGoalPage from "@/pages/academic/LearningGoalPage";
 import AttendancePage from "@/pages/academic/AttendancePage";
+import JournalPage from "@/pages/academic/JournalPage";
 import ReportCardPage from "@/pages/academic/ReportCardPage";
 import PPDBRegisterPage from "@/pages/public/PPDBRegisterPage";
 import PPDBStatusPage from "./pages/public/PPDBStatusPage";
@@ -42,7 +43,9 @@ function App() {
           <Route path="academic/subjects" element={<MasterSubjectPage />} />
           <Route path="academic/classes" element={<MasterClassPage />} />
           <Route path="academic/students" element={<MasterStudentPage />} />
+          <Route path="academic/students" element={<MasterStudentPage />} />
           <Route path="academic/attendance" element={<AttendancePage />} />
+          <Route path="academic/journal" element={<JournalPage />} />
           <Route path="ppdb" element={<PPDBAdminPage />} />
           <Route
             path="academic/learning-goals"

@@ -13,6 +13,8 @@ app.use(express.json());
 app.use(cors());
 app.use(helmet());
 app.use(morgan("dev"));
+const path = require("path");
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Database Connection
 mongoose
@@ -41,6 +43,7 @@ app.use("/api/library", libraryRoutes);
 app.use("/api/ppdb", require("./routes/ppdbRoutes"));
 app.use("/api/dashboard", require("./routes/dashboardRoutes"));
 app.use("/api/attendance", require("./routes/attendanceRoutes"));
+app.use("/api/journal", require("./routes/journalRoutes"));
 app.get("/", (req, res) => {
   res.send({ message: "Welcome to SIAKAD SMP API" });
 });
