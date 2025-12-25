@@ -9,6 +9,7 @@ import P5Dashboard from "@/pages/p5/P5Dashboard";
 import P5AssessmentPage from "@/pages/p5/P5AssessmentPage";
 import StudentAffairsDashboard from "@/pages/student-affairs/StudentAffairsDashboard";
 import UksDashboard from "@/pages/uks/UksDashboard";
+import LibraryDashboard from "@/pages/library/LibraryDashboard";
 
 function App() {
   return (
@@ -31,6 +32,9 @@ function App() {
 
         {/* UKS Routes */}
         <Route path="uks" element={<UksDashboard />} />
+
+        {/* Library Routes */}
+        <Route path="library" element={<LibraryDashboard />} />
 
         {/* Teacher Routes */}
         <Route path="academic/grades" element={<InputGradePage />} />
