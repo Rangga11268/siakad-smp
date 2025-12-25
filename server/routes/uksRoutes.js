@@ -3,12 +3,32 @@ const router = express.Router();
 const uksController = require("../controllers/uksController");
 const { auth, checkRole } = require("../middleware/authMiddleware");
 
+// Health Records
 router.post(
-  "/record",
+  "/records",
   auth,
   checkRole(["admin", "teacher"]),
-  uksController.createRecord
+  uksController.addHealthRecord
 );
-router.get("/student/:studentId", auth, uksController.getStudentRecords);
+router.get(
+  "/records",
+  auth,
+  checkRole(["admin", "teacher", "parent", "student"]),
+  uksController.getHealthRecords
+);
+
+// Visits
+router.post(
+  "/visits",
+  auth,
+  checkRole(["admin", "teacher"]),
+  uksController.addVisit
+);
+router.get(
+  "/visits",
+  auth,
+  checkRole(["admin", "teacher"]),
+  uksController.getVisits
+);
 
 module.exports = router;

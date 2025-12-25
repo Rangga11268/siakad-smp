@@ -8,6 +8,7 @@ import InputGradePage from "@/pages/academic/InputGradePage";
 import P5Dashboard from "@/pages/p5/P5Dashboard";
 import P5AssessmentPage from "@/pages/p5/P5AssessmentPage";
 import StudentAffairsDashboard from "@/pages/student-affairs/StudentAffairsDashboard";
+import UksDashboard from "@/pages/uks/UksDashboard";
 
 function App() {
   return (
@@ -27,6 +28,9 @@ function App() {
 
         {/* Student Affairs Routes */}
         <Route path="student-affairs" element={<StudentAffairsDashboard />} />
+
+        {/* UKS Routes */}
+        <Route path="uks" element={<UksDashboard />} />
 
         {/* Teacher Routes */}
         <Route path="academic/grades" element={<InputGradePage />} />
