@@ -54,15 +54,25 @@ exports.login = async (req, res) => {
       { expiresIn: "1d" }
     );
 
+    let userData = {
+      id: user._id,
+      username: user.username,
+      role: user.role,
+      profile: user.profile,
+      consentGiven: user.consentGiven,
+    };
+
+    if (user.role === "parent") {
+      const fullUser = await User.findById(user._id).populate(
+        "children",
+        "username profile"
+      );
+      userData.children = fullUser.children;
+    }
+
     res.json({
       token,
-      user: {
-        id: user._id,
-        username: user.username,
-        role: user.role,
-        profile: user.profile,
-        consentGiven: user.consentGiven,
-      },
+      user: userData,
     });
   } catch (error) {
     res.status(500).json({ message: "Server Error", error: error.message });

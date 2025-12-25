@@ -30,10 +30,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { BookOpen, RefreshCw, Plus, Search } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
 import api from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
 
 const LibraryDashboard = () => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("books");
   const [books, setBooks] = useState([]);
   const [loans, setLoans] = useState([]);
@@ -63,16 +65,23 @@ const LibraryDashboard = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchData();
-    fetchStudents();
-  }, []);
+    if (user) {
+      fetchData();
+      if (user.role !== "student") {
+        fetchStudents();
+      }
+    }
+  }, [user]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
+      const isStudent = user?.role === "student";
+      const loansEndpoint = isStudent ? "/library/my-loans" : "/library/loans";
+
       const [resBooks, resLoans] = await Promise.all([
         api.get("/library/books"),
-        api.get("/library/loans"),
+        api.get(loansEndpoint),
       ]);
       setBooks(resBooks.data);
       setLoans(resLoans.data);
@@ -81,7 +90,8 @@ const LibraryDashboard = () => {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Gagal memuat data perpustakaan.",
+        description:
+          "Gagal memuat data perpustakaan. Pastikan Anda memiliki akses.",
       });
     } finally {
       setLoading(false);
@@ -223,88 +233,92 @@ const LibraryDashboard = () => {
                 className="max-w-[300px]"
               />
             </div>
-            <Dialog open={openBookDialog} onOpenChange={setOpenBookDialog}>
-              <DialogTrigger asChild>
-                <Button className="bg-sky-600 hover:bg-sky-700">
-                  <Plus className="mr-2 h-4 w-4" /> Tambah Buku
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Tambah Koleksi Buku</DialogTitle>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Judul</Label>
-                    <Input
-                      className="col-span-3"
-                      value={bookForm.title}
-                      onChange={(e) =>
-                        setBookForm({ ...bookForm, title: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Penulis</Label>
-                    <Input
-                      className="col-span-3"
-                      value={bookForm.author}
-                      onChange={(e) =>
-                        setBookForm({ ...bookForm, author: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Kategori</Label>
-                    <Select
-                      value={bookForm.category}
-                      onValueChange={(v) =>
-                        setBookForm({ ...bookForm, category: v })
-                      }
-                    >
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Pilih Kategori" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Fiksi">Fiksi / Novel</SelectItem>
-                        <SelectItem value="Pelajaran">
-                          Buku Pelajaran
-                        </SelectItem>
-                        <SelectItem value="Sains">Sains & Teknologi</SelectItem>
-                        <SelectItem value="Sejarah">Sejarah</SelectItem>
-                        <SelectItem value="Agama">Agama</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Stok</Label>
-                    <Input
-                      type="number"
-                      className="col-span-3"
-                      value={bookForm.stock}
-                      onChange={(e) =>
-                        setBookForm({ ...bookForm, stock: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Rak/Lokasi</Label>
-                    <Input
-                      className="col-span-3"
-                      value={bookForm.location}
-                      onChange={(e) =>
-                        setBookForm({ ...bookForm, location: e.target.value })
-                      }
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button onClick={handleAddBook} disabled={submitting}>
-                    Simpan
+            {user?.role !== "student" && (
+              <Dialog open={openBookDialog} onOpenChange={setOpenBookDialog}>
+                <DialogTrigger asChild>
+                  <Button className="bg-sky-600 hover:bg-sky-700">
+                    <Plus className="mr-2 h-4 w-4" /> Tambah Buku
                   </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Tambah Koleksi Buku</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label className="text-right">Judul</Label>
+                      <Input
+                        className="col-span-3"
+                        value={bookForm.title}
+                        onChange={(e) =>
+                          setBookForm({ ...bookForm, title: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label className="text-right">Penulis</Label>
+                      <Input
+                        className="col-span-3"
+                        value={bookForm.author}
+                        onChange={(e) =>
+                          setBookForm({ ...bookForm, author: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label className="text-right">Kategori</Label>
+                      <Select
+                        value={bookForm.category}
+                        onValueChange={(v) =>
+                          setBookForm({ ...bookForm, category: v })
+                        }
+                      >
+                        <SelectTrigger className="col-span-3">
+                          <SelectValue placeholder="Pilih Kategori" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Fiksi">Fiksi / Novel</SelectItem>
+                          <SelectItem value="Pelajaran">
+                            Buku Pelajaran
+                          </SelectItem>
+                          <SelectItem value="Sains">
+                            Sains & Teknologi
+                          </SelectItem>
+                          <SelectItem value="Sejarah">Sejarah</SelectItem>
+                          <SelectItem value="Agama">Agama</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label className="text-right">Stok</Label>
+                      <Input
+                        type="number"
+                        className="col-span-3"
+                        value={bookForm.stock}
+                        onChange={(e) =>
+                          setBookForm({ ...bookForm, stock: e.target.value })
+                        }
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label className="text-right">Rak/Lokasi</Label>
+                      <Input
+                        className="col-span-3"
+                        value={bookForm.location}
+                        onChange={(e) =>
+                          setBookForm({ ...bookForm, location: e.target.value })
+                        }
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button onClick={handleAddBook} disabled={submitting}>
+                      Simpan
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
 
           <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-4">
@@ -355,65 +369,67 @@ const LibraryDashboard = () => {
         <TabsContent value="loans" className="space-y-4">
           <div className="flex justify-between items-center bg-card p-4 rounded-lg border">
             <h3 className="text-lg font-semibold">Sirkulasi Peminjaman</h3>
-            <Dialog open={openLoanDialog} onOpenChange={setOpenLoanDialog}>
-              <DialogTrigger asChild>
-                <Button className="bg-sky-600 hover:bg-sky-700">
-                  <Plus className="mr-2 h-4 w-4" /> Pinjam Buku
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Form Peminjaman</DialogTitle>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Siswa</Label>
-                    <Select
-                      onValueChange={(v) =>
-                        setLoanForm({ ...loanForm, studentId: v })
-                      }
-                    >
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Pilih Siswa" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {students.map((s: any) => (
-                          <SelectItem key={s._id} value={s._id}>
-                            {s.profile?.fullName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Buku</Label>
-                    <Select
-                      onValueChange={(v) =>
-                        setLoanForm({ ...loanForm, bookId: v })
-                      }
-                    >
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Pilih Buku" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {books
-                          .filter((b: any) => b.available > 0)
-                          .map((b: any) => (
-                            <SelectItem key={b._id} value={b._id}>
-                              {b.title}
+            {user?.role !== "student" && (
+              <Dialog open={openLoanDialog} onOpenChange={setOpenLoanDialog}>
+                <DialogTrigger asChild>
+                  <Button className="bg-sky-600 hover:bg-sky-700">
+                    <Plus className="mr-2 h-4 w-4" /> Pinjam Buku
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Form Peminjaman</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label className="text-right">Siswa</Label>
+                      <Select
+                        onValueChange={(v) =>
+                          setLoanForm({ ...loanForm, studentId: v })
+                        }
+                      >
+                        <SelectTrigger className="col-span-3">
+                          <SelectValue placeholder="Pilih Siswa" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {students.map((s: any) => (
+                            <SelectItem key={s._id} value={s._id}>
+                              {s.profile?.fullName}
                             </SelectItem>
                           ))}
-                      </SelectContent>
-                    </Select>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label className="text-right">Buku</Label>
+                      <Select
+                        onValueChange={(v) =>
+                          setLoanForm({ ...loanForm, bookId: v })
+                        }
+                      >
+                        <SelectTrigger className="col-span-3">
+                          <SelectValue placeholder="Pilih Buku" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {books
+                            .filter((b: any) => b.available > 0)
+                            .map((b: any) => (
+                              <SelectItem key={b._id} value={b._id}>
+                                {b.title}
+                              </SelectItem>
+                            ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                </div>
-                <DialogFooter>
-                  <Button onClick={handleBorrow} disabled={submitting}>
-                    Simpan
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                  <DialogFooter>
+                    <Button onClick={handleBorrow} disabled={submitting}>
+                      Simpan
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
 
           <Card>
@@ -456,16 +472,17 @@ const LibraryDashboard = () => {
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {loan.status === "Borrowed" && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            className="text-blue-600"
-                            onClick={() => handleReturn(loan._id)}
-                          >
-                            Kembalikan
-                          </Button>
-                        )}
+                        {loan.status === "Borrowed" &&
+                          user?.role !== "student" && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-blue-600"
+                              onClick={() => handleReturn(loan._id)}
+                            >
+                              Kembalikan
+                            </Button>
+                          )}
                       </TableCell>
                     </TableRow>
                   ))}

@@ -11,6 +11,7 @@ import P5AssessmentPage from "@/pages/p5/P5AssessmentPage";
 import P5ReportPage from "@/pages/p5/P5ReportPage";
 import StudentAffairsDashboard from "@/pages/student-affairs/StudentAffairsDashboard";
 import BKLetterPage from "@/pages/student-affairs/BKLetterPage";
+import ParentDashboard from "@/pages/parent/ParentDashboard";
 import UksDashboard from "@/pages/uks/UksDashboard";
 import LibraryDashboard from "@/pages/library/LibraryDashboard";
 import LearningGoalPage from "@/pages/academic/LearningGoalPage";
