@@ -30,36 +30,65 @@ const StudentAttendancePage = () => {
 
   const days = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 
-  // Get current day name in Indonesian
-  const today = new Date().toLocaleDateString("id-ID", { weekday: "long" });
+  // Manual Day Mapping to ensure compatibility across browsers/locales
+  const dayMap: { [key: string]: string } = {
+    sunday: "Minggu",
+    monday: "Senin",
+    tuesday: "Selasa",
+    wednesday: "Rabu",
+    thursday: "Kamis",
+    friday: "Jumat",
+    saturday: "Sabtu",
+    minggu: "Minggu",
+    senin: "Senin",
+    selasa: "Selasa",
+    rabu: "Rabu",
+    kamis: "Kamis",
+    jumat: "Jumat",
+    sabtu: "Sabtu",
+  };
+
+  const [todayName, setTodayName] = useState("Senin");
 
   useEffect(() => {
-    // Auto select today if in list, else Senin
-    if (days.includes(today)) setSelectedDay(today);
+    // Get day in English to be safe, then map to Indo
+    const d = new Date()
+      .toLocaleDateString("en-US", { weekday: "long" })
+      .toLowerCase();
+    const indoDay = dayMap[d] || "Senin";
+
+    setTodayName(indoDay);
+    if (days.includes(indoDay)) setSelectedDay(indoDay);
   }, []);
 
   useEffect(() => {
     const userAny = user as any;
     if (userAny && userAny.profile?.class) {
-      // We need Class ID.
-      // Ideal: user.profile.class is just name. Need to fetch Class ID first or backend handles name lookup.
-      // Backend getSchedules checks `classId` param.
-      // Let's first fetch "My Class ID" via `/api/auth/me` or just filter schedules logic.
-      // Actually, let's fetch my class object first.
       fetchMyClass(userAny);
     }
   }, [selectedDay]);
 
   const fetchMyClass = async (currentUser: any) => {
     try {
-      // Assuming we know class name from profile
       const clsName = currentUser?.profile?.class;
       if (!clsName) return;
 
       const res = await api.get("/academic/class");
-      const myClass = res.data.find((c: any) => c.name === clsName);
 
-      if (myClass) fetchSchedules(myClass._id);
+      // Case-insensitive match
+      const myClass = res.data.find(
+        (c: any) => c.name.trim().toLowerCase() === clsName.trim().toLowerCase()
+      );
+
+      if (myClass) {
+        fetchSchedules(myClass._id);
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Data Kelas Error",
+          description: `Kelas ${clsName} tidak ditemukan sistem.`,
+        });
+      }
     } catch (error) {
       console.error(error);
     }
@@ -85,7 +114,8 @@ const StudentAttendancePage = () => {
       await api.post("/attendance/subject", {
         scheduleId,
         status: "Present",
-        academicYear: "676bd6ef259300302c09ef7a", // Dummy, assume active year middleware exists but sending for safety
+        // academicYear removed, backend handles it if missing
+        date: new Date().toISOString(), // Send explicit date to avoid timezone issues
       });
       toast({ title: "Berhasil", description: "Hadir!" });
     } catch (error: any) {
@@ -160,9 +190,9 @@ const StudentAttendancePage = () => {
                 </div>
                 <Button
                   onClick={() => handleAttend(s._id)}
-                  disabled={processing === s._id || selectedDay !== today}
+                  disabled={processing === s._id || selectedDay !== todayName}
                   className={`${
-                    selectedDay === today ? "bg-blue-600" : "bg-slate-300"
+                    selectedDay === todayName ? "bg-blue-600" : "bg-slate-300"
                   }`}
                 >
                   {processing === s._id ? (
@@ -170,7 +200,7 @@ const StudentAttendancePage = () => {
                   ) : (
                     <CheckCircle2 className="mr-2 h-4 w-4" />
                   )}
-                  {selectedDay === today ? "Absen Masuk" : "Lihat Saja"}
+                  {selectedDay === todayName ? "Absen Masuk" : "Lihat Saja"}
                 </Button>
               </CardContent>
             </Card>

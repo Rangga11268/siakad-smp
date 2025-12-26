@@ -32,14 +32,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Cek sesi saat refresh
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    const storedUser = localStorage.getItem("user");
+    const initAuth = async () => {
+      const storedToken = localStorage.getItem("token");
+      if (storedToken) {
+        setToken(storedToken);
+        // Fetch fresh user data
+        try {
+          // Set default header manually here or rely on interceptor if configured (api service usually has interceptor)
+          // Ideally api.interceptors handles this, but let's be safe if possible or assume api service is good.
+          // Note: api service typically reads localStorage token.
 
-    if (storedToken && storedUser) {
-      setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-    }
-    setIsLoading(false);
+          const res = await api.get("/auth/me");
+          setUser(res.data);
+          localStorage.setItem("user", JSON.stringify(res.data)); // Sync local storage
+        } catch (error) {
+          console.error("Session expired or invalid", error);
+          logout();
+        }
+      }
+      setIsLoading(false);
+    };
+
+    initAuth();
   }, []);
 
   const login = async (credentials: any) => {

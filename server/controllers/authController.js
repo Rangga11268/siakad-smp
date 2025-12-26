@@ -78,3 +78,39 @@ exports.login = async (req, res) => {
     res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
+
+// Get Current User (Me)
+exports.getMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    if (!user) return res.status(404).json({ message: "User tidak ditemukan" });
+
+    // Auto-Heal: If student has no class in profile, check if they are in a Class document
+    if (user.role === "student" && (!user.profile || !user.profile.class)) {
+      const ClassModel = require("../models/Class");
+      // Find class that contains this student
+      const foundClass = await ClassModel.findOne({ students: user._id });
+
+      if (foundClass) {
+        console.log(
+          `[Auto-Heal] Syncing class for student ${user.username}: ${foundClass.name}`
+        );
+        if (!user.profile) user.profile = {};
+        user.profile.class = foundClass.name;
+        await user.save();
+      }
+    }
+
+    // Populate children if parent
+    if (user.role === "parent") {
+      await user.populate("children", "username profile");
+    }
+
+    res.json(user);
+  } catch (error) {
+    console.error("GetMe Error:", error);
+    res
+      .status(500)
+      .json({ message: "Gagal ambil data user", error: error.message });
+  }
+};

@@ -15,6 +15,7 @@ router.post("/report/generate", auth, academicController.generateReport);
 router.get("/report/full", auth, academicController.generateFullReport);
 
 router.get("/subject", auth, academicController.getSubjects);
+router.get("/teachers", auth, academicController.getTeachers);
 
 // Academic Year
 router.post(

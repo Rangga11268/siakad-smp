@@ -35,7 +35,7 @@ const SchedulePage = () => {
   const [schedules, setSchedules] = useState<any[]>([]);
   const [classes, setClasses] = useState<any[]>([]);
   const [subjects, setSubjects] = useState<any[]>([]);
-  // const [teachers, setTeachers] = useState<any[]>([]);
+  const [teachers, setTeachers] = useState<any[]>([]);
 
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedDay, setSelectedDay] = useState("Senin");
@@ -66,13 +66,14 @@ const SchedulePage = () => {
 
   const fetchMasterData = async () => {
     try {
-      const [classRes, subjectRes] = await Promise.all([
+      const [classRes, subjectRes, teacherRes] = await Promise.all([
         api.get("/academic/class"),
         api.get("/academic/subject"),
-        // api.get("/academic/students"), // Placeholder
+        api.get("/academic/teachers"),
       ]);
       setClasses(classRes.data);
       setSubjects(subjectRes.data);
+      setTeachers(teacherRes.data);
     } catch (error) {
       console.error("Failed load master", error);
     }
@@ -97,8 +98,9 @@ const SchedulePage = () => {
       await api.post("/schedule", {
         ...formData,
         class: selectedClass,
-        teacher: "676bd6ef259300302c09ef7c", // Hardcoded Teacher for Demo
-        academicYear: "676bd6ef259300302c09ef7a", // Hardcoded Year
+        // teacher: formData.teacher, // Use dynamic teacher
+        teacher: formData.teacher || undefined, // Send teacher ID
+        academicYear: "676bd6ef259300302c09ef7a", // still hardcoded temporarily or fetch active
         semester: "Ganjil",
       });
       toast({ title: "Berhasil", description: "Jadwal berhasil ditambahkan" });
@@ -178,7 +180,12 @@ const SchedulePage = () => {
       <div className="flex justify-end">
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button disabled={!selectedClass}>
+            <Button
+              disabled={!selectedClass}
+              onClick={() =>
+                setFormData((prev) => ({ ...prev, day: selectedDay }))
+              }
+            >
               <Plus className="mr-2 h-4 w-4" /> Tambah Jadwal
             </Button>
           </DialogTrigger>
@@ -190,6 +197,26 @@ const SchedulePage = () => {
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
+              {/* Day Selection */}
+              <div className="space-y-2">
+                <Label>Hari</Label>
+                <Select
+                  value={formData.day}
+                  onValueChange={(v) => setFormData({ ...formData, day: v })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih Hari" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {days.map((d) => (
+                      <SelectItem key={d} value={d}>
+                        {d}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Jam Mulai</Label>
@@ -231,7 +258,25 @@ const SchedulePage = () => {
                   </SelectContent>
                 </Select>
               </div>
-              {/* Teacher Select would go here */}
+              <div className="space-y-2">
+                <Label>Guru Pengajar</Label>
+                <Select
+                  onValueChange={(v) =>
+                    setFormData({ ...formData, teacher: v })
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih Guru" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {teachers.map((t) => (
+                      <SelectItem key={t._id} value={t._id}>
+                        {t.profile?.fullName || t.username}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <DialogFooter>
               <Button onClick={handleSubmit}>Simpan</Button>

@@ -68,12 +68,12 @@ const AttendancePage = () => {
       });
       const existingRecords = resAttendance.data;
 
-      // 3. Merge Data (Default "Present" if no record)
+      // 3. Merge Data (Default "null" if no record)
       const initialData: any = {};
       studentList.forEach((s: any) => {
         const record = existingRecords.find((r: any) => r.student === s._id);
         initialData[s._id] = {
-          status: record ? record.status : "Present",
+          status: record ? record.status : null,
           note: record ? record.note : "",
         };
       });
@@ -109,18 +109,29 @@ const AttendancePage = () => {
   const handleSave = async () => {
     setSubmitting(true);
     try {
-      const records = Object.keys(attendanceData).map((studentId) => ({
-        studentId,
-        status: attendanceData[studentId].status,
-        note: attendanceData[studentId].note,
-      }));
+      // Only include records with a status set
+      const records = Object.keys(attendanceData)
+        .filter((studentId) => attendanceData[studentId].status)
+        .map((studentId) => ({
+          studentId,
+          status: attendanceData[studentId].status,
+          note: attendanceData[studentId].note,
+        }));
+
+      if (records.length === 0) {
+        toast({
+          variant: "destructive", // Changed from warning to destructive as warning might not exist
+          title: "Peringatan",
+          description: "Belum ada status absensi yang dipilih.",
+        });
+        setSubmitting(false);
+        return;
+      }
 
       await api.post("/attendance", {
         classId: selectedClass,
         date,
         records,
-        // academicYearId: "..." // Optional if backend infers or we select it
-        // For now, simplify. Backend handles or ignores if not strictly required
       });
 
       toast({ title: "Berhasil", description: "Data absensi tersimpan." });
@@ -214,6 +225,21 @@ const AttendancePage = () => {
                             <div className="text-xs text-muted-foreground">
                               {student.username}
                             </div>
+                            {attendanceData[student._id]?.status ? (
+                              <span
+                                className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium mt-1 ${getStatusBadgeColor(
+                                  attendanceData[student._id].status
+                                )}`}
+                              >
+                                {getStatusLabel(
+                                  attendanceData[student._id].status
+                                )}
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 mt-1">
+                                Belum Absen
+                              </span>
+                            )}
                           </TableCell>
                           <TableCell className="text-center">
                             <div className="flex justify-center gap-2">
@@ -300,6 +326,38 @@ const getStatusColor = (status: string) => {
       return "bg-red-100 border-red-500 text-red-700";
     default:
       return "bg-gray-100";
+  }
+};
+
+// Helper for Status Badge Color
+const getStatusBadgeColor = (status: string) => {
+  switch (status) {
+    case "Present":
+      return "bg-green-100 text-green-800";
+    case "Sick":
+      return "bg-yellow-100 text-yellow-800";
+    case "Permission":
+      return "bg-blue-100 text-blue-800";
+    case "Alpha":
+      return "bg-red-100 text-red-800";
+    default:
+      return "bg-gray-100 text-gray-800";
+  }
+};
+
+// Helper for Status Label
+const getStatusLabel = (status: string) => {
+  switch (status) {
+    case "Present":
+      return "Hadir";
+    case "Sick":
+      return "Sakit";
+    case "Permission":
+      return "Izin";
+    case "Alpha":
+      return "Alpha";
+    default:
+      return status;
   }
 };
 

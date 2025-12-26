@@ -1,8 +1,13 @@
 const Attendance = require("../models/Attendance");
 const Class = require("../models/Class");
 const User = require("../models/User");
+const Schedule = require("../models/Schedule"); // Fixed import
+const mongoose = require("mongoose");
 
-// Input Absensi Harian (Batch per Kelas)
+// ... (existing code)
+
+// Absen Mapel (Siswa/Guru)
+
 exports.recordBatchAttendance = async (req, res) => {
   try {
     const { classId, date, records, academicYearId } = req.body;
@@ -88,6 +93,7 @@ exports.getStudentSummary = async (req, res) => {
   }
 };
 // Absen Mandiri (Siswa)
+// Absen Mandiri (Siswa)
 exports.recordSelfAttendance = async (req, res) => {
   try {
     const studentId = req.user.id; // From Auth Middleware
@@ -109,6 +115,12 @@ exports.recordSelfAttendance = async (req, res) => {
     if (!studentUser)
       return res.status(404).json({ message: "Siswa tidak ditemukan." });
 
+    if (!studentUser.profile || !studentUser.profile.class) {
+      return res
+        .status(400)
+        .json({ message: "Data kelas Anda belum diatur. Hubungi Admin." });
+    }
+
     // Cari Class ID berdasarkan nama kelas di profile
     // Note: Schema Attendance butuh Class ID.
     // Kita cari Class model
@@ -116,13 +128,27 @@ exports.recordSelfAttendance = async (req, res) => {
       name: studentUser.profile.class,
     });
 
+    if (!studentClass) {
+      return res.status(400).json({
+        message: `Kelas '${studentUser.profile.class}' tidak ditemukan di sistem. Hubungi Admin.`,
+      });
+    }
+
+    // Get Active Academic Year if not provided
+    let academicYearId = req.body.academicYear;
+    if (!academicYearId) {
+      const AcademicYear = require("../models/AcademicYear");
+      const activeYear = await AcademicYear.findOne({ status: "Active" });
+      if (activeYear) academicYearId = activeYear._id;
+    }
+
     // Default status Present
     const newAttendance = new Attendance({
       student: studentId,
-      class: studentClass ? studentClass._id : null, // Bisa null jika belum masuk kelas, tapi idealnya punya kelas
+      class: studentClass._id,
       date: today,
       status: "Present",
-      academicYear: req.body.academicYear, // Client harus kirim atau kita ambil active year
+      academicYear: academicYearId,
       note: "Absen Mandiri via Dashboard",
       recordedBy: studentId,
     });
@@ -130,6 +156,7 @@ exports.recordSelfAttendance = async (req, res) => {
     await newAttendance.save();
     res.json({ message: "Berhasil absen masuk!", attendance: newAttendance });
   } catch (error) {
+    console.error("Self attendance error:", error);
     res
       .status(500)
       .json({ message: "Gagal absen mandiri", error: error.message });
@@ -139,14 +166,20 @@ exports.recordSelfAttendance = async (req, res) => {
 exports.recordSubjectAttendance = async (req, res) => {
   try {
     const studentId = req.user.id;
-    const { scheduleId, status, note, date } = req.body; // status defaults to Present if self-absen
+    const { scheduleId, status, note, date } = req.body;
+
+    console.log(
+      `[Attendance] Student ${studentId} attempting to attend schedule ${scheduleId}`
+    );
 
     const today = date ? new Date(date) : new Date();
     today.setHours(0, 0, 0, 0);
 
-    const schedule = await mongoose.model("Schedule").findById(scheduleId);
-    if (!schedule)
+    const schedule = await Schedule.findById(scheduleId);
+    if (!schedule) {
+      console.log(`[Attendance] Schedule ${scheduleId} not found`);
       return res.status(404).json({ message: "Jadwal tidak ditemukan" });
+    }
 
     // Cek Duplikasi per Mapel & Hari
     const existing = await Attendance.findOne({

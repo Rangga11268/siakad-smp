@@ -19,6 +19,21 @@ exports.createSubject = async (req, res) => {
   }
 };
 
+// Guru
+exports.getTeachers = async (req, res) => {
+  try {
+    const User = require("../models/User");
+    const teachers = await User.find({ role: "teacher" }).select(
+      "username profile.fullName"
+    );
+    res.json(teachers);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal ambil data guru", error: error.message });
+  }
+};
+
 const AcademicYear = require("../models/AcademicYear");
 
 // --- Master Data (Mapel & Kelas) ---
@@ -71,10 +86,14 @@ exports.createClass = async (req, res) => {
 
 exports.getClasses = async (req, res) => {
   try {
+    console.log(
+      `[getClasses] User ${req.user.id} (${req.user.role}) requesting classes.`
+    );
     const classes = await Class.find().populate(
       "homeroomTeacher",
       "username profile.fullName"
     ); // Assuming User model has profile
+    console.log(`[getClasses] Found ${classes.length} classes.`);
     res.json(classes);
   } catch (error) {
     res

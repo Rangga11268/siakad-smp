@@ -48,7 +48,6 @@ function App() {
           <Route path="academic/subjects" element={<MasterSubjectPage />} />
           <Route path="academic/classes" element={<MasterClassPage />} />
           <Route path="academic/students" element={<MasterStudentPage />} />
-          <Route path="academic/students" element={<MasterStudentPage />} />
           <Route path="academic/attendance" element={<AttendancePage />} />
           <Route path="academic/journal" element={<JournalPage />} />
           <Route path="ppdb" element={<PPDBAdminPage />} />

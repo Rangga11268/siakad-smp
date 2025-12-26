@@ -29,6 +29,8 @@ const userSchema = new mongoose.Schema(
       birthDate: Date,
       avatar: String, // URL
 
+      class: String, // Added class string
+
       // Data Fisik & Kesehatan
       physical: {
         height: Number, // cm
