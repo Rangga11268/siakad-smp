@@ -86,14 +86,10 @@ exports.createClass = async (req, res) => {
 
 exports.getClasses = async (req, res) => {
   try {
-    console.log(
-      `[getClasses] User ${req.user.id} (${req.user.role}) requesting classes.`
-    );
     const classes = await Class.find().populate(
       "homeroomTeacher",
       "username profile.fullName"
     ); // Assuming User model has profile
-    console.log(`[getClasses] Found ${classes.length} classes.`);
     res.json(classes);
   } catch (error) {
     res

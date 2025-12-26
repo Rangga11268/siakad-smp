@@ -168,16 +168,11 @@ exports.recordSubjectAttendance = async (req, res) => {
     const studentId = req.user.id;
     const { scheduleId, status, note, date } = req.body;
 
-    console.log(
-      `[Attendance] Student ${studentId} attempting to attend schedule ${scheduleId}`
-    );
-
     const today = date ? new Date(date) : new Date();
     today.setHours(0, 0, 0, 0);
 
     const schedule = await Schedule.findById(scheduleId);
     if (!schedule) {
-      console.log(`[Attendance] Schedule ${scheduleId} not found`);
       return res.status(404).json({ message: "Jadwal tidak ditemukan" });
     }
 
