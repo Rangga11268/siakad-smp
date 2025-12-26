@@ -175,17 +175,19 @@ const StudentAttendancePage = () => {
               <div className="absolute left-0 top-0 bottom-0 w-2 bg-blue-500" />
               <CardContent className="p-6 pl-8 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
-                  <h3 className="text-xl font-bold">{s.subject?.name}</h3>
+                  <h3 className="text-xl font-bold">
+                    {s.subject?.name || "Mapel"}
+                  </h3>
                   <div className="flex items-center gap-4 text-sm text-slate-500 mt-2">
                     <span className="flex items-center gap-1">
                       <Clock className="h-4 w-4" /> {s.startTime} - {s.endTime}
                     </span>
                     <span className="flex items-center gap-1">
-                      <MapPin className="h-4 w-4" /> {s.class?.name}
+                      <MapPin className="h-4 w-4" /> {s.class?.name || "Kelas"}
                     </span>
                   </div>
                   <p className="text-sm text-slate-500 mt-1">
-                    Guru: {s.teacher?.profile?.fullName}
+                    Guru: {s.teacher?.profile?.fullName || "Guru"}
                   </p>
                 </div>
                 <Button

@@ -20,10 +20,23 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookOpen, Plus, Loader2, Calendar } from "lucide-react";
+import { Loader2, Calendar } from "lucide-react";
 import api from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/AuthContext";
+
+interface JournalForm {
+  classId: string;
+  subjectId: string;
+  date: string;
+  startTime: string;
+  endTime: string;
+  topic: string;
+  method: string;
+  studentActivity: string;
+  notes: string;
+  materialIds: string[];
+}
 
 const JournalPage = () => {
   const { user } = useAuth();
@@ -38,7 +51,7 @@ const JournalPage = () => {
   const [submitting, setSubmitting] = useState(false);
 
   // Form State
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<JournalForm>({
     classId: "",
     subjectId: "",
     date: new Date().toISOString().split("T")[0],
@@ -48,8 +61,10 @@ const JournalPage = () => {
     method: "Ceramah & Diskusi",
     studentActivity: "",
     notes: "",
+    materialIds: [], // New Field
   });
   const [file, setFile] = useState<File | null>(null);
+  const [materials, setMaterials] = useState<any[]>([]); // Available materials
 
   useEffect(() => {
     fetchMasterData();
@@ -59,12 +74,14 @@ const JournalPage = () => {
 
   const fetchMasterData = async () => {
     try {
-      const [classesRes, subjectsRes] = await Promise.all([
+      const [classesRes, subjectsRes, materialsRes] = await Promise.all([
         api.get("/academic/class"),
         api.get("/academic/subject"),
+        api.get("/learning-material"),
       ]);
       setClasses(classesRes.data);
       setSubjects(subjectsRes.data);
+      setMaterials(materialsRes.data);
     } catch (error) {
       console.error(error);
     }
@@ -97,7 +114,11 @@ const JournalPage = () => {
 
     const submitData = new FormData();
     Object.entries(formData).forEach(([key, value]) => {
-      submitData.append(key, value);
+      if (key === "materialIds") {
+        value.forEach((id: string) => submitData.append("materials[]", id));
+      } else {
+        submitData.append(key, value as string);
+      }
     });
     if (file) {
       submitData.append("attachment", file);
@@ -285,6 +306,33 @@ const JournalPage = () => {
                       setFormData({ ...formData, notes: e.target.value })
                     }
                   />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Gunakan Bahan Ajar (Opsional)</Label>
+                  <Select
+                    value={formData.materialIds[0] || ""}
+                    onValueChange={(v) =>
+                      setFormData({ ...formData, materialIds: [v] as any })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Pilih Materi Terkait" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {materials
+                        .filter(
+                          (m) =>
+                            !formData.subjectId ||
+                            m.subject?._id === formData.subjectId
+                        )
+                        .map((m) => (
+                          <SelectItem key={m._id} value={m._id}>
+                            {m.title} ({m.type})
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2">

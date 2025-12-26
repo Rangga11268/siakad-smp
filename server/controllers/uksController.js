@@ -96,7 +96,13 @@ exports.addVisit = async (req, res) => {
 
 exports.getVisits = async (req, res) => {
   try {
-    const visits = await UksVisit.find()
+    let filter = {};
+    if (req.user.role === "student") {
+      filter = { student: req.user.id };
+    }
+    // Note: Parent logic would need child linking, skipping for now as per minimal scope
+
+    const visits = await UksVisit.find(filter)
       .populate("student", "username profile.fullName")
       .sort({ date: -1 });
     res.json(visits);

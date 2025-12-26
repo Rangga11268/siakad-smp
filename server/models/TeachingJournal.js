@@ -28,8 +28,17 @@ const teachingJournalSchema = new mongoose.Schema(
 
     notes: { type: String }, // Catatan kejadian khusus / kendala
 
-    // Optional: Link to attendance or assessment?
-    // For now keep simple
+    schedule: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Schedule",
+    },
+    materials: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "LearningMaterial",
+      },
+    ],
+    attachments: [{ type: String }], // Direct simple uploads if any
   },
   { timestamps: true }
 );

@@ -104,10 +104,28 @@ const Sidebar = () => {
           roles: ["admin", "teacher"],
         },
         {
+          title: "Nilai Saya",
+          icon: BookOpen,
+          path: "/dashboard/student/grades",
+          roles: ["student"],
+        },
+        {
           title: "Input Nilai",
           icon: BookOpen,
           path: "/dashboard/academic/grades",
-          roles: ["teacher"],
+          roles: ["teacher", "admin"],
+        },
+        {
+          title: "Bahan Ajar (Guru)",
+          icon: BookOpen,
+          path: "/dashboard/academic/materials",
+          roles: ["admin", "teacher"],
+        },
+        {
+          title: "Bahan Ajar",
+          icon: BookOpen,
+          path: "/dashboard/student/materials",
+          roles: ["student"],
         },
         {
           title: "E-Rapor Siswa",

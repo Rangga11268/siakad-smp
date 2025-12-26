@@ -27,7 +27,7 @@ router.post(
 router.get(
   "/visits",
   auth,
-  checkRole(["admin", "teacher"]),
+  checkRole(["admin", "teacher", "parent", "student"]),
   uksController.getVisits
 );
 

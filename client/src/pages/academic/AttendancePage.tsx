@@ -221,7 +221,7 @@ const AttendancePage = () => {
                         <TableRow key={student._id}>
                           <TableCell>{idx + 1}</TableCell>
                           <TableCell className="font-medium">
-                            {student.profile.fullName}
+                            {student.profile?.fullName || student.username}
                             <div className="text-xs text-muted-foreground">
                               {student.username}
                             </div>

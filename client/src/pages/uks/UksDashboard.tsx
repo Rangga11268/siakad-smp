@@ -13,7 +13,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Dialog,
   DialogContent,
@@ -30,11 +29,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { HeartPulse, NotebookPen, Plus, Loader2 } from "lucide-react";
+import { HeartPulse, NotebookPen, Plus } from "lucide-react";
 import api from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/context/AuthContext";
 
 const UksDashboard = () => {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("records");
   const [healthRecords, setHealthRecords] = useState([]);
   const [visits, setVisits] = useState([]);
@@ -67,28 +68,29 @@ const UksDashboard = () => {
   });
 
   const { toast } = useToast();
+  const canEdit = ["admin", "teacher"].includes(user?.role || "");
 
   useEffect(() => {
     fetchData();
-    fetchStudents();
-  }, []);
+    if (canEdit) {
+      fetchStudents();
+    }
+  }, [user]);
 
   const fetchData = async () => {
     setLoading(true);
     try {
       const [resRecords, resVisits] = await Promise.all([
-        api.get("/uks/records"),
+        api.get("/uks/records", {
+          params: user?.role === "student" ? { studentId: user.id } : {},
+        }),
         api.get("/uks/visits"),
       ]);
       setHealthRecords(resRecords.data);
       setVisits(resVisits.data);
     } catch (error) {
       console.error("Gagal load data UKS", error);
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Gagal memuat data UKS.",
-      });
+      // Don't show toast on first load to avoid spamming restricted users if partial fail
     } finally {
       setLoading(false);
     }
@@ -216,125 +218,136 @@ const UksDashboard = () => {
             <h3 className="text-lg font-semibold">
               Data Screening (Stunting Check)
             </h3>
-            <Dialog open={openRecordDialog} onOpenChange={setOpenRecordDialog}>
-              <DialogTrigger asChild>
-                <Button className="bg-emerald-600 hover:bg-emerald-700">
-                  <Plus className="mr-2 h-4 w-4" /> Input Data
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="sm:max-w-[600px]">
-                <DialogHeader>
-                  <DialogTitle>Input Screening Kesehatan</DialogTitle>
-                  <DialogDescription>
-                    Pencatatan antropometri dan kesehatan dasar.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Siswa</Label>
-                    <Select
-                      onValueChange={(v) =>
-                        setRecordForm({ ...recordForm, studentId: v })
-                      }
-                    >
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Pilih Siswa" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {students.map((s: any) => (
-                          <SelectItem key={s._id} value={s._id}>
-                            {s.profile?.fullName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Tinggi (cm)</Label>
-                    <Input
-                      type="number"
-                      className="col-span-3"
-                      value={recordForm.height}
-                      onChange={(e) =>
-                        setRecordForm({ ...recordForm, height: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Berat (kg)</Label>
-                    <Input
-                      type="number"
-                      className="col-span-3"
-                      value={recordForm.weight}
-                      onChange={(e) =>
-                        setRecordForm({ ...recordForm, weight: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Penglihatan</Label>
-                    <div className="col-span-3 flex gap-2">
+            {canEdit && (
+              <Dialog
+                open={openRecordDialog}
+                onOpenChange={setOpenRecordDialog}
+              >
+                <DialogTrigger asChild>
+                  <Button className="bg-emerald-600 hover:bg-emerald-700">
+                    <Plus className="mr-2 h-4 w-4" /> Input Data
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[600px]">
+                  <DialogHeader>
+                    <DialogTitle>Input Screening Kesehatan</DialogTitle>
+                    <DialogDescription>
+                      Pencatatan antropometri dan kesehatan dasar.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label className="text-right">Siswa</Label>
                       <Select
-                        value={recordForm.visionLeft}
                         onValueChange={(v) =>
-                          setRecordForm({ ...recordForm, visionLeft: v })
+                          setRecordForm({ ...recordForm, studentId: v })
                         }
                       >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Kiri" />
+                        <SelectTrigger className="col-span-3">
+                          <SelectValue placeholder="Pilih Siswa" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Normal">Normal</SelectItem>
-                          <SelectItem value="Minus">Minus</SelectItem>
+                          {students.map((s: any) => (
+                            <SelectItem key={s._id} value={s._id}>
+                              {s.profile?.fullName}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label className="text-right">Tinggi (cm)</Label>
+                      <Input
+                        type="number"
+                        className="col-span-3"
+                        value={recordForm.height}
+                        onChange={(e) =>
+                          setRecordForm({
+                            ...recordForm,
+                            height: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label className="text-right">Berat (kg)</Label>
+                      <Input
+                        type="number"
+                        className="col-span-3"
+                        value={recordForm.weight}
+                        onChange={(e) =>
+                          setRecordForm({
+                            ...recordForm,
+                            weight: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label className="text-right">Penglihatan</Label>
+                      <div className="col-span-3 flex gap-2">
+                        <Select
+                          value={recordForm.visionLeft}
+                          onValueChange={(v) =>
+                            setRecordForm({ ...recordForm, visionLeft: v })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Kiri" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Normal">Normal</SelectItem>
+                            <SelectItem value="Minus">Minus</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Select
+                          value={recordForm.visionRight}
+                          onValueChange={(v) =>
+                            setRecordForm({ ...recordForm, visionRight: v })
+                          }
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Kanan" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Normal">Normal</SelectItem>
+                            <SelectItem value="Minus">Minus</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label className="text-right">Gigi</Label>
                       <Select
-                        value={recordForm.visionRight}
+                        value={recordForm.dentalHealth}
                         onValueChange={(v) =>
-                          setRecordForm({ ...recordForm, visionRight: v })
+                          setRecordForm({ ...recordForm, dentalHealth: v })
                         }
                       >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Kanan" />
+                        <SelectTrigger className="col-span-3">
+                          <SelectValue placeholder="Kondisi Gigi" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="Normal">Normal</SelectItem>
-                          <SelectItem value="Minus">Minus</SelectItem>
+                          <SelectItem value="Sehat">Sehat</SelectItem>
+                          <SelectItem value="Karies">
+                            Karies (Berlubang)
+                          </SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Gigi</Label>
-                    <Select
-                      value={recordForm.dentalHealth}
-                      onValueChange={(v) =>
-                        setRecordForm({ ...recordForm, dentalHealth: v })
-                      }
+                  <DialogFooter>
+                    <Button
+                      className="bg-emerald-600 hover:bg-emerald-700"
+                      onClick={handleAddRecord}
+                      disabled={submitting}
                     >
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Kondisi Gigi" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Sehat">Sehat</SelectItem>
-                        <SelectItem value="Karies">
-                          Karies (Berlubang)
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button
-                    className="bg-emerald-600 hover:bg-emerald-700"
-                    onClick={handleAddRecord}
-                    disabled={submitting}
-                  >
-                    {submitting ? "Menyimpan..." : "Simpan Data"}
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                      {submitting ? "Menyimpan..." : "Simpan Data"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
 
           <Card>
@@ -398,109 +411,113 @@ const UksDashboard = () => {
         <TabsContent value="visits" className="space-y-4">
           <div className="flex justify-between items-center bg-card p-4 rounded-lg border">
             <h3 className="text-lg font-semibold">Buku Kunjungan Harian</h3>
-            <Dialog open={openVisitDialog} onOpenChange={setOpenVisitDialog}>
-              <DialogTrigger asChild>
-                <Button variant="secondary">
-                  <Plus className="mr-2 h-4 w-4" /> Catat Kunjungan
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Catat Kunjungan UKS</DialogTitle>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Siswa</Label>
-                    <Select
-                      onValueChange={(v) =>
-                        setVisitForm({ ...visitForm, studentId: v })
-                      }
-                    >
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Pilih Siswa" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {students.map((s: any) => (
-                          <SelectItem key={s._id} value={s._id}>
-                            {s.profile?.fullName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Keluhan</Label>
-                    <Input
-                      className="col-span-3"
-                      placeholder="Pusing, Mual, Luka..."
-                      value={visitForm.complaint}
-                      onChange={(e) =>
-                        setVisitForm({
-                          ...visitForm,
-                          complaint: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Tindakan</Label>
-                    <Input
-                      className="col-span-3"
-                      placeholder="Istirahat, P3K..."
-                      value={visitForm.treatment}
-                      onChange={(e) =>
-                        setVisitForm({
-                          ...visitForm,
-                          treatment: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Obat</Label>
-                    <Input
-                      className="col-span-3"
-                      placeholder="Paracetamol, Betadine..."
-                      value={visitForm.medicineGiven}
-                      onChange={(e) =>
-                        setVisitForm({
-                          ...visitForm,
-                          medicineGiven: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Status</Label>
-                    <Select
-                      value={visitForm.status}
-                      onValueChange={(v) =>
-                        setVisitForm({ ...visitForm, status: v })
-                      }
-                    >
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Status Akhir" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Istirahat">
-                          Istirahat di UKS
-                        </SelectItem>
-                        <SelectItem value="Pulang">Dipulangkan</SelectItem>
-                        <SelectItem value="Rujuk">
-                          Rujuk RS/Puskesmas
-                        </SelectItem>
-                        <SelectItem value="Sembuh">Kembali ke Kelas</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button onClick={handleAddVisit} disabled={submitting}>
-                    {submitting ? "Menyimpan..." : "Simpan"}
+            {canEdit && (
+              <Dialog open={openVisitDialog} onOpenChange={setOpenVisitDialog}>
+                <DialogTrigger asChild>
+                  <Button variant="secondary">
+                    <Plus className="mr-2 h-4 w-4" /> Catat Kunjungan
                   </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Catat Kunjungan UKS</DialogTitle>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label className="text-right">Siswa</Label>
+                      <Select
+                        onValueChange={(v) =>
+                          setVisitForm({ ...visitForm, studentId: v })
+                        }
+                      >
+                        <SelectTrigger className="col-span-3">
+                          <SelectValue placeholder="Pilih Siswa" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {students.map((s: any) => (
+                            <SelectItem key={s._id} value={s._id}>
+                              {s.profile?.fullName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label className="text-right">Keluhan</Label>
+                      <Input
+                        className="col-span-3"
+                        placeholder="Pusing, Mual, Luka..."
+                        value={visitForm.complaint}
+                        onChange={(e) =>
+                          setVisitForm({
+                            ...visitForm,
+                            complaint: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label className="text-right">Tindakan</Label>
+                      <Input
+                        className="col-span-3"
+                        placeholder="Istirahat, P3K..."
+                        value={visitForm.treatment}
+                        onChange={(e) =>
+                          setVisitForm({
+                            ...visitForm,
+                            treatment: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label className="text-right">Obat</Label>
+                      <Input
+                        className="col-span-3"
+                        placeholder="Paracetamol, Betadine..."
+                        value={visitForm.medicineGiven}
+                        onChange={(e) =>
+                          setVisitForm({
+                            ...visitForm,
+                            medicineGiven: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label className="text-right">Status</Label>
+                      <Select
+                        value={visitForm.status}
+                        onValueChange={(v) =>
+                          setVisitForm({ ...visitForm, status: v })
+                        }
+                      >
+                        <SelectTrigger className="col-span-3">
+                          <SelectValue placeholder="Status Akhir" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Istirahat">
+                            Istirahat di UKS
+                          </SelectItem>
+                          <SelectItem value="Pulang">Dipulangkan</SelectItem>
+                          <SelectItem value="Rujuk">
+                            Rujuk RS/Puskesmas
+                          </SelectItem>
+                          <SelectItem value="Sembuh">
+                            Kembali ke Kelas
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button onClick={handleAddVisit} disabled={submitting}>
+                      {submitting ? "Menyimpan..." : "Simpan"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
           </div>
 
           <Card>

@@ -45,6 +45,7 @@ app.use("/api/dashboard", require("./routes/dashboardRoutes"));
 app.use("/api/attendance", require("./routes/attendanceRoutes"));
 app.use("/api/journal", require("./routes/journalRoutes"));
 app.use("/api/schedule", require("./routes/scheduleRoutes"));
+app.use("/api/learning-material", require("./routes/learningMaterialRoutes"));
 app.get("/", (req, res) => {
   res.send({ message: "Welcome to SIAKAD SMP API" });
 });

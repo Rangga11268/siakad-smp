@@ -23,6 +23,9 @@ import PPDBStatusPage from "./pages/public/PPDBStatusPage";
 import PPDBAdminPage from "@/pages/admin/PPDBAdminPage";
 import SchedulePage from "@/pages/academic/SchedulePage";
 import StudentAttendancePage from "@/pages/student/StudentAttendancePage";
+import StudentGradePage from "@/pages/student/StudentGradePage";
+import StudentMaterialPage from "@/pages/student/StudentMaterialPage";
+import TeacherMaterialPage from "@/pages/academic/TeacherMaterialPage";
 
 import FinanceDashboard from "@/pages/finance/FinanceDashboard";
 import AssetDashboard from "@/pages/assets/AssetDashboard";
@@ -59,10 +62,8 @@ function App() {
           <Route path="academic/schedule" element={<SchedulePage />} />
 
           {/* Student Routes */}
-          <Route
-            path="student/attendance"
-            element={<StudentAttendancePage />}
-          />
+          <Route element={<StudentAttendancePage />} />
+          <Route path="student/grades" element={<StudentGradePage />} />
 
           <Route path="p5" element={<P5Dashboard />} />
           <Route path="p5/:projectId" element={<P5AssessmentPage />} />
@@ -89,6 +90,10 @@ function App() {
 
           {/* Teacher Routes */}
           <Route path="academic/grades" element={<InputGradePage />} />
+          <Route path="academic/materials" element={<TeacherMaterialPage />} />
+
+          {/* Student Routes */}
+          <Route path="student/materials" element={<StudentMaterialPage />} />
         </Route>
 
         {/* <Route path="/" element={<Navigate to="/login" replace />} /> Note: Root is now LandingPage */}
