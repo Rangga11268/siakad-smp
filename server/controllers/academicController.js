@@ -24,7 +24,7 @@ exports.getTeachers = async (req, res) => {
   try {
     const User = require("../models/User");
     const teachers = await User.find({ role: "teacher" }).select(
-      "username profile.fullName"
+      "username profile.fullName",
     );
     res.json(teachers);
   } catch (error) {
@@ -88,7 +88,7 @@ exports.getClasses = async (req, res) => {
   try {
     const classes = await Class.find().populate(
       "homeroomTeacher",
-      "username profile.fullName"
+      "username profile.fullName",
     ); // Assuming User model has profile
     res.json(classes);
   } catch (error) {
@@ -105,7 +105,7 @@ exports.getStudentsByLevel = async (req, res) => {
     // Cari semua kelas di level ini
     const classes = await Class.find({ level }).populate(
       "students",
-      "username profile.fullName profile.nisn"
+      "username profile.fullName profile.nisn",
     );
 
     // Gabungkan semua siswa
@@ -124,9 +124,32 @@ exports.getStudentsByLevel = async (req, res) => {
   }
 };
 
-// --- Master Data Siswa ---
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
+
+// Helper function to generate secure random password
+const generateSecurePassword = () => {
+  return crypto.randomBytes(4).toString("hex"); // 8 character random password
+};
+
+// Helper function to sanitize user response
+const sanitizeUserResponse = (user) => {
+  return {
+    _id: user._id,
+    username: user.username,
+    role: user.role,
+    profile: {
+      fullName: user.profile?.fullName,
+      nisn: user.profile?.nisn,
+      gender: user.profile?.gender,
+      level: user.profile?.level,
+      class: user.profile?.class,
+      birthPlace: user.profile?.birthPlace,
+      birthDate: user.profile?.birthDate,
+    },
+  };
+};
 
 exports.getAllStudents = async (req, res) => {
   try {
@@ -160,7 +183,9 @@ exports.createStudent = async (req, res) => {
     if (existing)
       return res.status(400).json({ message: "Username sudah dipakai" });
 
-    const hashedPassword = await bcrypt.hash(password || "123456", 10);
+    // Generate secure random password if not provided
+    const generatedPassword = password || generateSecurePassword();
+    const hashedPassword = await bcrypt.hash(generatedPassword, 10);
 
     const newStudent = new User({
       username,
@@ -189,11 +214,19 @@ exports.createStudent = async (req, res) => {
     if (className) {
       await Class.updateOne(
         { name: className }, // Assuming name is unique or combine with level
-        { $addToSet: { students: newStudent._id } }
+        { $addToSet: { students: newStudent._id } },
       );
     }
 
-    res.status(201).json(newStudent);
+    // Return sanitized response with generated password
+    const sanitizedResponse = sanitizeUserResponse(newStudent);
+    res.status(201).json({
+      ...sanitizedResponse,
+      generatedPassword: password ? undefined : generatedPassword, // Only return if auto-generated
+      message: password
+        ? "Siswa berhasil dibuat"
+        : "Siswa berhasil dibuat. Password: " + generatedPassword,
+    });
   } catch (error) {
     res
       .status(500)
@@ -262,13 +295,13 @@ exports.updateStudent = async (req, res) => {
       if (oldClass) {
         await Class.updateOne(
           { name: oldClass },
-          { $pull: { students: student._id } }
+          { $pull: { students: student._id } },
         );
       }
       // Add to new class
       await Class.updateOne(
         { name: className },
-        { $addToSet: { students: student._id } }
+        { $addToSet: { students: student._id } },
       );
     }
 
@@ -611,7 +644,7 @@ exports.addStudentToClass = async (req, res) => {
     if (student.profile.class && student.profile.class !== targetClass.name) {
       await Class.updateOne(
         { name: student.profile.class },
-        { $pull: { students: student._id } }
+        { $pull: { students: student._id } },
       );
     }
 

@@ -62,7 +62,10 @@ function App() {
           <Route path="academic/schedule" element={<SchedulePage />} />
 
           {/* Student Routes */}
-          <Route element={<StudentAttendancePage />} />
+          <Route
+            path="student/attendance"
+            element={<StudentAttendancePage />}
+          />
           <Route path="student/grades" element={<StudentGradePage />} />
 
           <Route path="p5" element={<P5Dashboard />} />

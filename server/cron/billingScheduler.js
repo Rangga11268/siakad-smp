@@ -33,32 +33,44 @@ const startBillingScheduler = () => {
 
       // Get Active Students
       const students = await User.find({ role: "student", isActive: true });
-      let count = 0;
 
-      for (const student of students) {
-        // Double check uniqueness
-        const exists = await Billing.findOne({
-          student: student._id,
-          title: title,
-          status: { $ne: "cancelled" },
-        });
-
-        if (!exists) {
-          await Billing.create({
-            student: student._id,
-            title,
-            type: "SPP",
-            amount: defaultAmount,
-            dueDate,
-            status: "unpaid",
-          });
-          count++;
-        }
+      if (students.length === 0) {
+        console.log("⚠️ No active students found");
+        return;
       }
 
-      console.log(
-        `✅ Monthly Billing Job Completed: Generated ${count} bills for ${title}`
+      // Fetch existing billings for this title to avoid duplicates
+      const existingBills = await Billing.find({
+        title: title,
+        status: { $ne: "cancelled" },
+      }).select("student");
+
+      // Create a Set of student IDs that already have bills
+      const existingStudentIds = new Set(
+        existingBills.map((bill) => bill.student.toString()),
       );
+
+      // Filter students who don't have this bill yet
+      const newBillings = students
+        .filter((student) => !existingStudentIds.has(student._id.toString()))
+        .map((student) => ({
+          student: student._id,
+          title,
+          type: "SPP",
+          amount: defaultAmount,
+          dueDate,
+          status: "unpaid",
+        }));
+
+      // Bulk insert all new billings at once
+      if (newBillings.length > 0) {
+        await Billing.insertMany(newBillings);
+        console.log(
+          `✅ Monthly Billing Job Completed: Generated ${newBillings.length} bills for ${title}`,
+        );
+      } else {
+        console.log(`ℹ️ All students already have billing for ${title}`);
+      }
     } catch (error) {
       console.error("❌ Monthly Billing Job Failed:", error);
     }

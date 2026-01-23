@@ -1,5 +1,15 @@
 const jwt = require("jsonwebtoken");
 
+// Validate JWT_SECRET on startup
+if (!process.env.JWT_SECRET) {
+  console.error(
+    "❌ FATAL: JWT_SECRET is not defined in environment variables!",
+  );
+  process.exit(1);
+}
+
+const JWT_SECRET = process.env.JWT_SECRET;
+
 // Verifikasi Token
 exports.auth = (req, res, next) => {
   const token = req.header("Authorization");
@@ -9,10 +19,7 @@ exports.auth = (req, res, next) => {
 
   try {
     // Format: "Bearer <token>"
-    const decoded = jwt.verify(
-      token.replace("Bearer ", ""),
-      process.env.JWT_SECRET
-    );
+    const decoded = jwt.verify(token.replace("Bearer ", ""), JWT_SECRET);
     req.user = decoded;
     next();
   } catch (error) {

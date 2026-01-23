@@ -207,7 +207,7 @@ const LibraryDashboard = () => {
     if (!user) return;
 
     const confirm = window.confirm(
-      "Apakah Anda yakin ingin mengajukan peminjaman buku ini? Silakan ambil buku di perpustakaan setelah disetujui."
+      "Apakah Anda yakin ingin mengajukan peminjaman buku ini? Silakan ambil buku di perpustakaan setelah disetujui.",
     );
     if (!confirm) return;
 
@@ -497,14 +497,8 @@ const LibraryDashboard = () => {
                           className="w-full"
                           variant="outline"
                           size="sm"
-                          onClick={() => {
-                            setLoanForm({
-                              studentId: (user as any).id || (user as any)._id,
-                              bookId: book._id,
-                            });
-                            handleBorrow();
-                            submitQuickBorrow(book._id);
-                          }}
+                          onClick={() => submitQuickBorrow(book._id)}
+                          disabled={submitting}
                         >
                           Ajukan
                         </Button>
@@ -614,11 +608,11 @@ const LibraryDashboard = () => {
                             loan.status === "Returned"
                               ? "secondary"
                               : loan.status === "Overdue" ||
-                                loan.status === "Rejected"
-                              ? "destructive"
-                              : loan.status === "Pending"
-                              ? "secondary" // Or yellow if available, secondary is grey usually
-                              : "outline"
+                                  loan.status === "Rejected"
+                                ? "destructive"
+                                : loan.status === "Pending"
+                                  ? "secondary" // Or yellow if available, secondary is grey usually
+                                  : "outline"
                           }
                           className={
                             loan.status === "Pending"

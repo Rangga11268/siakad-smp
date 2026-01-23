@@ -8,7 +8,7 @@ dotenv.config();
 const seedData = async () => {
   try {
     await mongoose.connect(
-      process.env.MONGO_URI || "mongodb://localhost:27017/siakad_smp"
+      process.env.MONGO_URI || "mongodb://localhost:27017/siakad_smp",
     );
     console.log("MongoDB Connected for Seeding");
 
@@ -23,7 +23,7 @@ const seedData = async () => {
         startDate: new Date("2024-07-01"),
         endDate: new Date("2024-12-31"),
       },
-      { upsert: true, new: true }
+      { upsert: true, new: true },
     );
     console.log("Academic Year Seeded");
 
@@ -46,17 +46,36 @@ const seedData = async () => {
     }
     console.log("Subjects Seeded");
 
-    // 3. Seed Users (Admin, Teacher, Students)
-    // Create Teacher first to assign as homeroom
-    const hashedPassword = await bcrypt.hash("password123", 10);
+    // 3. Seed Simple Test Users
+    console.log("\n=== Creating Test Users ===");
 
-    // Teacher
+    // Admin - Password: admin123
+    const adminPassword = await bcrypt.hash("admin123", 10);
+    await User.findOneAndUpdate(
+      { username: "admin" },
+      {
+        username: "admin",
+        email: "admin@sekolah.id",
+        password: adminPassword,
+        role: "admin",
+        consentGiven: true,
+        profile: {
+          fullName: "Administrator Sekolah",
+          gender: "L",
+        },
+      },
+      { upsert: true, new: true },
+    );
+    console.log("✅ Admin created - Username: admin | Password: admin123");
+
+    // Guru - Password: guru123
+    const guruPassword = await bcrypt.hash("guru123", 10);
     const teacher = await User.findOneAndUpdate(
       { username: "guru" },
       {
         username: "guru",
         email: "guru@sekolah.id",
-        password: hashedPassword,
+        password: guruPassword,
         role: "teacher",
         consentGiven: true,
         profile: {
@@ -65,24 +84,11 @@ const seedData = async () => {
           gender: "L",
         },
       },
-      { upsert: true, new: true }
+      { upsert: true, new: true },
     );
+    console.log("✅ Guru created - Username: guru | Password: guru123");
 
-    // Admin
-    await User.findOneAndUpdate(
-      { username: "admin" },
-      {
-        username: "admin",
-        email: "admin@sekolah.id",
-        password: hashedPassword,
-        role: "admin",
-        consentGiven: true,
-        profile: { fullName: "Administrator Sekolah", nip: "999" },
-      },
-      { upsert: true, new: true }
-    );
-
-    // 4. Seed Classes
+    // 4. Seed Classes (needed for siswa)
     const Class = require("./models/Class");
     const class7A = await Class.findOneAndUpdate(
       { name: "7A" },
@@ -92,69 +98,38 @@ const seedData = async () => {
         academicYear: activeYear._id,
         homeroomTeacher: teacher._id,
       },
-      { upsert: true, new: true }
+      { upsert: true, new: true },
     );
-    const class8A = await Class.findOneAndUpdate(
-      { name: "8A" },
-      {
-        name: "8A",
-        level: 8,
-        academicYear: activeYear._id,
-        homeroomTeacher: teacher._id,
-      },
-      { upsert: true, new: true }
-    );
-    console.log("Classes Seeded");
+    console.log("✅ Class 7A created");
 
-    // 5. Seed Students and link to Class 7A
-    const studentData = [
+    // Siswa - Password: siswa123
+    const siswaPassword = await bcrypt.hash("siswa123", 10);
+    const siswa = await User.findOneAndUpdate(
+      { username: "siswa" },
       {
-        username: "siswa1",
-        fullName: "Ahmad Dani",
-        nisn: "0012345678",
-        gender: "L",
-      },
-      {
-        username: "siswa2",
-        fullName: "Bunga Citra",
-        nisn: "0012345679",
-        gender: "P",
-      },
-      {
-        username: "siswa3",
-        fullName: "Candra Wijaya",
-        nisn: "0012345670",
-        gender: "L",
-      },
-    ];
-
-    const studentIds = [];
-
-    for (const s of studentData) {
-      const user = await User.findOneAndUpdate(
-        { username: s.username },
-        {
-          username: s.username,
-          email: `${s.username}@sekolah.id`,
-          password: hashedPassword,
-          role: "student",
-          consentGiven: true,
-          profile: {
-            fullName: s.fullName,
-            nisn: s.nisn,
-            gender: s.gender,
-            class: "7A", // Text reference
-            level: 7,
-          },
+        username: "siswa",
+        email: "siswa@sekolah.id",
+        password: siswaPassword,
+        role: "student",
+        consentGiven: true,
+        profile: {
+          fullName: "Ahmad Dani",
+          nisn: "0012345678",
+          gender: "L",
+          class: "7A",
+          level: 7,
         },
-        { upsert: true, new: true }
-      );
-      studentIds.push(user._id);
-    }
+      },
+      { upsert: true, new: true },
+    );
 
-    await Class.findByIdAndUpdate(class7A._id, { students: studentIds });
+    // Link siswa to class
+    await Class.findByIdAndUpdate(class7A._id, {
+      students: [siswa._id],
+    });
 
-    console.log("Students Seeded & Linked to 7A");
+    console.log("✅ Siswa created - Username: siswa | Password: siswa123");
+    console.log("\n=== User Creation Complete ===\n");
 
     // 6. Seed Learning Goals (TP)
     const LearningGoal = require("./models/LearningGoal");
@@ -172,7 +147,7 @@ const seedData = async () => {
             "Peserta didik dapat membaca, menulis, dan membandingkan bilangan bulat.",
           semester: "Ganjil",
         },
-        { upsert: true, new: true }
+        { upsert: true, new: true },
       );
       await LearningGoal.findOneAndUpdate(
         { code: "TP.7.2" },
@@ -185,7 +160,7 @@ const seedData = async () => {
             "Peserta didik dapat menyelesaikan masalah operasi hitung bilangan bulat.",
           semester: "Ganjil",
         },
-        { upsert: true, new: true }
+        { upsert: true, new: true },
       );
     }
     console.log("Learning Goals Seeded");

@@ -2,13 +2,14 @@ const express = require("express");
 const router = express.Router();
 const academicController = require("../controllers/academicController");
 const { auth, checkRole } = require("../middleware/authMiddleware");
+const { validate } = require("../middleware/validationMiddleware");
 
 // TP Management (Hanya Guru & Admin)
 router.post(
   "/subject",
   auth,
   checkRole(["admin"]),
-  academicController.createSubject
+  academicController.createSubject,
 );
 // Report
 router.post("/report/generate", auth, academicController.generateReport);
@@ -22,7 +23,7 @@ router.post(
   "/years",
   auth,
   checkRole(["admin"]),
-  academicController.createAcademicYear
+  academicController.createAcademicYear,
 );
 router.get("/years", auth, academicController.getAcademicYears);
 
@@ -31,34 +32,35 @@ router.post(
   "/students",
   auth,
   checkRole(["admin"]),
-  academicController.createStudent
+  validate("createStudent"),
+  academicController.createStudent,
 );
 router.get(
   "/students",
   auth,
   checkRole(["admin", "teacher"]),
-  academicController.getAllStudents
+  academicController.getAllStudents,
 );
 
 router.get(
   "/students/:id",
   auth,
   checkRole(["admin", "teacher"]),
-  academicController.getStudentById
+  academicController.getStudentById,
 );
 
 router.put(
   "/students/:id",
   auth,
   checkRole(["admin"]),
-  academicController.updateStudent
+  academicController.updateStudent,
 );
 
 router.post(
   "/class",
   auth,
   checkRole(["admin"]),
-  academicController.createClass
+  academicController.createClass,
 );
 router.get("/class", auth, academicController.getClasses);
 
@@ -66,19 +68,19 @@ router.get("/class", auth, academicController.getClasses);
 router.get(
   "/class/:classId/students",
   auth,
-  academicController.getClassMembers
+  academicController.getClassMembers,
 );
 router.post(
   "/class/:classId/students",
   auth,
   checkRole(["admin"]),
-  academicController.addStudentToClass
+  academicController.addStudentToClass,
 );
 router.delete(
   "/class/:classId/students",
   auth,
   checkRole(["admin"]),
-  academicController.removeStudentFromClass
+  academicController.removeStudentFromClass,
 );
 
 // TP Management (Hanya Guru & Admin)
@@ -86,7 +88,7 @@ router.post(
   "/tp",
   auth,
   checkRole(["teacher", "admin"]),
-  academicController.createLearningGoal
+  academicController.createLearningGoal,
 );
 router.get("/tp", auth, academicController.getLearningGoals);
 
@@ -94,7 +96,7 @@ router.get("/tp", auth, academicController.getLearningGoals);
 router.get(
   "/students/level/:level",
   auth,
-  academicController.getStudentsByLevel
+  academicController.getStudentsByLevel,
 );
 
 // Assessment Management
@@ -102,7 +104,7 @@ router.post(
   "/assessment",
   auth,
   checkRole(["teacher", "admin"]),
-  academicController.createAssessment
+  academicController.createAssessment,
 );
 
 // Grade Management
@@ -110,13 +112,13 @@ router.post(
   "/grades",
   auth,
   checkRole(["teacher", "admin"]),
-  academicController.inputGrades
+  academicController.inputGrades,
 );
 router.get(
   "/grades/:assessmentId",
   auth,
   checkRole(["teacher", "admin"]),
-  academicController.getClassGrades
+  academicController.getClassGrades,
 );
 
 // Report Generator
@@ -124,7 +126,7 @@ router.post(
   "/report/generate",
   auth,
   checkRole(["teacher", "admin"]),
-  academicController.generateReport
+  academicController.generateReport,
 );
 
 // Student Grades
@@ -132,7 +134,7 @@ router.get(
   "/my-grades",
   auth,
   checkRole(["student"]),
-  academicController.getMyGrades
+  academicController.getMyGrades,
 );
 
 module.exports = router;
