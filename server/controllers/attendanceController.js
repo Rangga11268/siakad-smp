@@ -2,6 +2,7 @@ const Attendance = require("../models/Attendance");
 const Class = require("../models/Class");
 const User = require("../models/User");
 const Schedule = require("../models/Schedule"); // Fixed import
+const AcademicYear = require("../models/AcademicYear");
 const mongoose = require("mongoose");
 
 // ... (existing code)
@@ -98,6 +99,15 @@ exports.recordSelfAttendance = async (req, res) => {
   try {
     const studentId = req.user.id; // From Auth Middleware
     const today = new Date();
+    const currentHour = today.getHours();
+
+    // Validasi Waktu: Absen hanya boleh jam 06:00 - 15:00
+    if (currentHour < 6 || currentHour >= 15) {
+      return res.status(400).json({
+        message: "Absen mandiri ditutup. Silahkan absen antara 06:00 - 15:00.",
+      });
+    }
+
     today.setHours(0, 0, 0, 0);
 
     // Cek apakah sudah absen hari ini
@@ -135,10 +145,10 @@ exports.recordSelfAttendance = async (req, res) => {
     }
 
     // Get Active Academic Year if not provided
+    // Get Active Academic Year if not provided
     let academicYearId = req.body.academicYear;
     if (!academicYearId) {
-      const AcademicYear = require("../models/AcademicYear");
-      const activeYear = await AcademicYear.findOne({ status: "Active" });
+      const activeYear = await AcademicYear.findOne({ status: "Active" }); // Use top-level require
       if (activeYear) academicYearId = activeYear._id;
     }
 

@@ -60,8 +60,6 @@ exports.getTeachers = async (req, res) => {
   }
 };
 
-const AcademicYear = require("../models/AcademicYear");
-
 // --- Master Data (Mapel & Kelas) ---
 
 // Academic Year
@@ -148,33 +146,6 @@ exports.getStudentsByLevel = async (req, res) => {
       .status(500)
       .json({ message: "Gagal ambil siswa per level", error: error.message });
   }
-};
-
-const User = require("../models/User");
-const bcrypt = require("bcryptjs");
-const crypto = require("crypto");
-
-// Helper function to generate secure random password
-const generateSecurePassword = () => {
-  return crypto.randomBytes(4).toString("hex"); // 8 character random password
-};
-
-// Helper function to sanitize user response
-const sanitizeUserResponse = (user) => {
-  return {
-    _id: user._id,
-    username: user.username,
-    role: user.role,
-    profile: {
-      fullName: user.profile?.fullName,
-      nisn: user.profile?.nisn,
-      gender: user.profile?.gender,
-      level: user.profile?.level,
-      class: user.profile?.class,
-      birthPlace: user.profile?.birthPlace,
-      birthDate: user.profile?.birthDate,
-    },
-  };
 };
 
 exports.getAllStudents = async (req, res) => {
