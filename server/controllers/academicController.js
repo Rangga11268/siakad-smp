@@ -5,6 +5,33 @@ const Grade = require("../models/Grade");
 const Subject = require("../models/Subject");
 const Class = require("../models/Class");
 const Attendance = require("../models/Attendance");
+const AcademicYear = require("../models/AcademicYear");
+const User = require("../models/User");
+const bcrypt = require("bcryptjs");
+const crypto = require("crypto");
+
+// Helper function to generate secure random password
+const generateSecurePassword = () => {
+  return crypto.randomBytes(4).toString("hex"); // 8 character random password
+};
+
+// Helper function to sanitize user response
+const sanitizeUserResponse = (user) => {
+  return {
+    _id: user._id,
+    username: user.username,
+    role: user.role,
+    profile: {
+      fullName: user.profile?.fullName,
+      nisn: user.profile?.nisn,
+      gender: user.profile?.gender,
+      level: user.profile?.level,
+      class: user.profile?.class,
+      birthPlace: user.profile?.birthPlace,
+      birthDate: user.profile?.birthDate,
+    },
+  };
+};
 
 // --- Master Data (Mapel & Kelas) ---
 
@@ -22,7 +49,6 @@ exports.createSubject = async (req, res) => {
 // Guru
 exports.getTeachers = async (req, res) => {
   try {
-    const User = require("../models/User");
     const teachers = await User.find({ role: "teacher" }).select(
       "username profile.fullName",
     );

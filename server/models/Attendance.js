@@ -29,13 +29,33 @@ const attendanceSchema = new mongoose.Schema(
     subject: { type: mongoose.Schema.Types.ObjectId, ref: "Subject" },
     schedule: { type: mongoose.Schema.Types.ObjectId, ref: "Schedule" }, // For linking to specific schedule slot
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
-// Prevent duplicate attendance for same student on same date AND same subject/schedule
-// Note: Unique index might need adjustment. Complex unique constraint or handle in controller.
-// For now, let's remove strict unique on date ONLY, or make compound index.
-// attendanceSchema.index({ student: 1, date: 1 }, { unique: true });
-// Replaced with: check in controller.
+// Compound unique index: prevent duplicate attendance for same student, date, and subject/schedule
+// This allows:
+// - Same student can have multiple attendance records per day (different subjects)
+// - Same student cannot have duplicate attendance for same subject on same day
+attendanceSchema.index(
+  { student: 1, date: 1, schedule: 1 },
+  {
+    unique: true,
+    sparse: true, // Allow documents without schedule field (for general daily attendance)
+    partialFilterExpression: { schedule: { $exists: true } },
+  },
+);
+
+// For daily attendance (without subject/schedule)
+attendanceSchema.index(
+  { student: 1, date: 1, subject: 1 },
+  {
+    unique: true,
+    sparse: true,
+    partialFilterExpression: {
+      schedule: { $exists: false },
+      subject: { $exists: true },
+    },
+  },
+);
 
 module.exports = mongoose.model("Attendance", attendanceSchema);

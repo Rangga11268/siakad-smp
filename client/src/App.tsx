@@ -31,76 +31,85 @@ import FinanceDashboard from "@/pages/finance/FinanceDashboard";
 import AssetDashboard from "@/pages/assets/AssetDashboard";
 import LandingPage from "@/pages/LandingPage";
 import { Toaster } from "@/components/ui/toaster";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 function App() {
   return (
     <>
-      <Routes>
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
+      <ErrorBoundary>
+        <Routes>
+          <Route path="/" element={<LandingPage />} />
+          <Route path="/login" element={<LoginPage />} />
 
-        {/* Public PPDB Routes */}
-        <Route path="/ppdb/register" element={<PPDBRegisterPage />} />
-        <Route path="/ppdb/status" element={<PPDBStatusPage />} />
+          {/* Public PPDB Routes */}
+          <Route path="/ppdb/register" element={<PPDBRegisterPage />} />
+          <Route path="/ppdb/status" element={<PPDBStatusPage />} />
 
-        {/* Protected Routes */}
-        <Route path="/dashboard" element={<DashboardLayout />}>
-          <Route index element={<DashboardPage />} />
+          {/* Protected Routes */}
+          <Route path="/dashboard" element={<DashboardLayout />}>
+            <Route index element={<DashboardPage />} />
 
-          {/* Admin Routes */}
-          <Route path="academic/subjects" element={<MasterSubjectPage />} />
-          <Route path="academic/classes" element={<MasterClassPage />} />
-          <Route path="academic/students" element={<MasterStudentPage />} />
-          <Route path="academic/attendance" element={<AttendancePage />} />
-          <Route path="academic/journal" element={<JournalPage />} />
-          <Route path="ppdb" element={<PPDBAdminPage />} />
-          <Route
-            path="academic/learning-goals"
-            element={<LearningGoalPage />}
-          />
-          <Route path="academic/report" element={<ReportCardPage />} />
-          <Route path="academic/schedule" element={<SchedulePage />} />
+            {/* Admin Routes */}
+            <Route path="academic/subjects" element={<MasterSubjectPage />} />
+            <Route path="academic/classes" element={<MasterClassPage />} />
+            <Route path="academic/students" element={<MasterStudentPage />} />
+            <Route path="academic/attendance" element={<AttendancePage />} />
+            <Route path="academic/journal" element={<JournalPage />} />
+            <Route path="ppdb" element={<PPDBAdminPage />} />
+            <Route
+              path="academic/learning-goals"
+              element={<LearningGoalPage />}
+            />
+            <Route path="academic/report" element={<ReportCardPage />} />
+            <Route path="academic/schedule" element={<SchedulePage />} />
 
-          {/* Student Routes */}
-          <Route
-            path="student/attendance"
-            element={<StudentAttendancePage />}
-          />
-          <Route path="student/grades" element={<StudentGradePage />} />
+            {/* Student Routes */}
+            <Route
+              path="student/attendance"
+              element={<StudentAttendancePage />}
+            />
+            <Route path="student/grades" element={<StudentGradePage />} />
 
-          <Route path="p5" element={<P5Dashboard />} />
-          <Route path="p5/:projectId" element={<P5AssessmentPage />} />
-          <Route path="p5/report" element={<P5ReportPage />} />
+            <Route path="p5" element={<P5Dashboard />} />
+            <Route path="p5/:projectId" element={<P5AssessmentPage />} />
+            <Route path="p5/report" element={<P5ReportPage />} />
 
-          {/* Student Affairs Routes */}
-          <Route path="student-affairs" element={<StudentAffairsDashboard />} />
-          <Route
-            path="student-affairs/letter/:studentId"
-            element={<BKLetterPage />}
-          />
+            {/* Student Affairs Routes */}
+            <Route
+              path="student-affairs"
+              element={<StudentAffairsDashboard />}
+            />
+            <Route
+              path="student-affairs/letter/:studentId"
+              element={<BKLetterPage />}
+            />
 
-          {/* UKS Routes */}
-          <Route path="uks" element={<UksDashboard />} />
+            {/* UKS Routes */}
+            <Route path="uks" element={<UksDashboard />} />
 
-          {/* Library Routes */}
-          <Route path="library" element={<LibraryDashboard />} />
+            {/* Library Routes */}
+            <Route path="library" element={<LibraryDashboard />} />
 
-          {/* Finance Routes */}
-          <Route path="finance" element={<FinanceDashboard />} />
+            {/* Finance Routes */}
+            <Route path="finance" element={<FinanceDashboard />} />
 
-          {/* Assets / Sarpras Routes */}
-          <Route path="assets" element={<AssetDashboard />} />
+            {/* Assets / Sarpras Routes */}
+            <Route path="assets" element={<AssetDashboard />} />
 
-          {/* Teacher Routes */}
-          <Route path="academic/grades" element={<InputGradePage />} />
-          <Route path="academic/materials" element={<TeacherMaterialPage />} />
+            {/* Teacher Routes */}
+            <Route path="academic/grades" element={<InputGradePage />} />
+            <Route
+              path="academic/materials"
+              element={<TeacherMaterialPage />}
+            />
 
-          {/* Student Routes */}
-          <Route path="student/materials" element={<StudentMaterialPage />} />
-        </Route>
+            {/* Student Routes */}
+            <Route path="student/materials" element={<StudentMaterialPage />} />
+          </Route>
 
-        {/* <Route path="/" element={<Navigate to="/login" replace />} /> Note: Root is now LandingPage */}
-      </Routes>
+          {/* <Route path="/" element={<Navigate to="/login" replace />} /> Note: Root is now LandingPage */}
+        </Routes>
+      </ErrorBoundary>
       <Toaster />
     </>
   );

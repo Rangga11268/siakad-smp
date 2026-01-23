@@ -6,6 +6,9 @@ const morgan = require("morgan");
 const rateLimit = require("express-rate-limit");
 require("dotenv").config();
 
+// Validate environment variables on startup
+require("./config/validateEnv");
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 

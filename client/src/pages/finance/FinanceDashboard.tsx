@@ -160,7 +160,8 @@ const FinanceDashboard = () => {
       const res = await api.post("/finance/generate", {
         ...formData,
         amount: parseInt(formData.amount),
-        // If targetClass is empty string, send null or let backend handle it (backend checks if truthy)
+        targetClass:
+          formData.targetClass === "all_classes" ? "" : formData.targetClass,
       });
       setOpenGenerate(false);
       fetchBillings();
@@ -405,7 +406,7 @@ const FinanceDashboard = () => {
                     ? billings.filter(
                         (b: any) =>
                           b.student?._id === (user as any).id ||
-                          b.student?._id === (user as any)._id
+                          b.student?._id === (user as any)._id,
                       )
                     : billings
                   ).map((bill: any) => (

@@ -5,9 +5,28 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Bell, Menu } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import { useState, useEffect } from "react";
+import api from "@/services/api";
 
 const DashboardLayout = () => {
   const { user } = useAuth();
+  const [academicYear, setAcademicYear] = useState("2024/2025 (Ganjil)");
+
+  useEffect(() => {
+    const fetchActiveYear = async () => {
+      try {
+        const res = await api.get("/academic/years");
+        const activeYear = res.data.find((y: any) => y.status === "active");
+        if (activeYear) {
+          setAcademicYear(`${activeYear.name} (${activeYear.semester})`);
+        }
+      } catch (error) {
+        console.error("Failed to fetch academic year:", error);
+        // Keep default if fetch fails
+      }
+    };
+    fetchActiveYear();
+  }, []);
 
   return (
     <div className="flex h-screen bg-neutral-50 dark:bg-neutral-900">
@@ -37,7 +56,7 @@ const DashboardLayout = () => {
           <div className="font-medium text-muted-foreground hidden md:block">
             Tahun Ajaran:{" "}
             <span className="text-foreground font-semibold">
-              2024/2025 (Ganjil)
+              {academicYear}
             </span>
           </div>
 
