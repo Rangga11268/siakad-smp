@@ -23,6 +23,13 @@ import { Label } from "@/components/ui/label";
 import { Plus, Search, Trash, SystemRestart, Book } from "iconoir-react";
 import api from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Subject {
   _id: string;
