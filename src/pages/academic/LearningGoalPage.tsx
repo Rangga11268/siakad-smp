@@ -41,7 +41,7 @@ import {
   Refresh,
   Trash,
   Book,
-  Target,
+  Trophy,
 } from "iconoir-react";
 
 interface Subject {
@@ -343,7 +343,7 @@ const LearningGoalPage = () => {
 
       <Card className="border-t-4 border-t-school-gold shadow-lg border-none overflow-hidden">
         <CardHeader className="bg-white border-b border-slate-100 flex flex-row items-center gap-2">
-          <Target className="w-5 h-5 text-school-gold" />
+          <Trophy className="w-5 h-5 text-school-gold" />
           <CardTitle className="font-serif text-lg text-school-navy">
             Daftar Tujuan Pembelajaran
           </CardTitle>

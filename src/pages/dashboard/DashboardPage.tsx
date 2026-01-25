@@ -11,8 +11,8 @@ import {
   WarningTriangle,
   Wallet,
   CheckCircle,
-  Clock,
   ArrowRight,
+  OpenBook,
 } from "iconoir-react";
 import { useState, useEffect } from "react";
 import api from "@/services/api";
@@ -331,7 +331,7 @@ const DashboardPage = () => {
                   </div>
                 ) : (
                   <div className="text-center text-slate-400">
-                    <BookOpen className="w-12 h-12 mx-auto mb-3 opacity-20" />
+                    <OpenBook className="w-12 h-12 mx-auto mb-3 opacity-20" />
                     <p>Belum ada data nilai.</p>
                   </div>
                 )}
@@ -444,7 +444,7 @@ const DashboardPage = () => {
           <Card className="shadow-lg border-none bg-school-navy text-white">
             <CardHeader>
               <CardTitle className="font-serif text-lg text-school-gold flex items-center gap-2">
-                <AlertTriangle className="w-5 h-5" /> Pengumuman Penting
+                <WarningTriangle className="w-5 h-5" /> Pengumuman Penting
               </CardTitle>
             </CardHeader>
             <CardContent>

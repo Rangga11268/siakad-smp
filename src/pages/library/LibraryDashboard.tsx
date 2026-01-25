@@ -36,6 +36,7 @@ import {
   BookStack,
   SystemRestart,
   ArrowRight,
+  OpenBook,
 } from "iconoir-react";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/services/api";
@@ -282,7 +283,7 @@ const LibraryDashboard = () => {
             value="books"
             className="data-[state=active]:bg-school-navy data-[state=active]:text-white px-6"
           >
-            <BookOpen className="mr-2 h-4 w-4" />
+            <OpenBook className="mr-2 h-4 w-4" />
             Katalog Buku
           </TabsTrigger>
           <TabsTrigger
