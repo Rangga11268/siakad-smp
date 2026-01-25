@@ -36,14 +36,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  HeartPulse,
-  NotebookPen,
+  Heart,
+  Journal,
   Plus,
   Activity,
   UserPlus,
-  FileText,
-  Loader2,
-} from "lucide-react";
+  Page,
+  SystemRestart,
+} from "iconoir-react";
 import api from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/AuthContext";
@@ -216,7 +216,7 @@ const UksDashboard = () => {
         <Card className="bg-emerald-50 border-none shadow-sm">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="p-3 bg-emerald-100 rounded-full text-emerald-600">
-              <HeartPulse className="w-6 h-6" />
+              <Heart className="w-6 h-6" />
             </div>
             <div>
               <h3 className="text-sm font-medium text-slate-500">
@@ -235,7 +235,7 @@ const UksDashboard = () => {
         <Card className="bg-blue-50 border-none shadow-sm">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="p-3 bg-blue-100 rounded-full text-blue-600">
-              <NotebookPen className="w-6 h-6" />
+              <Journal className="w-6 h-6" />
             </div>
             <div>
               <h3 className="text-sm font-medium text-slate-500">
@@ -276,14 +276,14 @@ const UksDashboard = () => {
             value="records"
             className="data-[state=active]:bg-school-navy data-[state=active]:text-white px-6"
           >
-            <HeartPulse className="mr-2 h-4 w-4" />
+            <Heart className="mr-2 h-4 w-4" />
             Screening & Data Fisik
           </TabsTrigger>
           <TabsTrigger
             value="visits"
             className="data-[state=active]:bg-school-navy data-[state=active]:text-white px-6"
           >
-            <FileText className="mr-2 h-4 w-4" />
+            <Page className="mr-2 h-4 w-4" />
             Buku Kunjungan
           </TabsTrigger>
         </TabsList>
@@ -437,7 +437,7 @@ const UksDashboard = () => {
                       >
                         {submitting ? (
                           <>
-                            <Loader2 className="mr-2 animate-spin" />{" "}
+                            <SystemRestart className="mr-2 animate-spin" />{" "}
                             Menyimpan...
                           </>
                         ) : (
@@ -478,7 +478,7 @@ const UksDashboard = () => {
                     <TableRow>
                       <TableCell colSpan={6} className="text-center h-24">
                         <div className="flex flex-col items-center justify-center text-school-gold">
-                          <Loader2 className="h-6 w-6 animate-spin mb-2" />
+                          <SystemRestart className="h-6 w-6 animate-spin mb-2" />
                           <p className="text-sm text-slate-500">
                             Memuat data screening...
                           </p>
@@ -691,7 +691,7 @@ const UksDashboard = () => {
                       >
                         {submitting ? (
                           <>
-                            <Loader2 className="mr-2 animate-spin" />{" "}
+                            <SystemRestart className="mr-2 animate-spin" />{" "}
                             Menyimpan...
                           </>
                         ) : (
@@ -729,7 +729,7 @@ const UksDashboard = () => {
                     <TableRow>
                       <TableCell colSpan={5} className="text-center h-24">
                         <div className="flex flex-col items-center justify-center text-school-gold">
-                          <Loader2 className="h-6 w-6 animate-spin mb-2" />
+                          <SystemRestart className="h-6 w-6 animate-spin mb-2" />
                           <p className="text-sm text-slate-500">
                             Memuat data kunjungan...
                           </p>

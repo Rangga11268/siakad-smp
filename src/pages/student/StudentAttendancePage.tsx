@@ -9,12 +9,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  CalendarCheck,
+  Calendar,
   Clock,
-  CheckCircle2,
+  CheckCircle,
   MapPin,
-  Loader2,
-} from "lucide-react";
+  SystemRestart,
+} from "iconoir-react";
 import api from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
@@ -77,7 +77,8 @@ const StudentAttendancePage = () => {
 
       // Case-insensitive match
       const myClass = res.data.find(
-        (c: any) => c.name.trim().toLowerCase() === clsName.trim().toLowerCase()
+        (c: any) =>
+          c.name.trim().toLowerCase() === clsName.trim().toLowerCase(),
       );
 
       if (myClass) {
@@ -98,7 +99,7 @@ const StudentAttendancePage = () => {
     setLoading(true);
     try {
       const res = await api.get(
-        `/schedule?classId=${classId}&day=${selectedDay}`
+        `/schedule?classId=${classId}&day=${selectedDay}`,
       );
       setSchedules(res.data);
     } catch (error) {
@@ -162,7 +163,7 @@ const StudentAttendancePage = () => {
         ) : schedules.length === 0 ? (
           <Card className="border-dashed">
             <CardContent className="flex flex-col items-center justify-center p-12 text-muted-foreground">
-              <CalendarCheck className="h-12 w-12 mb-4 opacity-20" />
+              <Calendar className="h-12 w-12 mb-4 opacity-20" />
               <p>Tidak ada jadwal untuk hari {selectedDay}.</p>
             </CardContent>
           </Card>
@@ -198,9 +199,9 @@ const StudentAttendancePage = () => {
                   }`}
                 >
                   {processing === s._id ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <SystemRestart className="mr-2 h-4 w-4 animate-spin" />
                   ) : (
-                    <CheckCircle2 className="mr-2 h-4 w-4" />
+                    <CheckCircle className="mr-2 h-4 w-4" />
                   )}
                   {selectedDay === todayName ? "Absen Masuk" : "Lihat Saja"}
                 </Button>

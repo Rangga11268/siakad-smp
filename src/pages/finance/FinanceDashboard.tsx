@@ -39,13 +39,13 @@ import {
   Plus,
   Wallet,
   CheckCircle,
-  XCircle,
+  Xmark,
   Printer,
-  AlertOctagon,
-  Loader2,
-  DollarSign,
-  FileText,
-} from "lucide-react";
+  WarningTriangle,
+  SystemRestart,
+  Dollar,
+  Page,
+} from "iconoir-react";
 import { useToast } from "@/components/ui/use-toast";
 import api from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
@@ -337,8 +337,8 @@ const FinanceDashboard = () => {
                 >
                   {submitting ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sedang
-                      Memproses...
+                      <SystemRestart className="mr-2 h-4 w-4 animate-spin" />{" "}
+                      Sedang Memproses...
                     </>
                   ) : (
                     <>
@@ -365,7 +365,7 @@ const FinanceDashboard = () => {
               </div>
             </div>
             <div className="p-3 bg-blue-50 rounded-full text-blue-600">
-              <DollarSign className="w-6 h-6" />
+              <Dollar className="w-6 h-6" />
             </div>
           </CardContent>
         </Card>
@@ -395,7 +395,7 @@ const FinanceDashboard = () => {
               </div>
             </div>
             <div className="p-3 bg-red-50 rounded-full text-red-600">
-              <AlertOctagon className="w-6 h-6" />
+              <WarningTriangle className="w-6 h-6" />
             </div>
           </CardContent>
         </Card>
@@ -418,7 +418,7 @@ const FinanceDashboard = () => {
               value="report"
               className="data-[state=active]:bg-school-navy data-[state=active]:text-white px-6"
             >
-              <FileText className="w-4 h-4 mr-2" /> Laporan Piutang (Aging)
+              <Page className="w-4 h-4 mr-2" /> Laporan Piutang (Aging)
             </TabsTrigger>
           )}
         </TabsList>
@@ -471,7 +471,7 @@ const FinanceDashboard = () => {
                     <TableRow>
                       <TableCell colSpan={6} className="text-center h-24">
                         <div className="flex flex-col items-center justify-center text-school-gold">
-                          <Loader2 className="h-6 w-6 animate-spin mb-2" />
+                          <SystemRestart className="h-6 w-6 animate-spin mb-2" />
                           <p className="text-sm text-slate-500">
                             Memuat data tagihan...
                           </p>
@@ -646,7 +646,7 @@ const FinanceDashboard = () => {
                         <TableCell className="text-right text-red-600 font-bold">
                           {item.breakdown.bad > 0 && (
                             <div className="flex items-center justify-end gap-1">
-                              <AlertOctagon className="h-4 w-4" />
+                              <WarningTriangle className="h-4 w-4" />
                               {formatRupiah(item.breakdown.bad)}
                             </div>
                           )}

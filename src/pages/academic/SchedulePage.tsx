@@ -28,13 +28,13 @@ import {
 } from "@/components/ui/dialog";
 import {
   Plus,
-  Trash2,
-  CalendarDays,
+  Trash,
+  Calendar,
   Clock,
   User,
-  BookOpen,
-  Loader2,
-} from "lucide-react";
+  Book,
+  SystemRestart,
+} from "iconoir-react";
 import { Label } from "@/components/ui/label";
 import api from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
@@ -325,7 +325,7 @@ const SchedulePage = () => {
       <Card className="border-t-4 border-t-school-gold shadow-lg border-none overflow-hidden">
         <CardHeader className="bg-white border-b border-slate-100 pb-4">
           <CardTitle className="font-serif text-xl text-school-navy flex items-center gap-2">
-            <CalendarDays className="w-5 h-5 text-school-gold" />
+            <Calendar className="w-5 h-5 text-school-gold" />
             Jadwal Pelajaran:{" "}
             <span className="text-school-gold">{selectedDay}</span>
           </CardTitle>
@@ -353,7 +353,7 @@ const SchedulePage = () => {
                 <TableRow>
                   <TableCell colSpan={4} className="text-center h-32">
                     <div className="flex flex-col items-center justify-center text-school-gold">
-                      <Loader2 className="h-6 w-6 animate-spin mb-2" />
+                      <SystemRestart className="h-6 w-6 animate-spin mb-2" />
                       <p className="text-sm text-slate-500">Memuat jadwal...</p>
                     </div>
                   </TableCell>
@@ -365,7 +365,7 @@ const SchedulePage = () => {
                     className="text-center h-32 py-12 text-slate-500"
                   >
                     <div className="flex flex-col items-center justify-center">
-                      <CalendarDays className="h-10 w-10 text-slate-200 mb-3" />
+                      <Calendar className="h-10 w-10 text-slate-200 mb-3" />
                       <p className="font-medium">
                         Belum ada jadwal untuk {selectedDay}.
                       </p>
@@ -387,7 +387,7 @@ const SchedulePage = () => {
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2 font-bold text-school-navy">
-                        <BookOpen className="w-4 h-4 text-school-gold" />
+                        <Book className="w-4 h-4 text-school-gold" />
                         {s.subject?.name}
                       </div>
                     </TableCell>
@@ -404,7 +404,7 @@ const SchedulePage = () => {
                         onClick={() => handleDelete(s._id)}
                         className="text-slate-400 hover:text-red-600 hover:bg-red-50"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash className="h-4 w-4" />
                       </Button>
                     </TableCell>
                   </TableRow>

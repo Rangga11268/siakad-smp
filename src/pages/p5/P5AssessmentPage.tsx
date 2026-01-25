@@ -23,7 +23,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ArrowLeft, Save, Loader2, CheckCircle } from "lucide-react";
+import {
+  ArrowLeft,
+  FloppyDisk,
+  SystemRestart,
+  CheckCircle,
+} from "iconoir-react";
 import api from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -54,7 +59,7 @@ const P5AssessmentPage = () => {
   const [loading, setLoading] = useState(true);
 
   const [inputs, setInputs] = useState<Record<string, Record<string, string>>>(
-    {}
+    {},
   );
 
   const [savedStatus, setSavedStatus] = useState<Record<string, boolean>>({});
@@ -69,13 +74,13 @@ const P5AssessmentPage = () => {
     try {
       const projectRes = await api.get(`/p5`);
       const foundProject = projectRes.data.find(
-        (p: any) => p._id === projectId
+        (p: any) => p._id === projectId,
       );
       setProject(foundProject);
 
       if (foundProject) {
         const studentRes = await api.get(
-          `/academic/students/level/${foundProject.level}`
+          `/academic/students/level/${foundProject.level}`,
         );
         setStudents(studentRes.data);
 
@@ -106,7 +111,7 @@ const P5AssessmentPage = () => {
   const handleScoreChange = (
     studentId: string,
     targetId: string,
-    value: string
+    value: string,
   ) => {
     setInputs((prev) => ({
       ...prev,
@@ -124,7 +129,7 @@ const P5AssessmentPage = () => {
     const studentScores = inputs[studentId] || {};
     const scoresPayload = Object.keys(studentScores).map((targetId) => {
       const target = project.targets.find(
-        (t) => t._id === targetId || t._id === undefined
+        (t) => t._id === targetId || t._id === undefined,
       );
 
       return {
@@ -159,7 +164,7 @@ const P5AssessmentPage = () => {
   if (loading)
     return (
       <div className="flex h-screen items-center justify-center">
-        <Loader2 className="animate-spin" />
+        <SystemRestart className="animate-spin" />
       </div>
     );
   if (!project) return <div>Project tidak ditemukan</div>;
@@ -255,7 +260,7 @@ const P5AssessmentPage = () => {
                         {savedStatus[student._id] ? (
                           <CheckCircle className="h-4 w-4" />
                         ) : (
-                          <Save className="h-4 w-4" />
+                          <FloppyDisk className="h-4 w-4" />
                         )}
                       </Button>
                     </TableCell>

@@ -29,14 +29,14 @@ import {
 } from "@/components/ui/select";
 import {
   Plus,
-  Trash2,
-  Edit,
-  Loader2,
-  Users,
+  Trash,
+  EditPencil,
+  SystemRestart,
+  Group,
   UserPlus,
-  X,
-  Building2,
-} from "lucide-react";
+  Xmark,
+  Building,
+} from "iconoir-react";
 import api from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -254,7 +254,7 @@ const MasterClassPage = () => {
                 className="bg-school-navy hover:bg-school-gold hover:text-school-navy w-full"
               >
                 {submitting && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <SystemRestart className="mr-2 h-4 w-4 animate-spin" />
                 )}
                 Simpan
               </Button>
@@ -344,7 +344,7 @@ const MasterClassPage = () => {
                           onClick={() => handleRemoveMember(m._id)}
                           className="text-red-500 hover:text-red-700 hover:bg-red-50"
                         >
-                          <X className="h-4 w-4" />
+                          <Xmark className="h-4 w-4" />
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -359,14 +359,13 @@ const MasterClassPage = () => {
       <Card className="border-t-4 border-t-school-gold shadow-lg border-none">
         <CardHeader className="border-b border-slate-100 bg-white">
           <CardTitle className="font-serif text-xl text-school-navy flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-school-gold" /> Daftar Kelas
-            Aktif
+            <Building className="w-5 h-5 text-school-gold" /> Daftar Kelas Aktif
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           {loading && !openMembersDialog ? (
             <div className="flex justify-center p-12">
-              <Loader2 className="h-8 w-8 animate-spin text-school-gold" />
+              <SystemRestart className="h-8 w-8 animate-spin text-school-gold" />
             </div>
           ) : (
             <Table>
@@ -397,7 +396,7 @@ const MasterClassPage = () => {
                       className="text-center py-12 text-slate-500"
                     >
                       <div className="flex flex-col items-center justify-center">
-                        <Building2 className="h-12 w-12 text-slate-200 mb-3" />
+                        <Building className="h-12 w-12 text-slate-200 mb-3" />
                         <p>Belum ada data kelas.</p>
                       </div>
                     </TableCell>
@@ -423,7 +422,7 @@ const MasterClassPage = () => {
                     </TableCell>
                     <TableCell>
                       <span className="flex items-center gap-1 text-slate-600">
-                        <Users className="w-4 h-4" />{" "}
+                        <Group className="w-4 h-4" />{" "}
                         {cls.students?.length || 0} Siswa
                       </span>
                     </TableCell>
@@ -434,21 +433,21 @@ const MasterClassPage = () => {
                         onClick={() => openManageMembers(cls)}
                         className="border-school-navy text-school-navy hover:bg-school-navy hover:text-white"
                       >
-                        <Users className="h-3 w-3 mr-2" /> Detail Siswa
+                        <Group className="h-3 w-3 mr-2" /> Detail Siswa
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
                         className="hover:bg-orange-50 text-orange-500"
                       >
-                        <Edit className="h-4 w-4" />
+                        <EditPencil className="h-4 w-4" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
                         className="hover:bg-red-50 text-red-500"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash className="h-4 w-4" />
                       </Button>
                     </TableCell>
                   </TableRow>

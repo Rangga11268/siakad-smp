@@ -3,7 +3,7 @@ import Sidebar from "@/components/Sidebar";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Bell, Menu, GraduationCap } from "lucide-react";
+import { Bell, Menu, GraduationCap } from "iconoir-react";
 import { useAuth } from "@/context/AuthContext";
 import { useState, useEffect } from "react";
 import api from "@/services/api";

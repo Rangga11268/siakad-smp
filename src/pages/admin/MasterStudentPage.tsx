@@ -21,14 +21,15 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import {
+  User,
   Search,
   UserPlus,
-  Loader2,
-  Users,
-  Edit,
-  Trash2,
+  Group,
+  Trash,
   GraduationCap,
-} from "lucide-react";
+  SystemRestart,
+  EditPencil,
+} from "iconoir-react";
 import {
   Select,
   SelectContent,
@@ -615,7 +616,7 @@ const MasterStudentPage = () => {
               className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold min-w-[150px]"
             >
               {submitLoading && (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <SystemRestart className="mr-2 h-4 w-4 animate-spin" />
               )}
               {isEditing ? "Update Data Siswa" : "Simpan Siswa"}
             </Button>
@@ -667,7 +668,7 @@ const MasterStudentPage = () => {
                 <TableRow>
                   <TableCell colSpan={5} className="text-center h-48">
                     <div className="flex flex-col items-center justify-center text-school-gold">
-                      <Loader2 className="h-8 w-8 animate-spin mb-2" />
+                      <SystemRestart className="h-8 w-8 animate-spin mb-2" />
                       <p className="text-slate-500 font-medium">
                         Memuat data siswa...
                       </p>
@@ -682,7 +683,7 @@ const MasterStudentPage = () => {
                   >
                     <div className="flex flex-col items-center justify-center">
                       <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
-                        <Users className="h-8 w-8 text-slate-300" />
+                        <Group className="h-8 w-8 text-slate-300" />
                       </div>
                       <p className="font-medium text-lg">
                         Tidak ada data siswa ditemukan.
@@ -727,7 +728,7 @@ const MasterStudentPage = () => {
                         onClick={() => handleOpenDialog(s)}
                         className="border-school-navy text-school-navy hover:bg-school-navy hover:text-white transition-colors"
                       >
-                        <Edit className="h-3 w-3 mr-2" /> Detail
+                        <EditPencil className="h-3 w-3 mr-2" /> Detail
                       </Button>
                     </TableCell>
                   </TableRow>

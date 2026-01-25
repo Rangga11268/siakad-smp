@@ -2,9 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import api from "@/services/api";
 import { Button } from "@/components/ui/button";
-import { Printer, ArrowLeft } from "lucide-react";
-import { useReactToPrint } from "react-to-print";
-import { Loader2 } from "lucide-react";
+import { Printer, ArrowLeft, SystemRestart } from "iconoir-react";
 
 const BKLetterPage = () => {
   const { studentId } = useParams();
@@ -37,7 +35,7 @@ const BKLetterPage = () => {
   if (loading)
     return (
       <div className="flex h-screen items-center justify-center">
-        <Loader2 className="animate-spin" />
+        <SystemRestart className="animate-spin" />
       </div>
     );
 

@@ -9,7 +9,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Search, CheckCircle, XCircle, Clock } from "lucide-react";
+import { Search, CheckCircle, XmarkCircle, Clock } from "iconoir-react";
 import { Badge } from "@/components/ui/badge";
 
 const PPDBStatusPage = () => {
@@ -44,7 +44,7 @@ const PPDBStatusPage = () => {
       case "rejected":
         return (
           <Badge className="bg-red-600 text-lg px-4 py-2">
-            <XCircle className="mr-2" /> TIDAK LULUS
+            <XmarkCircle className="mr-2" /> TIDAK LULUS
           </Badge>
         );
       case "verified":

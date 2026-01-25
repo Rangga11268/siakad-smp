@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Loader2, AlertCircle, ArrowRight } from "lucide-react";
+import { SystemRestart, WarningCircle, ArrowRight } from "iconoir-react";
 import { useNavigate } from "react-router-dom";
 
 const LoginPage = () => {
@@ -105,7 +105,7 @@ const LoginPage = () => {
                 animate={{ opacity: 1, height: "auto" }}
                 className="p-4 rounded-none bg-red-50 text-red-800 text-sm flex items-center gap-3 border-l-4 border-red-600"
               >
-                <AlertCircle className="w-5 h-5" /> {error}
+                <WarningCircle className="w-5 h-5" /> {error}
               </motion.div>
             )}
 
@@ -172,7 +172,7 @@ const LoginPage = () => {
               disabled={loading}
             >
               {loading ? (
-                <Loader2 className="animate-spin mr-2" />
+                <SystemRestart className="animate-spin mr-2 w-5 h-5" />
               ) : (
                 <span className="flex items-center gap-2">
                   MASUK PORTAL <ArrowRight className="w-5 h-5" />

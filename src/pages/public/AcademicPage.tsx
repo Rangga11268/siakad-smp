@@ -1,4 +1,4 @@
-import { Award, Book, Users } from "lucide-react";
+import { Medal, Book, Group } from "iconoir-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const AcademicPage = () => {
@@ -44,7 +44,7 @@ const AcademicPage = () => {
 
           <Card className="border-t-8 border-t-school-gold shadow-xl hover:shadow-2xl transition-all duration-300">
             <CardHeader>
-              <Users className="w-12 h-12 text-school-navy mb-4" />
+              <Group className="w-12 h-12 text-school-navy mb-4" />
               <CardTitle className="font-serif text-xl border-b pb-4">
                 Character Building
               </CardTitle>
@@ -57,7 +57,7 @@ const AcademicPage = () => {
 
           <Card className="border-t-8 border-t-school-gold shadow-xl hover:shadow-2xl transition-all duration-300">
             <CardHeader>
-              <Award className="w-12 h-12 text-school-navy mb-4" />
+              <Medal className="w-12 h-12 text-school-navy mb-4" />
               <CardTitle className="font-serif text-xl border-b pb-4">
                 Ekstrakurikuler
               </CardTitle>

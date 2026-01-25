@@ -25,7 +25,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Loader2, GraduationCap } from "lucide-react";
+import { SystemRestart, GraduationCap, CheckCircle } from "iconoir-react";
 
 const ParentDashboard = () => {
   const { user } = useAuth();
@@ -132,7 +132,7 @@ const ParentDashboard = () => {
 
       {loading ? (
         <div className="flex justify-center py-12">
-          <Loader2 className="animate-spin h-8 w-8 text-primary" />
+          <SystemRestart className="animate-spin h-8 w-8 text-primary" />
         </div>
       ) : (
         <Tabs defaultValue="academic" className="space-y-4">
@@ -309,25 +309,5 @@ const ParentDashboard = () => {
     </div>
   );
 };
-
-function CheckCircle(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-      <polyline points="22 4 12 14.01 9 11.01" />
-    </svg>
-  );
-}
 
 export default ParentDashboard;

@@ -36,13 +36,13 @@ import {
 } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import {
-  Loader2,
+  SystemRestart,
   Plus,
-  RefreshCw,
-  Trash2,
-  BookOpen,
+  Refresh,
+  Trash,
+  Book,
   Target,
-} from "lucide-react";
+} from "iconoir-react";
 
 interface Subject {
   _id: string;
@@ -251,7 +251,7 @@ const LearningGoalPage = () => {
                 className="bg-school-navy hover:bg-school-gold hover:text-school-navy w-full font-bold"
               >
                 {submitting && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <SystemRestart className="mr-2 h-4 w-4 animate-spin" />
                 )}
                 Simpan TP
               </Button>
@@ -331,7 +331,7 @@ const LearningGoalPage = () => {
                 disabled={loadingTP}
                 className="w-full border-school-navy text-school-navy hover:bg-school-navy hover:text-white transition-colors"
               >
-                <RefreshCw
+                <Refresh
                   className={`mr-2 h-4 w-4 ${loadingTP ? "animate-spin" : ""}`}
                 />
                 Refresh Table
@@ -368,7 +368,7 @@ const LearningGoalPage = () => {
                 <TableRow>
                   <TableCell colSpan={3} className="text-center h-24">
                     <div className="flex flex-col items-center justify-center text-school-gold">
-                      <Loader2 className="h-6 w-6 animate-spin mb-2" />
+                      <SystemRestart className="h-6 w-6 animate-spin mb-2" />
                       <p className="text-sm text-slate-500">
                         Memuat data TP...
                       </p>
@@ -382,7 +382,7 @@ const LearningGoalPage = () => {
                     className="text-center h-24 text-slate-500"
                   >
                     <div className="flex flex-col items-center justify-center">
-                      <BookOpen className="h-8 w-8 text-slate-200 mb-2" />
+                      <Book className="h-8 w-8 text-slate-200 mb-2" />
                       {!selectedSubject || !selectedYear
                         ? "Silakan pilih filter Mapel dan Kelas terlebih dahulu."
                         : "Belum ada TP untuk kategori ini."}
@@ -409,7 +409,7 @@ const LearningGoalPage = () => {
                         size="icon"
                         className="text-slate-400 hover:text-red-600 hover:bg-red-50"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash className="h-4 w-4" />
                       </Button>
                     </TableCell>
                   </TableRow>

@@ -15,7 +15,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Printer, Search, FileBarChart, School } from "lucide-react";
+import {
+  SystemRestart,
+  Printer,
+  Search,
+  Reports,
+  Building,
+} from "iconoir-react";
 import { Label } from "@/components/ui/label";
 
 interface ClassData {
@@ -133,7 +139,7 @@ const ReportCardPage = () => {
       <Card className="print:hidden border-t-4 border-t-school-gold shadow-md">
         <CardHeader>
           <CardTitle className="font-serif text-xl text-school-navy flex items-center gap-2">
-            <FileBarChart className="w-5 h-5 text-school-gold" /> Filter Rapor
+            <Reports className="w-5 h-5 text-school-gold" /> Filter Rapor
           </CardTitle>
           <CardDescription>
             Pilih Kelas dan Siswa untuk menampilkan preview rapor.
@@ -179,7 +185,7 @@ const ReportCardPage = () => {
             className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold shadow-md"
           >
             {loadingReport ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <SystemRestart className="mr-2 h-4 w-4 animate-spin" />
             ) : (
               <Search className="mr-2 h-4 w-4" />
             )}
@@ -197,7 +203,7 @@ const ReportCardPage = () => {
           <div className="flex items-center justify-between border-b-4 border-double border-school-navy pb-6 mb-8">
             <div className="flex items-center gap-4">
               <div className="w-24 h-24 bg-school-navy rounded-full flex items-center justify-center text-white print:text-black print:bg-transparent print:border-2 print:border-black">
-                <School className="w-12 h-12" />
+                <Building className="w-12 h-12" />
               </div>
               <div>
                 <h2 className="text-xl font-bold text-school-navy uppercase tracking-widest">

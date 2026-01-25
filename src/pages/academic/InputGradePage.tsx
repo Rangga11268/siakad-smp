@@ -32,14 +32,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import {
-  Save,
-  Loader2,
-  Plus,
-  FileText,
-  CheckSquare,
-  Target,
-} from "lucide-react";
+import { FloppyDisk, SystemRestart, Plus, Page, Bookmark } from "iconoir-react";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import api from "@/services/api";
@@ -124,10 +117,6 @@ const InputGradePage = () => {
   useEffect(() => {
     if (selectedClass && selectedSubject) {
       fetchTPs();
-      // In a real app we should also fetch existing assessments for this combo
-      // Since the API is limited, we might not have a direct filter yet,
-      // but assuming we added it or fetching all. For now let's just create new ones or assume some exist.
-      // We'll reset assessments to empty to force creation or fetch real ones if endpoint existed
       setAssessments([]);
     }
   }, [selectedClass, selectedSubject]);
@@ -230,7 +219,7 @@ const InputGradePage = () => {
   if (loadingOptions) {
     return (
       <div className="flex h-[50vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-school-gold" />
+        <SystemRestart className="h-8 w-8 animate-spin text-school-gold" />
       </div>
     );
   }
@@ -410,7 +399,7 @@ const InputGradePage = () => {
                   <div className="border rounded-md p-3 h-[200px] overflow-y-auto space-y-2 bg-white">
                     {availableTPs.length === 0 ? (
                       <div className="flex flex-col items-center justify-center h-full text-slate-400">
-                        <Target className="w-8 h-8 mb-2 opacity-50" />
+                        <Bookmark className="w-8 h-8 mb-2 opacity-50" />
                         <p>Belum ada data TP untuk mapel ini.</p>
                       </div>
                     ) : (
@@ -451,7 +440,7 @@ const InputGradePage = () => {
                   className="bg-school-navy hover:bg-school-gold hover:text-school-navy w-full font-bold"
                 >
                   {submitting && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <SystemRestart className="mr-2 h-4 w-4 animate-spin" />
                   )}
                   Simpan & Lanjut Input Nilai
                 </Button>
@@ -466,8 +455,7 @@ const InputGradePage = () => {
           <CardHeader className="bg-white border-b border-slate-100 flex flex-row items-center justify-between pb-4">
             <div>
               <CardTitle className="font-serif text-xl text-school-navy flex items-center gap-2">
-                <FileText className="w-5 h-5 text-school-gold" /> Input Nilai
-                Siswa
+                <Page className="w-5 h-5 text-school-gold" /> Input Nilai Siswa
               </CardTitle>
               <CardDescription>
                 Masukkan nilai skala 0-100. Nilai akan otomatis tersimpan saat
@@ -481,9 +469,9 @@ const InputGradePage = () => {
               disabled={submitting}
             >
               {submitting ? (
-                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                <SystemRestart className="mr-2 h-4 w-4 animate-spin" />
               ) : (
-                <Save className="mr-2 h-4 w-4" />
+                <FloppyDisk className="mr-2 h-4 w-4" />
               )}{" "}
               Simpan Semua Nilai
             </Button>
@@ -512,7 +500,7 @@ const InputGradePage = () => {
                     <TableRow>
                       <TableCell colSpan={4} className="text-center h-32">
                         <div className="flex flex-col items-center justify-center text-school-gold">
-                          <Loader2 className="h-6 w-6 animate-spin mb-2" />
+                          <SystemRestart className="h-6 w-6 animate-spin mb-2" />
                           <p className="text-sm text-slate-500">
                             Memuat daftar siswa...
                           </p>

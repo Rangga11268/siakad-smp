@@ -38,12 +38,12 @@ import { useToast } from "@/components/ui/use-toast";
 import {
   Eye,
   CheckCircle,
-  XCircle,
-  Loader2,
-  UserCheck,
-  FileText,
-  School,
-} from "lucide-react";
+  XmarkCircle,
+  SystemRestart,
+  UserBadgeCheck,
+  Page,
+  Building,
+} from "iconoir-react";
 
 interface Registrant {
   _id: string;
@@ -124,7 +124,7 @@ const PPDBAdminPage = () => {
       case "rejected":
         return (
           <Badge variant="destructive">
-            <XCircle className="w-3 h-3 mr-1" /> Ditolak
+            <XmarkCircle className="w-3 h-3 mr-1" /> Ditolak
           </Badge>
         );
       case "verified":
@@ -174,7 +174,7 @@ const PPDBAdminPage = () => {
         <Card className="bg-blue-50 border-none shadow-sm">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="p-3 bg-blue-100 rounded-full text-blue-600">
-              <UserCheck className="w-6 h-6" />
+              <UserBadgeCheck className="w-6 h-6" />
             </div>
             <div>
               <p className="text-sm font-medium text-slate-500">
@@ -202,7 +202,7 @@ const PPDBAdminPage = () => {
         <Card className="bg-yellow-50 border-none shadow-sm">
           <CardContent className="p-6 flex items-center gap-4">
             <div className="p-3 bg-yellow-100 rounded-full text-yellow-600">
-              <FileText className="w-6 h-6" />
+              <Page className="w-6 h-6" />
             </div>
             <div>
               <p className="text-sm font-medium text-slate-500">
@@ -219,7 +219,7 @@ const PPDBAdminPage = () => {
       <Card className="border-t-4 border-t-school-gold shadow-lg border-none overflow-hidden">
         <CardHeader className="bg-white border-b border-slate-100 pb-4">
           <CardTitle className="font-serif text-xl text-school-navy flex items-center gap-2">
-            <School className="w-5 h-5 text-school-gold" /> Daftar Calon Siswa
+            <Building className="w-5 h-5 text-school-gold" /> Daftar Calon Siswa
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
@@ -250,7 +250,7 @@ const PPDBAdminPage = () => {
                 <TableRow>
                   <TableCell colSpan={7} className="text-center h-32">
                     <div className="flex flex-col items-center justify-center text-school-gold">
-                      <Loader2 className="h-6 w-6 animate-spin mb-2" />
+                      <SystemRestart className="h-6 w-6 animate-spin mb-2" />
                       <p className="text-sm text-slate-500">
                         Memuat data pendaftar...
                       </p>
@@ -264,7 +264,7 @@ const PPDBAdminPage = () => {
                     className="text-center h-32 text-slate-500"
                   >
                     <div className="flex flex-col items-center justify-center">
-                      <UserCheck className="h-8 w-8 text-slate-200 mb-2" />
+                      <UserBadgeCheck className="h-8 w-8 text-slate-200 mb-2" />
                       <p>Tidak ada data pendaftar ditemukan.</p>
                     </div>
                   </TableCell>
@@ -337,7 +337,7 @@ const PPDBAdminPage = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
                   <h4 className="font-bold text-school-navy mb-3 flex items-center gap-2">
-                    <UserCheck className="w-4 h-4" /> Data Diri
+                    <UserBadgeCheck className="w-4 h-4" /> Data Diri
                   </h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between border-b border-slate-200 pb-1">
@@ -362,7 +362,7 @@ const PPDBAdminPage = () => {
                 </div>
                 <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
                   <h4 className="font-bold text-school-navy mb-3 flex items-center gap-2">
-                    <FileText className="w-4 h-4" /> Kelengkapan Dokumen
+                    <Page className="w-4 h-4" /> Kelengkapan Dokumen
                   </h4>
                   <div className="space-y-2 text-sm">
                     <div className="flex justify-between items-center border-b border-slate-200 pb-1">
@@ -416,7 +416,7 @@ const PPDBAdminPage = () => {
                     onClick={() => handleUpdateStatus("rejected")}
                     disabled={processing}
                   >
-                    <XCircle className="mr-2 h-4 w-4" /> Tolak Pendaftaran
+                    <XmarkCircle className="mr-2 h-4 w-4" /> Tolak Pendaftaran
                   </Button>
                 )}
 

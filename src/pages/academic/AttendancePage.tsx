@@ -20,14 +20,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   Calendar,
-  Save,
-  CheckCircle2,
-  XCircle,
+  FloppyDisk,
+  CheckCircle,
+  XmarkCircle,
   Clock,
-  FileQuestion,
-  Loader2,
-  Users,
-} from "lucide-react";
+  PageSearch,
+  SystemRestart,
+  Group,
+} from "iconoir-react";
 import api from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
@@ -158,7 +158,7 @@ const AttendancePage = () => {
     {
       id: "Present",
       label: "Hadir",
-      icon: CheckCircle2,
+      icon: CheckCircle,
       color: "text-green-600",
       activeClass:
         "bg-green-100 border-green-500 text-green-700 font-bold shadow-sm",
@@ -166,7 +166,7 @@ const AttendancePage = () => {
     {
       id: "Sick",
       label: "Sakit",
-      icon: FileQuestion,
+      icon: PageSearch,
       color: "text-yellow-600",
       activeClass:
         "bg-yellow-100 border-yellow-500 text-yellow-700 font-bold shadow-sm",
@@ -182,7 +182,7 @@ const AttendancePage = () => {
     {
       id: "Alpha",
       label: "Alpha",
-      icon: XCircle,
+      icon: XmarkCircle,
       color: "text-red-600",
       activeClass: "bg-red-100 border-red-500 text-red-700 font-bold shadow-sm",
     },
@@ -246,7 +246,7 @@ const AttendancePage = () => {
           <CardHeader className="bg-white border-b border-slate-100 flex flex-row justify-between items-center py-4">
             <div>
               <CardTitle className="font-serif text-xl text-school-navy flex items-center gap-2">
-                <Users className="w-5 h-5 text-school-gold" />
+                <Group className="w-5 h-5 text-school-gold" />
                 Daftar Kehadiran Siswa
               </CardTitle>
               <p className="text-xs text-slate-400 mt-1">
@@ -262,12 +262,12 @@ const AttendancePage = () => {
               >
                 {submitting ? (
                   <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                    <SystemRestart className="mr-2 h-4 w-4 animate-spin" />{" "}
                     Menyimpan...
                   </>
                 ) : (
                   <>
-                    <Save className="mr-2 h-4 w-4" /> Simpan Perubahan
+                    <FloppyDisk className="mr-2 h-4 w-4" /> Simpan Perubahan
                   </>
                 )}
               </Button>
@@ -297,7 +297,7 @@ const AttendancePage = () => {
                     <TableRow>
                       <TableCell colSpan={4} className="text-center py-12">
                         <div className="flex flex-col items-center justify-center text-school-gold">
-                          <Loader2 className="h-8 w-8 animate-spin mb-2" />
+                          <SystemRestart className="h-8 w-8 animate-spin mb-2" />
                           <p className="text-sm text-slate-500">
                             Memuat data absensi...
                           </p>

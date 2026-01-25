@@ -37,14 +37,14 @@ import {
 import {
   Plus,
   Search,
-  MoreHorizontal,
-  Pencil,
-  Trash2,
-  Loader2,
-  UserCog,
+  MoreHoriz,
+  EditPencil,
+  Trash,
+  SystemRestart,
+  UserBadgeCheck,
   Phone,
   Mail,
-} from "lucide-react";
+} from "iconoir-react";
 import api from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -449,7 +449,7 @@ const MasterTeacherPage = () => {
               >
                 {submitting ? (
                   <>
-                    <Loader2 className="mr-2 animate-spin" /> Menyimpan...
+                    <SystemRestart className="mr-2 animate-spin" /> Menyimpan...
                   </>
                 ) : editingTeacher ? (
                   "Simpan Perubahan"
@@ -465,7 +465,7 @@ const MasterTeacherPage = () => {
       <Card className="border-t-4 border-t-school-gold shadow-lg border-none overflow-hidden">
         <CardHeader className="bg-white border-b border-slate-100 pb-4">
           <CardTitle className="font-serif text-lg text-school-navy flex items-center gap-2">
-            <UserCog className="w-5 h-5 text-school-gold" /> Daftar Guru
+            <UserBadgeCheck className="w-5 h-5 text-school-gold" /> Daftar Guru
             Terdaftar
           </CardTitle>
         </CardHeader>
@@ -495,7 +495,7 @@ const MasterTeacherPage = () => {
                 <TableRow>
                   <TableCell colSpan={7} className="text-center h-24">
                     <div className="flex flex-col items-center justify-center text-school-gold">
-                      <Loader2 className="h-6 w-6 animate-spin mb-2" />
+                      <SystemRestart className="h-6 w-6 animate-spin mb-2" />
                       <p className="text-sm text-slate-500">
                         Memuat data guru...
                       </p>
@@ -570,7 +570,7 @@ const MasterTeacherPage = () => {
                             size="sm"
                             className="h-8 w-8 p-0"
                           >
-                            <MoreHorizontal className="h-4 w-4" />
+                            <MoreHoriz className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
@@ -578,13 +578,13 @@ const MasterTeacherPage = () => {
                             onClick={() => handleOpenEdit(teacher)}
                             className="cursor-pointer"
                           >
-                            <Pencil className="mr-2 h-4 w-4" /> Edit
+                            <EditPencil className="mr-2 h-4 w-4" /> Edit
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => handleDelete(teacher._id)}
                             className="cursor-pointer text-red-600 focus:text-red-600"
                           >
-                            <Trash2 className="mr-2 h-4 w-4" /> Hapus
+                            <Trash className="mr-2 h-4 w-4" /> Hapus
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>

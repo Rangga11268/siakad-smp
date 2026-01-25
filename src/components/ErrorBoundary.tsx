@@ -1,5 +1,5 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
-import { AlertTriangle, RefreshCw } from "lucide-react";
+import { WarningTriangle, Refresh } from "iconoir-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -48,7 +48,7 @@ class ErrorBoundary extends Component<Props, State> {
             <CardHeader>
               <div className="flex items-center gap-3">
                 <div className="p-3 rounded-full bg-red-100">
-                  <AlertTriangle className="h-6 w-6 text-red-600" />
+                  <WarningTriangle className="h-6 w-6 text-red-600" />
                 </div>
                 <div>
                   <CardTitle className="text-2xl">
@@ -81,7 +81,7 @@ class ErrorBoundary extends Component<Props, State> {
 
               <div className="flex gap-3">
                 <Button onClick={this.handleReload} className="flex-1">
-                  <RefreshCw className="mr-2 h-4 w-4" />
+                  <Refresh className="mr-2 h-4 w-4" />
                   Reload Page
                 </Button>
                 <Button

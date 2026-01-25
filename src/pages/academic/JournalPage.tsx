@@ -27,14 +27,14 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Loader2,
+  SystemRestart,
   Calendar,
-  Save,
-  History,
-  BookOpen,
+  FloppyDisk,
+  Clock,
+  Book,
   Presentation,
-  FileText,
-} from "lucide-react";
+  Page,
+} from "iconoir-react";
 import api from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/AuthContext";
@@ -421,12 +421,12 @@ const JournalPage = () => {
                   >
                     {submitting ? (
                       <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                        <SystemRestart className="mr-2 h-4 w-4 animate-spin" />{" "}
                         Menyimpan...
                       </>
                     ) : (
                       <>
-                        <Save className="mr-2 h-4 w-4" /> Simpan Jurnal
+                        <FloppyDisk className="mr-2 h-4 w-4" /> Simpan Jurnal
                       </>
                     )}
                   </Button>
@@ -440,7 +440,7 @@ const JournalPage = () => {
           <Card className="border-none shadow-md">
             <CardHeader className="bg-white border-b border-slate-100">
               <CardTitle className="font-serif text-xl text-school-navy flex items-center gap-2">
-                <History className="w-5 h-5 text-school-gold" /> Riwayat Jurnal
+                <Clock className="w-5 h-5 text-school-gold" /> Riwayat Jurnal
                 Mengajar Saya
               </CardTitle>
             </CardHeader>
@@ -455,8 +455,8 @@ const JournalPage = () => {
             <Card className="border-none shadow-md">
               <CardHeader className="bg-white border-b border-slate-100">
                 <CardTitle className="font-serif text-xl text-school-navy flex items-center gap-2">
-                  <FileText className="w-5 h-5 text-school-gold" /> Monitoring
-                  Semua Jurnal
+                  <Page className="w-5 h-5 text-school-gold" /> Monitoring Semua
+                  Jurnal
                 </CardTitle>
                 <CardDescription>
                   Pantau aktivitas mengajar seluruh guru.
@@ -511,7 +511,7 @@ const JournalTable = ({
           <TableRow>
             <TableCell colSpan={7} className="text-center h-24">
               <div className="flex flex-col items-center justify-center text-school-gold">
-                <Loader2 className="h-6 w-6 animate-spin mb-2" />
+                <SystemRestart className="h-6 w-6 animate-spin mb-2" />
                 <p className="text-sm text-slate-500">Memuat data jurnal...</p>
               </div>
             </TableCell>
@@ -520,7 +520,7 @@ const JournalTable = ({
           <TableRow>
             <TableCell colSpan={7} className="text-center h-24 text-slate-500">
               <div className="flex flex-col items-center justify-center">
-                <BookOpen className="h-8 w-8 text-slate-200 mb-2" />
+                <Book className="h-8 w-8 text-slate-200 mb-2" />
                 <p>Belum ada data jurnal yang tersimpan.</p>
               </div>
             </TableCell>

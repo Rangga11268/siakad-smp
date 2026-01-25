@@ -34,9 +34,9 @@ import {
   MapPin,
   Printer,
   QrCode,
-  Loader2,
-  Package,
-} from "lucide-react";
+  SystemRestart,
+  Box,
+} from "iconoir-react";
 import api from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -326,7 +326,7 @@ const AssetDashboard = () => {
               >
                 {submitting ? (
                   <>
-                    <Loader2 className="mr-2 animate-spin" /> Menyimpan...
+                    <SystemRestart className="mr-2 animate-spin" /> Menyimpan...
                   </>
                 ) : (
                   "Simpan Aset"
@@ -383,7 +383,7 @@ const AssetDashboard = () => {
       <Card className="border-t-4 border-t-school-gold shadow-lg border-none overflow-hidden">
         <CardHeader className="bg-white border-b border-slate-100 pb-4">
           <CardTitle className="font-serif text-lg text-school-navy flex items-center gap-2">
-            <Package className="w-5 h-5 text-school-gold" /> Daftar Aset Sekolah
+            <Box className="w-5 h-5 text-school-gold" /> Daftar Aset Sekolah
           </CardTitle>
         </CardHeader>
         <CardContent className="p-0">
@@ -412,7 +412,7 @@ const AssetDashboard = () => {
                 <TableRow>
                   <TableCell colSpan={7} className="text-center h-24">
                     <div className="flex flex-col items-center justify-center text-school-gold">
-                      <Loader2 className="h-6 w-6 animate-spin mb-2" />
+                      <SystemRestart className="h-6 w-6 animate-spin mb-2" />
                       <p className="text-sm text-slate-500">
                         Memuat data aset...
                       </p>

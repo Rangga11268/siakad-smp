@@ -37,15 +37,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  AlertTriangle,
+  WarningTriangle,
   Trophy,
   Search,
   Plus,
-  Loader2,
-  HeartHandshake,
-  Siren,
+  SystemRestart,
+  Heart,
+  Megaphone,
   Printer,
-} from "lucide-react";
+} from "iconoir-react";
 import api from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -266,13 +266,13 @@ const StudentAffairsDashboard = () => {
       >
         <TabsList className="grid grid-cols-4 lg:w-[600px]">
           <TabsTrigger value="incidents">
-            <AlertTriangle className="mr-2 h-4 w-4" /> Pelanggaran
+            <WarningTriangle className="mr-2 h-4 w-4" /> Pelanggaran
           </TabsTrigger>
           <TabsTrigger value="points">
-            <Siren className="mr-2 h-4 w-4" /> Poin & Sanksi
+            <Megaphone className="mr-2 h-4 w-4" /> Poin & Sanksi
           </TabsTrigger>
           <TabsTrigger value="counseling">
-            <HeartHandshake className="mr-2 h-4 w-4" /> Konseling
+            <Heart className="mr-2 h-4 w-4" /> Konseling
           </TabsTrigger>
           <TabsTrigger value="achievements">
             <Trophy className="mr-2 h-4 w-4" /> Prestasi
@@ -504,7 +504,7 @@ const StudentAffairsDashboard = () => {
                               className="w-fit"
                               onClick={() =>
                                 navigate(
-                                  `/dashboard/student-affairs/letter/${stat._id}`
+                                  `/dashboard/student-affairs/letter/${stat._id}`,
                                 )
                               }
                             >

@@ -8,7 +8,7 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Calendar, User, Loader2 } from "lucide-react";
+import { Plus, Calendar, User, SystemRestart } from "iconoir-react";
 import api from "@/services/api";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -252,7 +252,7 @@ const P5Dashboard = () => {
                   onClick={handleCreate}
                 >
                   {submitting && (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <SystemRestart className="mr-2 h-4 w-4 animate-spin" />
                   )}{" "}
                   Simpan
                 </Button>
@@ -264,7 +264,7 @@ const P5Dashboard = () => {
 
       {loading ? (
         <div className="flex justify-center p-12">
-          <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+          <SystemRestart className="h-8 w-8 animate-spin text-muted-foreground" />
         </div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">

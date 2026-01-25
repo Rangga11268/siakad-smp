@@ -1,19 +1,26 @@
 import { Link, useLocation } from "react-router-dom";
 import {
-  LayoutDashboard,
-  BookOpen,
-  Users,
-  HeartPulse,
-  Library,
+  HomeSimpleDoor,
+  Book,
+  Group,
+  HeartArrowDown,
+  BookStack,
   Wallet,
   LogOut,
   GraduationCap,
-  Building2,
-  CheckCircle2,
+  Building,
+  CheckCircle,
   Printer,
-  ChevronDown,
-  CalendarDays,
-} from "lucide-react";
+  NavArrowDown,
+  Calendar,
+  UserBadgeCheck,
+  OpenBook,
+  ClipboardCheck,
+  Journal,
+  ReportColumns,
+  Community,
+  Commodity,
+} from "iconoir-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
@@ -46,7 +53,7 @@ const Sidebar = () => {
       items: [
         {
           title: "Dashboard",
-          icon: LayoutDashboard,
+          icon: HomeSimpleDoor,
           path: "/dashboard",
           roles: ["admin", "teacher", "student", "parent"],
         },
@@ -57,79 +64,79 @@ const Sidebar = () => {
       items: [
         {
           title: "Jadwal Pelajaran",
-          icon: CalendarDays,
+          icon: Calendar,
           path: "/dashboard/academic/schedule",
           roles: ["admin", "teacher"],
         },
         {
           title: "Absensi Pelajaran",
-          icon: CalendarDays,
+          icon: Calendar,
           path: "/dashboard/student/attendance",
           roles: ["student"],
         },
         {
           title: "Data Siswa",
-          icon: Users,
+          icon: Group,
           path: "/dashboard/academic/students",
           roles: ["admin", "teacher"],
         },
         {
           title: "Data Guru",
-          icon: Users,
+          icon: UserBadgeCheck,
           path: "/dashboard/academic/teachers",
           roles: ["admin"],
         },
         {
           title: "Data Mapel",
-          icon: BookOpen,
+          icon: OpenBook,
           path: "/dashboard/academic/subjects",
           roles: ["admin"],
         },
         {
           title: "Data Kelas",
-          icon: Building2,
+          icon: Building,
           path: "/dashboard/academic/classes",
           roles: ["admin"],
         },
         {
           title: "Tujuan Pembelajaran",
-          icon: BookOpen,
+          icon: ClipboardCheck,
           path: "/dashboard/academic/learning-goals",
           roles: ["admin", "teacher"],
         },
         {
           title: "Jurnal Mengajar",
-          icon: BookOpen,
+          icon: Journal,
           path: "/dashboard/academic/journal",
           roles: ["admin", "teacher"],
         },
         {
           title: "Absensi Harian",
-          icon: CheckCircle2,
+          icon: CheckCircle,
           path: "/dashboard/academic/attendance",
           roles: ["admin", "teacher"],
         },
         {
           title: "Nilai Saya",
-          icon: BookOpen,
+          icon: ReportColumns,
           path: "/dashboard/student/grades",
           roles: ["student"],
         },
         {
           title: "Input Nilai",
-          icon: BookOpen,
+          icon: ClipboardCheck,
           path: "/dashboard/academic/grades",
           roles: ["teacher", "admin"],
         },
         {
           title: "Bahan Ajar (Guru)",
-          icon: BookOpen,
+          icon: Book,
           path: "/dashboard/academic/materials",
           roles: ["admin", "teacher"],
         },
         {
           title: "Bahan Ajar",
-          icon: BookOpen,
+          icon: Book,
           path: "/dashboard/student/materials",
           roles: ["student"],
         },
@@ -137,7 +144,7 @@ const Sidebar = () => {
           title: "E-Rapor Siswa",
           icon: Printer,
           path: "/dashboard/academic/report",
-          roles: ["admin", "teacher", "student"], // Student can view too? Or specific page
+          roles: ["admin", "teacher", "student"],
         },
       ],
     },
@@ -146,13 +153,13 @@ const Sidebar = () => {
       items: [
         {
           title: "Projek P5",
-          icon: Users,
+          icon: Community,
           path: "/dashboard/p5",
           roles: ["admin", "teacher", "student"],
         },
         {
           title: "Laporan P5",
-          icon: Printer,
+          icon: ReportColumns,
           path: "/dashboard/p5/report",
           roles: ["admin", "teacher"],
         },
@@ -169,19 +176,19 @@ const Sidebar = () => {
       items: [
         {
           title: "UKS & Kesehatan",
-          icon: HeartPulse,
+          icon: HeartArrowDown,
           path: "/dashboard/uks",
           roles: ["admin", "teacher", "parent", "student"],
         },
         {
           title: "Perpustakaan",
-          icon: Library,
+          icon: BookStack,
           path: "/dashboard/library",
           roles: ["admin", "teacher", "student"],
         },
         {
           title: "Sarana Prasarana",
-          icon: Building2,
+          icon: Commodity,
           path: "/dashboard/assets",
           roles: ["admin"],
         },
@@ -192,7 +199,7 @@ const Sidebar = () => {
       items: [
         {
           title: "PPDB Online",
-          icon: Users,
+          icon: Group,
           path: "/dashboard/ppdb",
           roles: ["admin"],
         },
@@ -265,7 +272,7 @@ const Sidebar = () => {
                   className="w-full justify-between hover:bg-white/10 text-white/50 hover:text-white h-9 px-4 text-xs font-bold uppercase tracking-wider mb-2"
                 >
                   {group.label}
-                  <ChevronDown
+                  <NavArrowDown
                     className={cn(
                       "h-4 w-4 transition-transform duration-200",
                       openSections[group.label] ? "" : "-rotate-90",

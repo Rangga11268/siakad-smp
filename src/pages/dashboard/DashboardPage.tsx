@@ -6,14 +6,14 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  Users,
-  BookOpen,
-  AlertTriangle,
+  Group,
+  Book,
+  WarningTriangle,
   Wallet,
   CheckCircle,
   Clock,
   ArrowRight,
-} from "lucide-react";
+} from "iconoir-react";
 import { useState, useEffect } from "react";
 import api from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
@@ -116,7 +116,7 @@ const DashboardPage = () => {
     {
       title: "Total Siswa",
       value: (statsData?.studentCount || 0).toString(),
-      icon: Users,
+      icon: Group,
       desc: "Aktif Tahun Ini",
       color: "text-school-navy",
       bgColor: "bg-school-navy/10",
@@ -124,7 +124,7 @@ const DashboardPage = () => {
     {
       title: "Rata-rata Nilai",
       value: (statsData?.averageGrade || 0).toString(),
-      icon: BookOpen,
+      icon: Book,
       desc: "Seluruh Mata Pelajaran",
       color: "text-green-600",
       bgColor: "bg-green-100",
@@ -132,7 +132,7 @@ const DashboardPage = () => {
     {
       title: "Laporan Insiden",
       value: (statsData?.incidentCount || 0).toString(),
-      icon: AlertTriangle,
+      icon: WarningTriangle,
       desc: "Status Open/FollowUp",
       color: "text-orange-600",
       bgColor: "bg-orange-100",
@@ -155,13 +155,13 @@ const DashboardPage = () => {
     {
       label: "Input Nilai",
       href: "/dashboard/academic/grades",
-      icon: BookOpen,
+      icon: Book,
       color: "bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200",
     },
     {
       label: "Lapor Pelanggaran",
       href: "/dashboard/student-affairs",
-      icon: AlertTriangle,
+      icon: WarningTriangle,
       color: "bg-red-50 text-red-700 hover:bg-red-100 border-red-200",
     },
     {
@@ -174,7 +174,7 @@ const DashboardPage = () => {
     {
       label: "PPDB Admin",
       href: "/dashboard/ppdb",
-      icon: Users,
+      icon: Group,
       color:
         "bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200",
     },
@@ -184,13 +184,13 @@ const DashboardPage = () => {
     {
       label: "Lihat Nilai",
       href: "/dashboard/academic/report",
-      icon: BookOpen,
+      icon: Book,
       color: "bg-blue-50 text-blue-700 hover:bg-blue-100 border-blue-200",
     },
     {
       label: "Perpustakaan",
       href: "/dashboard/library",
-      icon: BookOpen,
+      icon: Book,
       color:
         "bg-purple-50 text-purple-700 hover:bg-purple-100 border-purple-200",
     },

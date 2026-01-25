@@ -9,7 +9,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Loader2, Printer, Search } from "lucide-react";
+import { SystemRestart, Printer, Search } from "iconoir-react";
 import { useReactToPrint } from "react-to-print";
 
 const P5ReportPage = () => {
@@ -52,7 +52,7 @@ const P5ReportPage = () => {
     setLoading(true);
     try {
       const res = await api.get(
-        `/p5/report/${selectedProject}/${selectedStudent}`
+        `/p5/report/${selectedProject}/${selectedStudent}`,
       );
       setReportData(res.data);
     } catch (error) {
@@ -111,7 +111,7 @@ const P5ReportPage = () => {
           </Select>
 
           <Button onClick={generateReport} disabled={loading}>
-            {loading ? <Loader2 className="animate-spin" /> : <Search />}{" "}
+            {loading ? <SystemRestart className="animate-spin" /> : <Search />}{" "}
             Generate
           </Button>
         </div>
@@ -212,7 +212,7 @@ const P5ReportPage = () => {
               <tbody>
                 {reportData.project.targets.map((target: any) => {
                   const score = reportData.assessment.scores?.find(
-                    (s: any) => s.targetId === target._id
+                    (s: any) => s.targetId === target._id,
                   )?.score;
                   return (
                     <tr key={target._id}>

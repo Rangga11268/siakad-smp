@@ -11,14 +11,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  FileText,
-  Download,
-  Search,
-  BookOpen,
-  Video,
-  File,
-} from "lucide-react";
+import { Page, Download, Search, Book, VideoCamera } from "iconoir-react";
 import api from "@/services/api";
 
 const StudentMaterialPage = () => {
@@ -66,8 +59,9 @@ const StudentMaterialPage = () => {
   });
 
   const getIcon = (type: string) => {
-    if (type === "Video") return <Video className="h-6 w-6 text-red-500" />;
-    return <FileText className="h-6 w-6 text-blue-500" />;
+    if (type === "Video")
+      return <VideoCamera className="h-6 w-6 text-red-500" />;
+    return <Page className="h-6 w-6 text-blue-500" />;
   };
 
   return (

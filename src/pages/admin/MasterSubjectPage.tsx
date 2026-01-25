@@ -20,14 +20,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Plus, Search, Trash2, Loader2, BookOpen } from "lucide-react";
+import { Plus, Search, Trash, SystemRestart, Book } from "iconoir-react";
 import api from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -238,7 +231,7 @@ const MasterSubjectPage = () => {
                 className="bg-school-navy hover:bg-school-gold hover:text-school-navy sm:w-auto w-full"
               >
                 {submitting && (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  <SystemRestart className="mr-2 h-4 w-4 animate-spin" />
                 )}
                 Simpan Data
               </Button>
@@ -251,7 +244,7 @@ const MasterSubjectPage = () => {
         <CardHeader className="bg-white border-b border-slate-100 pb-4">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <CardTitle className="font-serif text-xl text-school-navy flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-school-gold" />
+              <Book className="w-5 h-5 text-school-gold" />
               Daftar Mata Pelajaran
             </CardTitle>
             <div className="w-full md:w-1/3 relative">
@@ -268,7 +261,7 @@ const MasterSubjectPage = () => {
         <CardContent className="p-0">
           {loading ? (
             <div className="flex justify-center p-12">
-              <Loader2 className="h-8 w-8 animate-spin text-school-gold" />
+              <SystemRestart className="h-8 w-8 animate-spin text-school-gold" />
             </div>
           ) : (
             <Table>
@@ -299,7 +292,7 @@ const MasterSubjectPage = () => {
                       className="text-center py-12 text-slate-500"
                     >
                       <div className="flex flex-col items-center justify-center">
-                        <BookOpen className="h-12 w-12 text-slate-200 mb-3" />
+                        <Book className="h-12 w-12 text-slate-200 mb-3" />
                         <p>Belum ada data mata pelajaran.</p>
                       </div>
                     </TableCell>
@@ -330,7 +323,7 @@ const MasterSubjectPage = () => {
                         size="icon"
                         className="text-slate-400 hover:text-red-600 hover:bg-red-50"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash className="h-4 w-4" />
                       </Button>
                     </TableCell>
                   </TableRow>

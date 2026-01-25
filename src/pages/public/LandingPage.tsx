@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { ArrowRight, BookOpen, GraduationCap } from "lucide-react";
+import { ArrowRight, Book, GraduationCap } from "iconoir-react";
 
 const LandingPage = () => {
   return (
@@ -73,7 +73,7 @@ const LandingPage = () => {
               <div className="grid md:grid-cols-2 gap-8 mt-8">
                 <div className="flex gap-4">
                   <div className="p-3 bg-school-navy/5 h-fit text-school-gold">
-                    <GraduationCap size={32} />
+                    <GraduationCap className="w-8 h-8" />
                   </div>
                   <div>
                     <h4 className="font-serif text-xl font-bold text-school-navy mb-2">
@@ -87,7 +87,7 @@ const LandingPage = () => {
                 </div>
                 <div className="flex gap-4">
                   <div className="p-3 bg-school-navy/5 h-fit text-school-gold">
-                    <BookOpen size={32} />
+                    <Book className="w-8 h-8" />
                   </div>
                   <div>
                     <h4 className="font-serif text-xl font-bold text-school-navy mb-2">

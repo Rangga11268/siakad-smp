@@ -36,14 +36,14 @@ import {
 } from "@/components/ui/dialog";
 import {
   Plus,
-  Trash2,
-  FileText,
-  Loader2,
+  Trash,
+  Page,
+  SystemRestart,
   Download,
-  BookOpen,
+  Book,
   GraduationCap,
-  FolderOpen,
-} from "lucide-react";
+  Folder,
+} from "iconoir-react";
 import api from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -294,7 +294,7 @@ const TeacherMaterialPage = () => {
                 >
                   {submitting ? (
                     <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                      <SystemRestart className="mr-2 h-4 w-4 animate-spin" />{" "}
                       Uploading...
                     </>
                   ) : (
@@ -312,7 +312,7 @@ const TeacherMaterialPage = () => {
       <Card className="border-t-4 border-t-school-gold shadow-lg border-none overflow-hidden">
         <CardHeader className="bg-white border-b border-slate-100 pb-4">
           <CardTitle className="font-serif text-xl text-school-navy flex items-center gap-2">
-            <FolderOpen className="w-5 h-5 text-school-gold" />
+            <Folder className="w-5 h-5 text-school-gold" />
             Daftar Bahan Ajar Tersedia
           </CardTitle>
         </CardHeader>
@@ -337,7 +337,7 @@ const TeacherMaterialPage = () => {
                 <TableRow>
                   <TableCell colSpan={6} className="text-center h-32">
                     <div className="flex flex-col items-center justify-center text-school-gold">
-                      <Loader2 className="h-6 w-6 animate-spin mb-2" />
+                      <SystemRestart className="h-6 w-6 animate-spin mb-2" />
                       <p className="text-sm text-slate-500">Memuat materi...</p>
                     </div>
                   </TableCell>
@@ -349,7 +349,7 @@ const TeacherMaterialPage = () => {
                     className="text-center h-32 text-slate-500"
                   >
                     <div className="flex flex-col items-center justify-center">
-                      <BookOpen className="h-8 w-8 text-slate-200 mb-2" />
+                      <Book className="h-8 w-8 text-slate-200 mb-2" />
                       <p>Belum ada materi pembelajaran yang diupload.</p>
                     </div>
                   </TableCell>
@@ -363,7 +363,7 @@ const TeacherMaterialPage = () => {
                     <TableCell>
                       <div className="flex flex-col gap-1">
                         <div className="font-bold text-school-navy flex items-center gap-2">
-                          <FileText className="h-4 w-4 text-blue-500" />
+                          <Page className="h-4 w-4 text-blue-500" />
                           {m.title}
                         </div>
                         <p className="text-xs text-slate-500 line-clamp-1">
@@ -417,7 +417,7 @@ const TeacherMaterialPage = () => {
                           className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
                           onClick={() => handleDelete(m._id)}
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Trash className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>

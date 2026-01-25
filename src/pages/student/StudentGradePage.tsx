@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import api from "@/services/api";
-import { BookOpen } from "lucide-react";
+import { Book } from "iconoir-react";
 
 const StudentGradePage = () => {
   const [grades, setGrades] = useState<any[]>([]);
@@ -128,14 +128,14 @@ const StudentGradePage = () => {
                 <CardTitle className="text-sm font-medium">
                   {g.subject}
                 </CardTitle>
-                <BookOpen className="h-4 w-4 text-muted-foreground" />
+                <Book className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
                 <div className="text-2xl font-bold flex items-end gap-2">
                   {g.average}
                   <span
                     className={`text-sm font-medium ${getPredicateColor(
-                      g.average
+                      g.average,
                     )}`}
                   >
                     {getGradePredicate(g.average)}

@@ -29,14 +29,14 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  BookOpen,
-  RefreshCw,
+  Book,
+  Refresh,
   Plus,
   Search,
-  Library,
-  Loader2,
-  ArrowRightLeft,
-} from "lucide-react";
+  BookStack,
+  SystemRestart,
+  ArrowRight,
+} from "iconoir-react";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
@@ -289,7 +289,7 @@ const LibraryDashboard = () => {
             value="loans"
             className="data-[state=active]:bg-school-navy data-[state=active]:text-white px-6"
           >
-            <ArrowRightLeft className="mr-2 h-4 w-4" />
+            <ArrowRight className="mr-2 h-4 w-4" />
             Sirkulasi
           </TabsTrigger>
           {user?.role !== "student" && (
@@ -297,7 +297,7 @@ const LibraryDashboard = () => {
               value="requests"
               className="data-[state=active]:bg-school-navy data-[state=active]:text-white px-6"
             >
-              <RefreshCw className="mr-2 h-4 w-4" />
+              <BookStack className="mr-2 h-4 w-4" />
               Permintaan
               {loans.filter((l: any) => l.status === "Pending").length > 0 && (
                 <Badge
@@ -448,7 +448,8 @@ const LibraryDashboard = () => {
                     >
                       {submitting ? (
                         <>
-                          <Loader2 className="mr-2 animate-spin" /> Menyimpan...
+                          <SystemRestart className="mr-2 animate-spin" />{" "}
+                          Menyimpan...
                         </>
                       ) : (
                         "Simpan Buku"
@@ -463,11 +464,11 @@ const LibraryDashboard = () => {
           <div className="grid gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
             {loading ? (
               <div className="col-span-full h-40 flex items-center justify-center text-school-gold">
-                <Loader2 className="w-8 h-8 animate-spin" />
+                <SystemRestart className="w-8 h-8 animate-spin" />
               </div>
             ) : books.length === 0 ? (
               <div className="col-span-full h-40 flex flex-col items-center justify-center text-slate-400">
-                <Library className="w-12 h-12 mb-2 opacity-20" />
+                <BookStack className="w-12 h-12 mb-2 opacity-20" />
                 <p>Belum ada koleksi buku.</p>
               </div>
             ) : (
@@ -488,7 +489,7 @@ const LibraryDashboard = () => {
                       />
                     ) : (
                       <div className="flex h-full items-center justify-center bg-slate-200 text-slate-400">
-                        <BookOpen className="h-12 w-12" />
+                        <Book className="h-12 w-12" />
                       </div>
                     )}
                     <div className="absolute top-2 right-2">
@@ -719,7 +720,7 @@ const LibraryDashboard = () => {
                               className="h-8 border-green-600 text-green-600 hover:bg-green-50"
                               onClick={() => handleReturn(loan._id)}
                             >
-                              <RefreshCw className="w-3 h-3 mr-1" /> Kembalikan
+                              <Refresh className="w-3 h-3 mr-1" /> Kembalikan
                             </Button>
                           )}
                       </TableCell>
