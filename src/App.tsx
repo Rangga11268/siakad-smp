@@ -5,9 +5,9 @@ import AcademicPage from "@/pages/public/AcademicPage";
 import FacilitiesPage from "@/pages/public/FacilitiesPage";
 import ContactPage from "@/pages/public/ContactPage";
 
-import LoginPage from "@/pages/LoginPage";
+import LoginPage from "@/pages/auth/LoginPage";
 import DashboardLayout from "@/layouts/DashboardLayout";
-import DashboardPage from "@/pages/DashboardPage";
+import DashboardPage from "@/pages/dashboard/DashboardPage";
 import MasterSubjectPage from "@/pages/admin/MasterSubjectPage";
 import MasterClassPage from "@/pages/admin/MasterClassPage";
 import MasterStudentPage from "@/pages/admin/MasterStudentPage";
@@ -35,7 +35,7 @@ import TeacherMaterialPage from "@/pages/academic/TeacherMaterialPage";
 
 import FinanceDashboard from "@/pages/finance/FinanceDashboard";
 import AssetDashboard from "@/pages/assets/AssetDashboard";
-import LandingPage from "@/pages/LandingPage";
+import LandingPage from "@/pages/public/LandingPage";
 import { Toaster } from "@/components/ui/toaster";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
