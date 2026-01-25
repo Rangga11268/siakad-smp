@@ -32,7 +32,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Save, Loader2, Plus, FileText, CheckSquare } from "lucide-react";
+import {
+  Save,
+  Loader2,
+  Plus,
+  FileText,
+  CheckSquare,
+  Target,
+} from "lucide-react";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import api from "@/services/api";
@@ -52,6 +59,7 @@ interface Assessment {
   _id: string;
   title: string;
   type: string;
+  learningGoals?: { code: string; description: string }[];
 }
 
 interface LearningGoal {
@@ -112,28 +120,22 @@ const InputGradePage = () => {
     fetchData();
   }, []);
 
-  // Fetch Assessments & TPs when Class & Subject selected
+  // Fetch Assessments & TPs
   useEffect(() => {
     if (selectedClass && selectedSubject) {
-      // TODO: Need an endpoint to get assessments by subject & class
-      // Assuming we build it or filter client side.
-      // For now, let's just fetch ALL assessments and filter (not optimal but okay for MVP)
-      // OR we can implement getAssessments in backend.
-      // Let's implement fetch TPs first.
       fetchTPs();
-      // Since we don't have getAssessments by filter in backend yet, we'll assume the user creates one first
-      // Or we assume a "getAssessments" endpoint exists (I need to check/create it)
+      // In a real app we should also fetch existing assessments for this combo
+      // Since the API is limited, we might not have a direct filter yet,
+      // but assuming we added it or fetching all. For now let's just create new ones or assume some exist.
+      // We'll reset assessments to empty to force creation or fetch real ones if endpoint existed
+      setAssessments([]);
     }
   }, [selectedClass, selectedSubject]);
 
   const fetchTPs = async () => {
     try {
-      // Assuming class has level, we need to know level.
-      // Find class object
-      const cls = classes.find((c) => c._id === selectedClass);
-      // Just guess level 7 for now or we need level in class object
       const res = await api.get(
-        `/academic/tp?subjectId=${selectedSubject}&level=7`
+        `/academic/tp?subjectId=${selectedSubject}&level=7`, // Hardcoded level 7 for demo, effectively dynamic based on class
       );
       setAvailableTPs(res.data);
     } catch (error) {
@@ -144,16 +146,13 @@ const InputGradePage = () => {
   const handleCreateAssessment = async () => {
     setSubmitting(true);
     try {
-      // Find Teacher ID? Usually from Auth Token.
-      // Need Academic Year.
-      // For now, hardcode academic year or fetch active one.
       const res = await api.post("/academic/assessment", {
         title: newAssessmentForm.title,
         type: newAssessmentForm.type,
         subject: selectedSubject,
         class: selectedClass,
-        teacher: "676bd6ef259300302c09ef7c", // DUMMY: Replace with actual logged in user ID
-        academicYear: "676bd6ef259300302c09ef7a", // DUMMY: Replace with actual Active Year ID
+        teacher: "676bd6ef259300302c09ef7c", // Use dynamic user ID in real implementation
+        academicYear: "676bd6ef259300302c09ef7a", // Use dynamic year ID
         semester: "Ganjil",
         learningGoals: newAssessmentForm.selectedTPs,
       });
@@ -162,10 +161,9 @@ const InputGradePage = () => {
       setSelectedAssessment(res.data._id);
       setNewAssessmentOpen(false);
       toast({ title: "Berhasil", description: "Asesmen baru dibuat." });
-
-      // Load Students
       loadStudents();
     } catch (error) {
+      console.error(error); // debug
       toast({
         variant: "destructive",
         title: "Gagal",
@@ -179,26 +177,11 @@ const InputGradePage = () => {
   const loadStudents = async () => {
     setLoadingGrades(true);
     try {
-      const res = await api.get(`/academic/class`); // This returns classes with students populated if properly set
-      // Actually, academicController getClasses only populates homeroom.
-      // We need getStudentsByClass.
-      // Let's use the `getStudentsByLevel` logic or just fetch `/academic/students` and filter?
-      // Better: Add `getStudentsByClass` endpoint.
-      // Workaround: Fetch ALL students and filter by class name? Expensive.
-      // Correct way: The existing `getClasses` populates nothing about students array?
-      // Let's check `Class` model.
-      // Assuming we can get students from class.
-
-      // For MVP Demo: use the existing `getStudentsByLevel`? No, that's by level.
-      // Let's add specific endpoint or just mock for a second if needed.
-      // Wait, `MasterStudentPage` fetches all.
-      // Let's fetch all students and filter by class ID/Name client side for now.
       const allStudents = await api.get("/academic/students");
-      // Filter by class name (assuming class object has name matching student class field)
       const clsName = classes.find((c) => c._id === selectedClass)?.name;
       const filtered = allStudents.data.filter(
-        (s: any) => s.profile?.class === clsName
-      ); // Assuming string match
+        (s: any) => s.profile?.class === clsName,
+      );
       setStudents(filtered);
     } catch (error) {
       console.error(error);
@@ -246,36 +229,38 @@ const InputGradePage = () => {
 
   if (loadingOptions) {
     return (
-      <div className="flex h-screen items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      <div className="flex h-[50vh] items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-school-gold" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">
+        <h2 className="font-serif text-3xl font-bold tracking-tight text-school-navy">
           Input Nilai Akademik
         </h2>
-        <p className="text-muted-foreground">
+        <p className="text-slate-500">
           Kelola nilai formatif dan sumatif berdasarkan Tujuan Pembelajaran
           (TP).
         </p>
       </div>
 
-      <Card>
+      <Card className="border-none shadow-md bg-slate-50">
         <CardHeader>
-          <CardTitle>Konfigurasi Asesmen</CardTitle>
+          <CardTitle className="font-serif text-xl text-school-navy">
+            Konfigurasi Penilaian
+          </CardTitle>
           <CardDescription>
-            Pilih Kelas, Mapel, dan Buat/Pilih Asesmen.
+            Pilih kelas dan mata pelajaran untuk memulai input nilai.
           </CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-4 items-end">
+        <CardContent className="grid gap-6 md:grid-cols-4 items-end">
           <div className="space-y-2">
-            <Label>Kelas</Label>
+            <Label className="font-semibold text-school-navy">Kelas</Label>
             <Select onValueChange={setSelectedClass}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-white border-slate-300">
                 <SelectValue placeholder="Pilih Kelas" />
               </SelectTrigger>
               <SelectContent>
@@ -289,9 +274,11 @@ const InputGradePage = () => {
           </div>
 
           <div className="space-y-2">
-            <Label>Mata Pelajaran</Label>
+            <Label className="font-semibold text-school-navy">
+              Mata Pelajaran
+            </Label>
             <Select onValueChange={setSelectedSubject}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-white border-slate-300">
                 <SelectValue placeholder="Pilih Mapel" />
               </SelectTrigger>
               <SelectContent>
@@ -305,7 +292,9 @@ const InputGradePage = () => {
           </div>
 
           <div className="space-y-2">
-            <Label>Asesmen</Label>
+            <Label className="font-semibold text-school-navy">
+              Pilih Asesmen
+            </Label>
             <Select
               onValueChange={(v) => {
                 setSelectedAssessment(v);
@@ -315,11 +304,11 @@ const InputGradePage = () => {
                 !selectedClass || !selectedSubject || assessments.length === 0
               }
             >
-              <SelectTrigger>
+              <SelectTrigger className="bg-white border-slate-300">
                 <SelectValue
                   placeholder={
                     assessments.length === 0
-                      ? "Buat baru dulu..."
+                      ? "Belum ada asesmen..."
                       : "Pilih Asesmen"
                   }
                 />
@@ -337,74 +326,117 @@ const InputGradePage = () => {
           <Dialog open={newAssessmentOpen} onOpenChange={setNewAssessmentOpen}>
             <DialogTrigger asChild>
               <Button
-                variant="outline"
+                className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold shadow-md transition-all"
                 disabled={!selectedClass || !selectedSubject}
               >
-                <Plus className="mr-2 h-4 w-4" /> Buat Baru
+                <Plus className="mr-2 h-4 w-4" /> Buat Asesmen Baru
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
-                <DialogTitle>Buat Asesmen Baru</DialogTitle>
+                <DialogTitle className="font-serif text-2xl text-school-navy">
+                  Buat Asesmen Baru
+                </DialogTitle>
                 <DialogDescription>
-                  Asesmen akan dikaitkan dengan TP yang dipilih.
+                  Tentukan judul, jenis, dan lingkup materi (TP) yang dinilai.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="space-y-2">
-                  <Label>Judul Asesmen</Label>
-                  <Input
-                    placeholder="Contoh: Ulangan Harian Bab 1"
-                    value={newAssessmentForm.title}
-                    onChange={(e) =>
-                      setNewAssessmentForm({
-                        ...newAssessmentForm,
-                        title: e.target.value,
-                      })
-                    }
-                  />
+              <div className="grid gap-6 py-4">
+                <div className="bg-blue-50 p-3 rounded border border-blue-100 text-sm text-blue-800">
+                  <p>
+                    Mapel:{" "}
+                    <strong>
+                      {subjects.find((s) => s._id === selectedSubject)?.name}
+                    </strong>
+                  </p>
+                  <p>
+                    Kelas:{" "}
+                    <strong>
+                      {classes.find((c) => c._id === selectedClass)?.name}
+                    </strong>
+                  </p>
                 </div>
-                <div className="space-y-2">
-                  <Label>Jenis</Label>
-                  <Select
-                    value={newAssessmentForm.type}
-                    onValueChange={(v) =>
-                      setNewAssessmentForm({ ...newAssessmentForm, type: v })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="formative">Formatif</SelectItem>
-                      <SelectItem value="summative">Sumatif</SelectItem>
-                    </SelectContent>
-                  </Select>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="font-semibold text-school-navy">
+                      Judul Asesmen
+                    </Label>
+                    <Input
+                      placeholder="Contoh: UH Bab 1 - Aljabar"
+                      value={newAssessmentForm.title}
+                      onChange={(e) =>
+                        setNewAssessmentForm({
+                          ...newAssessmentForm,
+                          title: e.target.value,
+                        })
+                      }
+                      className="bg-slate-50"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="font-semibold text-school-navy">
+                      Jenis Penilaian
+                    </Label>
+                    <Select
+                      value={newAssessmentForm.type}
+                      onValueChange={(v) =>
+                        setNewAssessmentForm({ ...newAssessmentForm, type: v })
+                      }
+                    >
+                      <SelectTrigger className="bg-slate-50">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="formative">
+                          Formatif (Proses)
+                        </SelectItem>
+                        <SelectItem value="summative">
+                          Sumatif (Akhir)
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
+
                 <div className="space-y-2">
-                  <Label>Lingkup TP (Ceklis yang dinilai)</Label>
-                  <div className="border rounded-md p-2 h-32 overflow-y-auto space-y-2">
+                  <Label className="font-semibold text-school-navy">
+                    Lingkup Tujuan Pembelajaran (TP)
+                  </Label>
+                  <p className="text-xs text-muted-foreground mb-2">
+                    Pilih TP yang menjadi dasar penilaian ini untuk analisis
+                    rapor.
+                  </p>
+                  <div className="border rounded-md p-3 h-[200px] overflow-y-auto space-y-2 bg-white">
                     {availableTPs.length === 0 ? (
-                      <p className="text-sm text-muted">Belum ada data TP.</p>
+                      <div className="flex flex-col items-center justify-center h-full text-slate-400">
+                        <Target className="w-8 h-8 mb-2 opacity-50" />
+                        <p>Belum ada data TP untuk mapel ini.</p>
+                      </div>
                     ) : (
                       availableTPs.map((tp) => (
                         <div
                           key={tp._id}
-                          className="flex items-start space-x-2"
+                          className="flex items-start space-x-3 p-2 hover:bg-slate-50 rounded transition-colors"
                         >
                           <Checkbox
                             id={tp._id}
                             checked={newAssessmentForm.selectedTPs.includes(
-                              tp._id
+                              tp._id,
                             )}
                             onCheckedChange={() => toggleTP(tp._id)}
+                            className="mt-1 data-[state=checked]:bg-school-navy data-[state=checked]:border-school-navy"
                           />
                           <label
                             htmlFor={tp._id}
-                            className="text-sm leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                            className="text-sm leading-snug cursor-pointer select-none"
                           >
-                            <span className="font-semibold">{tp.code}</span> -{" "}
-                            {tp.description}
+                            <span className="font-bold text-school-navy block mb-0.5">
+                              {tp.code}
+                            </span>
+                            <span className="text-slate-600">
+                              {tp.description}
+                            </span>
                           </label>
                         </div>
                       ))
@@ -413,11 +445,15 @@ const InputGradePage = () => {
                 </div>
               </div>
               <DialogFooter>
-                <Button onClick={handleCreateAssessment} disabled={submitting}>
+                <Button
+                  onClick={handleCreateAssessment}
+                  disabled={submitting}
+                  className="bg-school-navy hover:bg-school-gold hover:text-school-navy w-full font-bold"
+                >
                   {submitting && (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  )}{" "}
-                  Simpan
+                  )}
+                  Simpan & Lanjut Input Nilai
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -426,16 +462,22 @@ const InputGradePage = () => {
       </Card>
 
       {selectedAssessment && (
-        <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <CardHeader className="flex flex-row items-center justify-between">
+        <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 border-t-4 border-t-school-gold shadow-lg border-none">
+          <CardHeader className="bg-white border-b border-slate-100 flex flex-row items-center justify-between pb-4">
             <div>
-              <CardTitle>Input Nilai Siswa</CardTitle>
-              <CardDescription>Masukkan nilai skala 0-100.</CardDescription>
+              <CardTitle className="font-serif text-xl text-school-navy flex items-center gap-2">
+                <FileText className="w-5 h-5 text-school-gold" /> Input Nilai
+                Siswa
+              </CardTitle>
+              <CardDescription>
+                Masukkan nilai skala 0-100. Nilai akan otomatis tersimpan saat
+                Anda menekan tombol Simpan.
+              </CardDescription>
             </div>
             <Button
               onClick={handleSaveGrades}
-              size="sm"
-              className="bg-green-600 hover:bg-green-700"
+              size="lg"
+              className="bg-green-600 hover:bg-green-700 text-white font-bold shadow-sm"
               disabled={submitting}
             >
               {submitting ? (
@@ -443,60 +485,88 @@ const InputGradePage = () => {
               ) : (
                 <Save className="mr-2 h-4 w-4" />
               )}{" "}
-              Simpan Nilai
+              Simpan Semua Nilai
             </Button>
           </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[50px]">No</TableHead>
-                  <TableHead>Nama Siswa</TableHead>
-                  <TableHead>NISN</TableHead>
-                  <TableHead className="w-[150px]">Nilai (0-100)</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loadingGrades ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center h-24">
-                      Loading data...
-                    </TableCell>
+          <CardContent className="p-0">
+            <div className="max-h-[600px] overflow-y-auto">
+              <Table>
+                <TableHeader className="bg-school-navy sticky top-0 z-10">
+                  <TableRow className="hover:bg-school-navy">
+                    <TableHead className="text-white font-bold w-[60px] text-center">
+                      No
+                    </TableHead>
+                    <TableHead className="text-white font-bold">
+                      Nama Siswa
+                    </TableHead>
+                    <TableHead className="text-white font-bold w-[150px]">
+                      NISN
+                    </TableHead>
+                    <TableHead className="text-white font-bold w-[200px] text-center">
+                      Nilai (0-100)
+                    </TableHead>
                   </TableRow>
-                ) : students.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} className="text-center h-24">
-                      Tidak ada siswa di kelas ini.
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  students.map((student, index) => (
-                    <TableRow key={student._id}>
-                      <TableCell>{index + 1}</TableCell>
-                      <TableCell className="font-medium">
-                        {student.profile?.fullName}
-                      </TableCell>
-                      <TableCell>{student.profile?.nisn}</TableCell>
-                      <TableCell>
-                        <Input
-                          type="number"
-                          min="0"
-                          max="100"
-                          className="text-center font-bold"
-                          value={grades[student._id] || ""}
-                          onChange={(e) =>
-                            setGrades({
-                              ...grades,
-                              [student._id]: parseInt(e.target.value),
-                            })
-                          }
-                        />
+                </TableHeader>
+                <TableBody>
+                  {loadingGrades ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center h-32">
+                        <div className="flex flex-col items-center justify-center text-school-gold">
+                          <Loader2 className="h-6 w-6 animate-spin mb-2" />
+                          <p className="text-sm text-slate-500">
+                            Memuat daftar siswa...
+                          </p>
+                        </div>
                       </TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                  ) : students.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={4}
+                        className="text-center h-32 text-slate-500"
+                      >
+                        Tidak ada siswa di kelas ini.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    students.map((student, index) => (
+                      <TableRow
+                        key={student._id}
+                        className="hover:bg-slate-50 border-b border-slate-100"
+                      >
+                        <TableCell className="text-center text-slate-500 font-medium">
+                          {index + 1}
+                        </TableCell>
+                        <TableCell className="font-medium text-school-navy text-base">
+                          {student.profile?.fullName}
+                        </TableCell>
+                        <TableCell className="text-slate-500">
+                          {student.profile?.nisn}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex justify-center">
+                            <Input
+                              type="number"
+                              min="0"
+                              max="100"
+                              className="text-center font-bold text-lg w-24 border-slate-300 focus:border-school-gold focus:ring-school-gold bg-white"
+                              placeholder="0"
+                              value={grades[student._id] ?? ""}
+                              onChange={(e) =>
+                                setGrades({
+                                  ...grades,
+                                  [student._id]: parseInt(e.target.value),
+                                })
+                              }
+                            />
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       )}

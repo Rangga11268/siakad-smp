@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -25,8 +31,19 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
-import { Plus, Trash2, FileText, Loader2, Download } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  FileText,
+  Loader2,
+  Download,
+  BookOpen,
+  GraduationCap,
+  FolderOpen,
+} from "lucide-react";
 import api from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -109,12 +126,6 @@ const TeacherMaterialPage = () => {
     data.append("gradeLevel", formData.gradeLevel);
     data.append("file", file);
 
-    // Optional: fetch active academic year to attach? Backend can assume active or we send it
-    // For now let backend handle it or default to null if not strictly required by schema logic (Controller uses passed ID but Schema has it ref)
-    // Controller expects academicYearId in body. Let's fetch active year or just send null if controller handles it.
-    // Controller: const { ... academicYearId } = req.body;
-    // Logic should probably be in backend to find active year if not sent.
-
     try {
       await api.post("/learning-material", data, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -142,68 +153,77 @@ const TeacherMaterialPage = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="space-y-8">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">
+          <h2 className="font-serif text-3xl font-bold tracking-tight text-school-navy">
             Manajemen Bahan Ajar
           </h2>
-          <p className="text-muted-foreground">
-            Upload dan kelola materi pembelajaran.
+          <p className="text-slate-500">
+            Repository modul, tugas, dan latihan soal untuk siswa.
           </p>
         </div>
         <Dialog open={openDialog} onOpenChange={setOpenDialog}>
           <DialogTrigger asChild>
-            <Button>
-              <Plus className="mr-2 h-4 w-4" /> Upload Materi
+            <Button className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold shadow-md transition-all">
+              <Plus className="mr-2 h-4 w-4" /> Upload Materi Baru
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
-              <DialogTitle>Upload Materi Baru</DialogTitle>
+              <DialogTitle className="font-serif text-2xl text-school-navy">
+                Upload Materi Pembelajaran
+              </DialogTitle>
+              <DialogDescription>
+                Bagikan modul atau tugas kepada siswa sesuai mata pelajaran.
+              </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <Label>Judul Materi</Label>
+            <form onSubmit={handleSubmit} className="space-y-6 py-4">
+              <div className="space-y-2">
+                <Label className="font-semibold text-school-navy">
+                  Judul Materi
+                </Label>
                 <Input
                   value={formData.title}
                   onChange={(e) =>
                     setFormData({ ...formData, title: e.target.value })
                   }
                   required
-                  placeholder="Contoh: Modul Bab 1"
+                  placeholder="Contoh: Modul Bab 1 - Bilangan Bulat"
+                  className="bg-slate-50 border-slate-200"
                 />
               </div>
+
               <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Mata Pelajaran</Label>
+                <div className="space-y-2">
+                  <Label className="font-semibold text-school-navy">
+                    Kategori
+                  </Label>
                   <Select
-                    value={formData.subjectId}
-                    onValueChange={(v) =>
-                      setFormData({ ...formData, subjectId: v })
-                    }
+                    value={formData.type}
+                    onValueChange={(v) => setFormData({ ...formData, type: v })}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih Mapel" />
+                    <SelectTrigger className="bg-slate-50 border-slate-200">
+                      <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      {subjects.map((s) => (
-                        <SelectItem key={s._id} value={s._id}>
-                          {s.name}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="Materi">Materi / Modul</SelectItem>
+                      <SelectItem value="Tugas">Tugas / LKPD</SelectItem>
+                      <SelectItem value="Latihan">Latihan Soal</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                <div>
-                  <Label>Kelas</Label>
+                <div className="space-y-2">
+                  <Label className="font-semibold text-school-navy">
+                    Kelas Target
+                  </Label>
                   <Select
                     value={formData.gradeLevel}
                     onValueChange={(v) =>
                       setFormData({ ...formData, gradeLevel: v })
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-slate-50 border-slate-200">
                       <SelectValue placeholder="Pilih Kelas" />
                     </SelectTrigger>
                     <SelectContent>
@@ -214,50 +234,74 @@ const TeacherMaterialPage = () => {
                   </Select>
                 </div>
               </div>
-              <div>
-                <Label>Tipe</Label>
+
+              <div className="space-y-2">
+                <Label className="font-semibold text-school-navy">
+                  Mata Pelajaran
+                </Label>
                 <Select
-                  value={formData.type}
-                  onValueChange={(v) => setFormData({ ...formData, type: v })}
+                  value={formData.subjectId}
+                  onValueChange={(v) =>
+                    setFormData({ ...formData, subjectId: v })
+                  }
                 >
-                  <SelectTrigger>
-                    <SelectValue />
+                  <SelectTrigger className="bg-slate-50 border-slate-200">
+                    <SelectValue placeholder="Pilih Mapel" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Materi">Materi / Modul</SelectItem>
-                    <SelectItem value="Tugas">Tugas / LKPD</SelectItem>
-                    <SelectItem value="Latihan">Latihan Soal</SelectItem>
+                    {subjects.map((s) => (
+                      <SelectItem key={s._id} value={s._id}>
+                        {s.name}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
-              <div>
-                <Label>Deskripsi</Label>
+
+              <div className="space-y-2">
+                <Label className="font-semibold text-school-navy">
+                  Deskripsi Singkat
+                </Label>
                 <Textarea
                   value={formData.description}
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
                   }
-                  placeholder="Keterangan singkat..."
+                  placeholder="Berikan instruksi atau keterangan tambahan..."
+                  className="bg-slate-50 border-slate-200"
                 />
               </div>
-              <div>
-                <Label>File (PDF/Doc/Image)</Label>
+
+              <div className="space-y-2">
+                <Label className="font-semibold text-school-navy">
+                  File Dokumen (PDF/Doc/Image)
+                </Label>
                 <Input
                   type="file"
                   onChange={(e) => {
                     if (e.target.files) setFile(e.target.files[0]);
                   }}
                   required
+                  className="cursor-pointer file:bg-school-navy file:text-white file:border-0 file:rounded-md file:px-2 file:text-sm hover:file:bg-school-gold hover:file:text-school-navy transition-all"
                 />
               </div>
-              <div className="flex justify-end pt-4">
-                <Button type="submit" disabled={submitting}>
+
+              <div className="flex justify-end pt-4 border-t border-slate-100">
+                <Button
+                  type="submit"
+                  disabled={submitting}
+                  className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold shadow-md w-full sm:w-auto"
+                >
                   {submitting ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                      Uploading...
+                    </>
                   ) : (
-                    <Plus className="mr-2 h-4 w-4" />
+                    <>
+                      <Plus className="mr-2 h-4 w-4" /> Upload Sekarang
+                    </>
                   )}
-                  Upload
                 </Button>
               </div>
             </form>
@@ -265,45 +309,93 @@ const TeacherMaterialPage = () => {
         </Dialog>
       </div>
 
-      <Card>
+      <Card className="border-t-4 border-t-school-gold shadow-lg border-none overflow-hidden">
+        <CardHeader className="bg-white border-b border-slate-100 pb-4">
+          <CardTitle className="font-serif text-xl text-school-navy flex items-center gap-2">
+            <FolderOpen className="w-5 h-5 text-school-gold" />
+            Daftar Bahan Ajar Tersedia
+          </CardTitle>
+        </CardHeader>
         <CardContent className="p-0">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Judul</TableHead>
-                <TableHead>Mapel</TableHead>
-                <TableHead>Kelas</TableHead>
-                <TableHead>Tipe</TableHead>
-                <TableHead>Guru</TableHead>
-                <TableHead className="text-right">Aksi</TableHead>
+            <TableHeader className="bg-school-navy">
+              <TableRow className="hover:bg-school-navy">
+                <TableHead className="text-white font-bold w-[30%]">
+                  Judul & Deskripsi
+                </TableHead>
+                <TableHead className="text-white font-bold">Mapel</TableHead>
+                <TableHead className="text-white font-bold">Kelas</TableHead>
+                <TableHead className="text-white font-bold">Tipe</TableHead>
+                <TableHead className="text-white font-bold">Guru</TableHead>
+                <TableHead className="text-white font-bold text-right">
+                  Aksi
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
-                    Loading...
+                  <TableCell colSpan={6} className="text-center h-32">
+                    <div className="flex flex-col items-center justify-center text-school-gold">
+                      <Loader2 className="h-6 w-6 animate-spin mb-2" />
+                      <p className="text-sm text-slate-500">Memuat materi...</p>
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : materials.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
-                    Belum ada materi.
+                  <TableCell
+                    colSpan={6}
+                    className="text-center h-32 text-slate-500"
+                  >
+                    <div className="flex flex-col items-center justify-center">
+                      <BookOpen className="h-8 w-8 text-slate-200 mb-2" />
+                      <p>Belum ada materi pembelajaran yang diupload.</p>
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : (
                 materials.map((m) => (
-                  <TableRow key={m._id}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <FileText className="h-4 w-4 text-blue-500" />
-                        {m.title}
+                  <TableRow
+                    key={m._id}
+                    className="hover:bg-slate-50 border-b border-slate-100"
+                  >
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <div className="font-bold text-school-navy flex items-center gap-2">
+                          <FileText className="h-4 w-4 text-blue-500" />
+                          {m.title}
+                        </div>
+                        <p className="text-xs text-slate-500 line-clamp-1">
+                          {m.description}
+                        </p>
                       </div>
                     </TableCell>
-                    <TableCell>{m.subject?.name}</TableCell>
-                    <TableCell>Kelas {m.gradeLevel}</TableCell>
-                    <TableCell>{m.type}</TableCell>
-                    <TableCell>{m.teacher?.profile?.fullName || "-"}</TableCell>
+                    <TableCell className="font-medium">
+                      {m.subject?.name}
+                    </TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-bold border-blue-200 bg-blue-50 text-blue-700">
+                        Kelas {m.gradeLevel}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-bold 
+                            ${
+                              m.type === "Materi"
+                                ? "border-green-200 bg-green-50 text-green-700"
+                                : m.type === "Tugas"
+                                  ? "border-orange-200 bg-orange-50 text-orange-700"
+                                  : "border-purple-200 bg-purple-50 text-purple-700"
+                            }`}
+                      >
+                        {m.type}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-sm text-slate-600">
+                      {m.teacher?.profile?.fullName || "-"}
+                    </TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <a
@@ -311,14 +403,18 @@ const TeacherMaterialPage = () => {
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          <Button size="icon" variant="ghost">
-                            <Download className="h-4 w-4" />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 border-school-navy text-school-navy hover:bg-school-navy hover:text-white"
+                          >
+                            <Download className="h-3 w-3 mr-1" /> Unduh
                           </Button>
                         </a>
                         <Button
                           size="icon"
                           variant="ghost"
-                          className="text-red-500 hover:text-red-600 hover:bg-red-50"
+                          className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
                           onClick={() => handleDelete(m._id)}
                         >
                           <Trash2 className="h-4 w-4" />

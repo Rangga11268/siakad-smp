@@ -1,7 +1,13 @@
 import { useState, useEffect } from "react";
 import api from "@/services/api";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -18,6 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import {
   Select,
@@ -28,7 +35,15 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/components/ui/use-toast";
-import { Eye, CheckCircle, XCircle } from "lucide-react";
+import {
+  Eye,
+  CheckCircle,
+  XCircle,
+  Loader2,
+  UserCheck,
+  FileText,
+  School,
+} from "lucide-react";
 
 interface Registrant {
   _id: string;
@@ -37,8 +52,10 @@ interface Registrant {
   registrationPath: string;
   status: string;
   averageGrade?: number;
+  originSchool?: string;
   docKK?: string;
   createdAt: string;
+  notes?: string;
 }
 
 const PPDBAdminPage = () => {
@@ -47,7 +64,7 @@ const PPDBAdminPage = () => {
   const [statusFilter, setStatusFilter] = useState("all");
 
   // Action Dialog
-  const [selectedDetail, setSelectedDetail] = useState<any>(null); // Full detail
+  const [selectedDetail, setSelectedDetail] = useState<Registrant | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
   const [actionNote, setActionNote] = useState("");
   const [processing, setProcessing] = useState(false);
@@ -96,153 +113,336 @@ const PPDBAdminPage = () => {
     }
   };
 
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case "accepted":
+        return (
+          <Badge className="bg-green-600 hover:bg-green-700">
+            <CheckCircle className="w-3 h-3 mr-1" /> Diterima
+          </Badge>
+        );
+      case "rejected":
+        return (
+          <Badge variant="destructive">
+            <XCircle className="w-3 h-3 mr-1" /> Ditolak
+          </Badge>
+        );
+      case "verified":
+        return (
+          <Badge className="bg-blue-600 hover:bg-blue-700">
+            <CheckCircle className="w-3 h-3 mr-1" /> Terverifikasi
+          </Badge>
+        );
+      default:
+        return (
+          <Badge variant="secondary" className="bg-slate-200 text-slate-700">
+            Pending
+          </Badge>
+        );
+    }
+  };
+
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold tracking-tight">
-          Data Pendaftar PPDB
-        </h2>
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Semua Status</SelectItem>
-            <SelectItem value="pending">Pending</SelectItem>
-            <SelectItem value="verified">Verified</SelectItem>
-            <SelectItem value="accepted">Diterima</SelectItem>
-            <SelectItem value="rejected">Ditolak</SelectItem>
-          </SelectContent>
-        </Select>
+    <div className="space-y-8">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div>
+          <h2 className="font-serif text-3xl font-bold tracking-tight text-school-navy">
+            Dashboard Admin PPDB
+          </h2>
+          <p className="text-slate-500">
+            Verifikasi dan seleksi calon siswa baru (Penerimaan Peserta Didik
+            Baru).
+          </p>
+        </div>
+        <div className="w-full md:w-[250px]">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="bg-white border-slate-300">
+              <SelectValue placeholder="Filter Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Pendaftar</SelectItem>
+              <SelectItem value="pending">Menunggu Verifikasi</SelectItem>
+              <SelectItem value="verified">Sudah Diverifikasi</SelectItem>
+              <SelectItem value="accepted">Diterima</SelectItem>
+              <SelectItem value="rejected">Ditolak</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>List Calon Siswa</CardTitle>
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="bg-blue-50 border-none shadow-sm">
+          <CardContent className="p-6 flex items-center gap-4">
+            <div className="p-3 bg-blue-100 rounded-full text-blue-600">
+              <UserCheck className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-500">
+                Total Pendaftar
+              </p>
+              <h3 className="text-2xl font-bold text-school-navy">
+                {registrants.length}
+              </h3>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-green-50 border-none shadow-sm">
+          <CardContent className="p-6 flex items-center gap-4">
+            <div className="p-3 bg-green-100 rounded-full text-green-600">
+              <CheckCircle className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-500">Diterima</p>
+              <h3 className="text-2xl font-bold text-school-navy">
+                {registrants.filter((r) => r.status === "accepted").length}
+              </h3>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-yellow-50 border-none shadow-sm">
+          <CardContent className="p-6 flex items-center gap-4">
+            <div className="p-3 bg-yellow-100 rounded-full text-yellow-600">
+              <FileText className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-500">
+                Perlu Verifikasi
+              </p>
+              <h3 className="text-2xl font-bold text-school-navy">
+                {registrants.filter((r) => r.status === "pending").length}
+              </h3>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Card className="border-t-4 border-t-school-gold shadow-lg border-none overflow-hidden">
+        <CardHeader className="bg-white border-b border-slate-100 pb-4">
+          <CardTitle className="font-serif text-xl text-school-navy flex items-center gap-2">
+            <School className="w-5 h-5 text-school-gold" /> Daftar Calon Siswa
+          </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Nama</TableHead>
-                <TableHead>NISN</TableHead>
-                <TableHead>Jalur</TableHead>
-                <TableHead>Tanggal Daftar</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Aksi</TableHead>
+            <TableHeader className="bg-school-navy">
+              <TableRow className="hover:bg-school-navy">
+                <TableHead className="text-white font-bold">
+                  Nama Lengkap
+                </TableHead>
+                <TableHead className="text-white font-bold">NISN</TableHead>
+                <TableHead className="text-white font-bold">
+                  Asal Sekolah
+                </TableHead>
+                <TableHead className="text-white font-bold">Jalur</TableHead>
+                <TableHead className="text-white font-bold">
+                  Tanggal Daftar
+                </TableHead>
+                <TableHead className="text-white font-bold text-center">
+                  Status
+                </TableHead>
+                <TableHead className="text-white font-bold text-right">
+                  Aksi
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {registrants.map((r) => (
-                <TableRow key={r._id}>
-                  <TableCell className="font-medium">{r.fullname}</TableCell>
-                  <TableCell>{r.nisn}</TableCell>
-                  <TableCell>{r.registrationPath}</TableCell>
-                  <TableCell>
-                    {new Date(r.createdAt).toLocaleDateString()}
-                  </TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        r.status === "accepted"
-                          ? "default"
-                          : r.status === "rejected"
-                          ? "destructive"
-                          : "secondary"
-                      }
-                    >
-                      {r.status.toUpperCase()}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setSelectedDetail(r);
-                        setOpenDialog(true);
-                        setActionNote("");
-                      }}
-                    >
-                      <Eye className="h-4 w-4 mr-2" /> Detail / Verifikasi
-                    </Button>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center h-32">
+                    <div className="flex flex-col items-center justify-center text-school-gold">
+                      <Loader2 className="h-6 w-6 animate-spin mb-2" />
+                      <p className="text-sm text-slate-500">
+                        Memuat data pendaftar...
+                      </p>
+                    </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : registrants.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={7}
+                    className="text-center h-32 text-slate-500"
+                  >
+                    <div className="flex flex-col items-center justify-center">
+                      <UserCheck className="h-8 w-8 text-slate-200 mb-2" />
+                      <p>Tidak ada data pendaftar ditemukan.</p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                registrants.map((r) => (
+                  <TableRow
+                    key={r._id}
+                    className="hover:bg-slate-50 border-b border-slate-100"
+                  >
+                    <TableCell className="font-bold text-school-navy">
+                      {r.fullname}
+                    </TableCell>
+                    <TableCell className="font-medium text-slate-600">
+                      {r.nisn}
+                    </TableCell>
+                    <TableCell className="text-slate-600">
+                      {r.originSchool || "-"}
+                    </TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium border-slate-200 bg-slate-100 text-slate-800">
+                        {r.registrationPath}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-sm text-slate-500">
+                      {new Date(r.createdAt).toLocaleDateString("id-ID", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {getStatusBadge(r.status)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-school-navy hover:text-school-gold hover:bg-slate-100 font-semibold"
+                        onClick={() => {
+                          setSelectedDetail(r);
+                          setOpenDialog(true);
+                          setActionNote(r.notes || "");
+                        }}
+                      >
+                        <Eye className="h-4 w-4 mr-2" /> Detail
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
 
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>Detail Pendaftar</DialogTitle>
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="border-b pb-4">
+            <DialogTitle className="font-serif text-2xl text-school-navy">
+              Verifikasi Data Calon Siswa
+            </DialogTitle>
+            <DialogDescription>
+              Periksa kelengkapan data sebelum mengubah status pendaftaran.
+            </DialogDescription>
           </DialogHeader>
           {selectedDetail && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div>
-                  <p className="text-muted-foreground">Nama:</p>
-                  <p className="font-semibold">{selectedDetail.fullname}</p>
+            <div className="space-y-6 py-4">
+              {/* Info Cards */}
+              <div className="grid grid-cols-2 gap-4">
+                <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                  <h4 className="font-bold text-school-navy mb-3 flex items-center gap-2">
+                    <UserCheck className="w-4 h-4" /> Data Diri
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between border-b border-slate-200 pb-1">
+                      <span className="text-slate-500">Nama Lengkap</span>
+                      <span className="font-medium text-right">
+                        {selectedDetail.fullname}
+                      </span>
+                    </div>
+                    <div className="flex justify-between border-b border-slate-200 pb-1">
+                      <span className="text-slate-500">NISN</span>
+                      <span className="font-medium text-right">
+                        {selectedDetail.nisn}
+                      </span>
+                    </div>
+                    <div className="flex justify-between border-b border-slate-200 pb-1">
+                      <span className="text-slate-500">Asal Sekolah</span>
+                      <span className="font-medium text-right">
+                        {selectedDetail.originSchool}
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-muted-foreground">NISN:</p>
-                  <p className="font-semibold">{selectedDetail.nisn}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Asal Sekolah:</p>
-                  <p className="font-semibold">{selectedDetail.originSchool}</p>
-                </div>
-                <div>
-                  <p className="text-muted-foreground">Dokumen KK:</p>
-                  {selectedDetail.docKK ? (
-                    <a
-                      href={selectedDetail.docKK}
-                      target="_blank"
-                      className="text-blue-600 underline"
-                    >
-                      Lihat Link
-                    </a>
-                  ) : (
-                    "Tidak ada"
-                  )}
+                <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                  <h4 className="font-bold text-school-navy mb-3 flex items-center gap-2">
+                    <FileText className="w-4 h-4" /> Kelengkapan Dokumen
+                  </h4>
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between items-center border-b border-slate-200 pb-1">
+                      <span className="text-slate-500">Kartu Keluarga</span>
+                      {selectedDetail.docKK ? (
+                        <a
+                          href={`http://localhost:5000${selectedDetail.docKK}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200 transition-colors font-medium"
+                        >
+                          Lihat Dokumen
+                        </a>
+                      ) : (
+                        <span className="text-xs text-red-500 bg-red-50 px-2 py-1 rounded">
+                          Belum Upload
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex justify-between border-b border-slate-200 pb-1">
+                      <span className="text-slate-500">Rata-rata Rapor</span>
+                      <span className="font-bold text-school-navy">
+                        {selectedDetail.averageGrade || "-"}
+                      </span>
+                    </div>
+                    <div className="flex justify-between border-b border-slate-200 pb-1">
+                      <span className="text-slate-500">Status Saat Ini</span>
+                      <span>{getStatusBadge(selectedDetail.status)}</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              <div className="border-t pt-4">
-                <p className="mb-2 font-medium">Catatan / Alasan:</p>
+              <div className="border rounded-md p-4 bg-yellow-50 border-yellow-100">
+                <label className="mb-2 font-bold text-school-navy block text-sm">
+                  Catatan Verifikator / Alasan Penolakan:
+                </label>
                 <Textarea
                   value={actionNote}
                   onChange={(e) => setActionNote(e.target.value)}
-                  placeholder="Contoh: Dokumen lengkap / Nilai kurang..."
+                  placeholder="Contoh: Dokumen KK buram, mohon upload ulang. ATAU Selamat, Anda diterima."
+                  className="bg-white border-yellow-200 focus:border-yellow-400"
                 />
               </div>
 
-              <DialogFooter className="gap-2 sm:gap-0">
-                <Button
-                  variant="outline"
-                  className="bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700"
-                  onClick={() => handleUpdateStatus("rejected")}
-                  disabled={processing}
-                >
-                  Tolak
-                </Button>
-                <Button
-                  variant="outline"
-                  className="bg-blue-50 text-blue-600 hover:bg-blue-100"
-                  onClick={() => handleUpdateStatus("verified")}
-                  disabled={processing}
-                >
-                  Verifikasi Data
-                </Button>
-                <Button
-                  className="bg-green-600 hover:bg-green-700"
-                  onClick={() => handleUpdateStatus("accepted")}
-                  disabled={processing}
-                >
-                  <CheckCircle className="mr-2 h-4 w-4" /> Terima Siswa
-                </Button>
+              <DialogFooter className="gap-2 sm:gap-0 pt-4 border-t">
+                {selectedDetail.status !== "rejected" && (
+                  <Button
+                    variant="outline"
+                    className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+                    onClick={() => handleUpdateStatus("rejected")}
+                    disabled={processing}
+                  >
+                    <XCircle className="mr-2 h-4 w-4" /> Tolak Pendaftaran
+                  </Button>
+                )}
+
+                <div className="flex gap-2">
+                  {selectedDetail.status !== "verified" &&
+                    selectedDetail.status !== "accepted" && (
+                      <Button
+                        variant="outline"
+                        className="bg-blue-50 text-blue-600 hover:bg-blue-100 border-blue-200"
+                        onClick={() => handleUpdateStatus("verified")}
+                        disabled={processing}
+                      >
+                        Verifikasi Dokumen
+                      </Button>
+                    )}
+
+                  {selectedDetail.status !== "accepted" && (
+                    <Button
+                      className="bg-green-600 hover:bg-green-700 font-bold text-white shadow-md"
+                      onClick={() => handleUpdateStatus("accepted")}
+                      disabled={processing}
+                    >
+                      <CheckCircle className="mr-2 h-4 w-4" /> Terima Siswa
+                    </Button>
+                  )}
+                </div>
               </DialogFooter>
             </div>
           )}

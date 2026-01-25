@@ -15,15 +15,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Loader2, Printer, Search } from "lucide-react";
+import { Loader2, Printer, Search, FileBarChart, School } from "lucide-react";
 import { Label } from "@/components/ui/label";
 
 interface ClassData {
@@ -37,7 +29,7 @@ interface Student {
   profile: {
     fullName: string;
     nisn: string;
-    class: string; // text
+    class: string;
   };
 }
 
@@ -65,7 +57,6 @@ const ReportCardPage = () => {
   // Active Year info (Mock or Fetch)
   const activeYear = "2024/2025";
   const activeSemester = "Ganjil";
-  const activeYearId = "676bd6ef259300302c09ef7a"; // Dummy/Seeded ID needs to be dynamic ideally
 
   useEffect(() => {
     loadClasses();
@@ -88,9 +79,8 @@ const ReportCardPage = () => {
     try {
       const clsName = classes.find((c) => c._id === classId)?.name;
       const res = await api.get("/academic/students");
-      // Filter by class name text match (assuming seeded data uses text "7A")
       const filtered = res.data.filter(
-        (s: any) => s.profile?.class === clsName
+        (s: any) => s.profile?.class === clsName,
       );
       setStudents(filtered);
     } catch (error) {
@@ -104,12 +94,6 @@ const ReportCardPage = () => {
     if (!selectedStudent) return;
     setLoadingReport(true);
     try {
-      // Need real academic year ID from somewhere, using query find or hardcoded for now
-      // Assuming seed logic: activeYearId is hardcoded or fetched.
-      // Better: Fetch active year first. For MVP, I rely on the seeded one.
-      // But query requires ID. Let's fetch years again? Or allow `academicYear` string?
-      // Controller uses `match: { ... academicYear }`. It expects ObjectId if schema ref.
-      // I'll quickly fetch years to get the Active one's ID.
       const yearRes = await api.get("/academic/years");
       const active = yearRes.data.find((y: any) => y.status === "active");
       const aId = active ? active._id : "";
@@ -137,25 +121,29 @@ const ReportCardPage = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center print:hidden">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">
+          <h2 className="font-serif text-3xl font-bold tracking-tight text-school-navy">
             E-Rapor Akademik
           </h2>
-          <p className="text-muted-foreground">
-            Generate dan Cetak Laporan Hasil Belajar (Rapor).
+          <p className="text-slate-500">
+            Cetak Laporan Hasil Belajar (Rapor) Kurikulum Merdeka.
           </p>
         </div>
       </div>
 
-      <Card className="print:hidden">
+      <Card className="print:hidden border-t-4 border-t-school-gold shadow-md">
         <CardHeader>
-          <CardTitle>Filter Data</CardTitle>
-          <CardDescription>Pilih Siswa untuk melihat rapor.</CardDescription>
+          <CardTitle className="font-serif text-xl text-school-navy flex items-center gap-2">
+            <FileBarChart className="w-5 h-5 text-school-gold" /> Filter Rapor
+          </CardTitle>
+          <CardDescription>
+            Pilih Kelas dan Siswa untuk menampilkan preview rapor.
+          </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3 items-end">
           <div className="space-y-2">
-            <Label>Kelas</Label>
+            <Label className="font-semibold text-school-navy">Kelas</Label>
             <Select onValueChange={loadStudents}>
-              <SelectTrigger>
+              <SelectTrigger className="bg-slate-50 border-slate-300">
                 <SelectValue placeholder="Pilih Kelas" />
               </SelectTrigger>
               <SelectContent>
@@ -168,12 +156,12 @@ const ReportCardPage = () => {
             </Select>
           </div>
           <div className="space-y-2">
-            <Label>Nama Siswa</Label>
+            <Label className="font-semibold text-school-navy">Nama Siswa</Label>
             <Select
               onValueChange={setSelectedStudent}
               disabled={!selectedClass}
             >
-              <SelectTrigger>
+              <SelectTrigger className="bg-slate-50 border-slate-300">
                 <SelectValue placeholder="Pilih Siswa" />
               </SelectTrigger>
               <SelectContent>
@@ -188,6 +176,7 @@ const ReportCardPage = () => {
           <Button
             onClick={generateReport}
             disabled={!selectedStudent || loadingReport}
+            className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold shadow-md"
           >
             {loadingReport ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -199,94 +188,111 @@ const ReportCardPage = () => {
         </CardContent>
       </Card>
 
-      {/* REPORT PREVIEW */}
+      {/* REPORT PREVIEW CONTAINER */}
       {reportData && (
-        <div className="bg-white p-8 shadow-lg border rounded-lg min-h-[800px] print:shadow-none print:border-none print:p-0">
-          {/* Header Rapor */}
-          <div className="text-center border-b-2 border-double border-black pb-4 mb-6">
-            <h1 className="text-2xl font-bold uppercase">
-              Laporan Hasil Belajar
-            </h1>
-            <h2 className="text-xl font-semibold">SMP Gak Ada Nama</h2>
-            <p className="text-sm">
-              Jl. Contoh No. 123, Kota Coding, Indonesia
+        <div className="bg-white p-6 md:p-12 shadow-2xl border rounded-lg min-h-[1000px] print:shadow-none print:border-none print:p-0 print:min-h-0 relative">
+          {/* WATERMARK / BACKGROUND DECORATION can go here if needed */}
+
+          {/* Header Rapor (Kop Surat) */}
+          <div className="flex items-center justify-between border-b-4 border-double border-school-navy pb-6 mb-8">
+            <div className="flex items-center gap-4">
+              <div className="w-24 h-24 bg-school-navy rounded-full flex items-center justify-center text-white print:text-black print:bg-transparent print:border-2 print:border-black">
+                <School className="w-12 h-12" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-school-navy uppercase tracking-widest">
+                  Pemerintah Kota Coding
+                </h2>
+                <h1 className="text-3xl font-serif font-black text-school-navy uppercase mb-1">
+                  SMP Nusantara Cendekia
+                </h1>
+                <p className="text-sm font-semibold text-slate-600">
+                  Terakreditasi A <span className="mx-2">|</span> NPSN: 12345678
+                </p>
+                <p className="text-sm text-slate-500">
+                  Jl. Teknologi No. 42, Silicon Valley, Indonesia 10101
+                </p>
+                <p className="text-sm text-slate-500">
+                  Website: www.smpnusantara.sch.id | Email:
+                  info@smpnusantara.sch.id
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="text-center mb-8">
+            <h2 className="text-xl font-bold uppercase underline underline-offset-4 decoration-2">
+              Laporan Hasil Belajar (Rapor)
+            </h2>
+            <p className="font-semibold text-slate-600 mt-1">
+              Kurikulum Merdeka
             </p>
           </div>
 
           {/* Identitas */}
-          <div className="grid grid-cols-2 gap-8 mb-6 text-sm">
-            <div>
-              <table className="w-full">
-                <tbody>
-                  <tr>
-                    <td className="w-32 py-1">Nama Peserta Didik</td>
-                    <td className="font-semibold">
-                      : {reportData.student.profile.fullName}
-                    </td>
-                  </tr>
-                  <tr>
-                    <td className="py-1">NISN</td>
-                    <td>: {reportData.student.profile.nisn}</td>
-                  </tr>
-                  <tr>
-                    <td className="py-1">Kelas</td>
-                    <td>: {reportData.student.profile.class}</td>
-                  </tr>
-                </tbody>
-              </table>
+          <div className="flex justify-between mb-8 text-sm pt-2">
+            <div className="w-1/2 space-y-2">
+              <div className="flex">
+                <span className="w-40 font-semibold">Nama Peserta Didik</span>
+                <span>: {reportData.student.profile.fullName}</span>
+              </div>
+              <div className="flex">
+                <span className="w-40 font-semibold">NISN</span>
+                <span>: {reportData.student.profile.nisn}</span>
+              </div>
+              <div className="flex">
+                <span className="w-40 font-semibold">Kelas / Fase</span>
+                <span>: {reportData.student.profile.class} / D</span>
+              </div>
             </div>
-            <div>
-              <table className="w-full">
-                <tbody>
-                  <tr>
-                    <td className="w-32 py-1">Tahun Pelajaran</td>
-                    <td>: {activeYear}</td>
-                  </tr>
-                  <tr>
-                    <td className="py-1">Semester</td>
-                    <td>: {activeSemester}</td>
-                  </tr>
-                  <tr>
-                    <td className="py-1">Fase</td>
-                    <td>: D</td>
-                  </tr>
-                </tbody>
-              </table>
+            <div className="w-1/2 space-y-2 pl-12">
+              <div className="flex">
+                <span className="w-40 font-semibold">Tahun Pelajaran</span>
+                <span>: {activeYear}</span>
+              </div>
+              <div className="flex">
+                <span className="w-40 font-semibold">Semester</span>
+                <span>: {activeSemester}</span>
+              </div>
             </div>
           </div>
 
           {/* Tabel Nilai */}
           <div className="mb-8">
-            <h3 className="font-bold mb-2">A. Nilai Akademik</h3>
-            <div className="border rounded-none overflow-hidden">
-              <table className="w-full text-sm border-collapse border border-slate-400">
-                <thead className="bg-slate-100">
-                  <tr>
-                    <th className="border border-slate-400 p-2 w-[50px]">No</th>
-                    <th className="border border-slate-400 p-2 text-left">
+            <h3 className="font-bold mb-2 text-school-navy text-lg border-b border-slate-200 pb-1 inline-block">
+              A. Nilai Akademik
+            </h3>
+            <div className="w-full overflow-hidden rounded-sm border border-slate-800">
+              <table className="w-full text-sm border-collapse">
+                <thead>
+                  <tr className="bg-slate-100 print:bg-slate-200">
+                    <th className="border border-slate-800 p-3 w-[50px] text-center">
+                      No
+                    </th>
+                    <th className="border border-slate-800 p-3 text-left">
                       Mata Pelajaran
                     </th>
-                    <th className="border border-slate-400 p-2 w-[80px]">
+                    <th className="border border-slate-800 p-3 w-[100px] text-center">
                       Nilai Akhir
                     </th>
-                    <th className="border border-slate-400 p-2 w-[400px]">
+                    <th className="border border-slate-800 p-3 w-[500px] text-left">
                       Capaian Kompetensi
                     </th>
                   </tr>
                 </thead>
                 <tbody>
                   {reportData.reports.map((item: ReportItem, idx: number) => (
-                    <tr key={idx}>
-                      <td className="border border-slate-400 p-2 text-center">
+                    <tr key={idx} className="print:break-inside-avoid">
+                      <td className="border border-slate-800 p-2 text-center align-top py-3">
                         {idx + 1}
                       </td>
-                      <td className="border border-slate-400 p-2">
+                      <td className="border border-slate-800 p-2 align-top py-3 font-semibold">
                         {item.subject.name}
                       </td>
-                      <td className="border border-slate-400 p-2 text-center font-bold">
+                      <td className="border border-slate-800 p-2 text-center align-top py-3 font-bold text-base">
                         {item.score}
                       </td>
-                      <td className="border border-slate-400 p-2 text-justify">
+                      <td className="border border-slate-800 p-2 text-justify align-top py-3 leading-relaxed">
                         {item.description}
                       </td>
                     </tr>
@@ -296,77 +302,142 @@ const ReportCardPage = () => {
             </div>
           </div>
 
-          {/* Tabel Absensi */}
-          <div className="mb-8 break-inside-avoid">
-            <h3 className="font-bold mb-2">B. Ketidakhadiran</h3>
-            <div className="border border-slate-400 w-1/2">
-              <table className="w-full text-sm">
+          {/* Tabel Absensi & Ekstrakurikuler (Layout 2 Col) */}
+          <div className="flex gap-8 mb-12 print:break-inside-avoid">
+            <div className="w-1/2">
+              <h3 className="font-bold mb-2 text-school-navy text-lg border-b border-slate-200 pb-1 inline-block">
+                B. Ketidakhadiran
+              </h3>
+              <table className="w-full text-sm border border-slate-800">
+                <thead className="bg-slate-100 print:bg-slate-200">
+                  <tr>
+                    <th className="border border-slate-800 p-2 text-left">
+                      Keterangan
+                    </th>
+                    <th className="border border-slate-800 p-2 text-center">
+                      Jumlah Hari
+                    </th>
+                  </tr>
+                </thead>
                 <tbody>
                   <tr>
-                    <td className="p-2 border-b border-slate-400 w-2/3">
-                      Sakit
-                    </td>
-                    <td className="p-2 border-b border-slate-400 text-center font-bold px-4">
-                      {reportData.attendance?.sakit || 0} Hari
+                    <td className="p-2 border border-slate-800">Sakit</td>
+                    <td className="p-2 border border-slate-800 text-center font-bold">
+                      {reportData.attendance?.sakit || 0}
                     </td>
                   </tr>
                   <tr>
-                    <td className="p-2 border-b border-slate-400">Izin</td>
-                    <td className="p-2 border-b border-slate-400 text-center font-bold px-4">
-                      {reportData.attendance?.izin || 0} Hari
+                    <td className="p-2 border border-slate-800">Izin</td>
+                    <td className="p-2 border border-slate-800 text-center font-bold">
+                      {reportData.attendance?.izin || 0}
                     </td>
                   </tr>
                   <tr>
-                    <td className="p-2">Tanpa Keterangan</td>
-                    <td className="p-2 text-center font-bold px-4">
-                      {reportData.attendance?.alpha || 0} Hari
+                    <td className="p-2 border border-slate-800">
+                      Tanpa Keterangan
                     </td>
+                    <td className="p-2 border border-slate-800 text-center font-bold text-red-600">
+                      {reportData.attendance?.alpha || 0}
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div className="w-1/2">
+              <h3 className="font-bold mb-2 text-school-navy text-lg border-b border-slate-200 pb-1 inline-block">
+                C. Ekstrakurikuler
+              </h3>
+              <table className="w-full text-sm border border-slate-800">
+                <thead className="bg-slate-100 print:bg-slate-200">
+                  <tr>
+                    <th className="border border-slate-800 p-2 text-left">
+                      Kegiatan
+                    </th>
+                    <th className="border border-slate-800 p-2 text-center">
+                      Predikat
+                    </th>
+                    <th className="border border-slate-800 p-2 text-left">
+                      Keterangan
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td className="p-2 border border-slate-800">-</td>
+                    <td className="p-2 border border-slate-800 text-center">
+                      -
+                    </td>
+                    <td className="p-2 border border-slate-800">-</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2 border border-slate-800">-</td>
+                    <td className="p-2 border border-slate-800 text-center">
+                      -
+                    </td>
+                    <td className="p-2 border border-slate-800">-</td>
+                  </tr>
+                  <tr>
+                    <td className="p-2 border border-slate-800">-</td>
+                    <td className="p-2 border border-slate-800 text-center">
+                      -
+                    </td>
+                    <td className="p-2 border border-slate-800">-</td>
                   </tr>
                 </tbody>
               </table>
             </div>
           </div>
 
+          <div className="mb-4 print:break-inside-avoid">
+            <h3 className="font-bold mb-2 text-school-navy text-lg border-b border-slate-200 pb-1 inline-block">
+              D. Catatan Wali Kelas
+            </h3>
+            <div className="border border-slate-800 p-4 min-h-[80px] text-sm leading-relaxed rounded-sm italic">
+              "Pertahankan prestasimu dan teruslah belajar dengan giat."
+            </div>
+          </div>
+
           {/* Tanda Tangan */}
-          <div className="grid grid-cols-3 gap-4 mt-16 text-center text-sm break-inside-avoid">
+          <div className="grid grid-cols-3 gap-8 mt-16 text-center text-sm print:break-inside-avoid">
             <div>
-              <p>Mengetahui,</p>
-              <p>Orang Tua/Wali</p>
-              <br />
-              <br />
-              <br />
-              <p className="border-t border-black w-32 mx-auto"></p>
+              <p className="mb-20">
+                Mengetahui,
+                <br />
+                Orang Tua/Wali
+              </p>
+              <p className="border-t border-black w-40 mx-auto"></p>
             </div>
             <div>
-              <p>Mengetahui,</p>
-              <p>Kepala Sekolah</p>
-              <br />
-              <br />
-              <br />
-              <p className="font-bold underline">Dr. Developer, M.Kom</p>
-              <p>NIP. 123456789</p>
+              <p className="mb-20">
+                Mengetahui,
+                <br />
+                Kepala Sekolah
+              </p>
+              <p className="font-bold underline">Dr. Budi Santoso, M.Pd</p>
+              <p>NIP. 19700101 199501 1 001</p>
             </div>
             <div>
-              <p>
+              <p className="mb-20">
                 Kota Coding,{" "}
                 {new Date().toLocaleDateString("id-ID", {
                   day: "numeric",
                   month: "long",
                   year: "numeric",
                 })}
+                <br />
+                Wali Kelas
               </p>
-              <p>Wali Kelas</p>
-              <br />
-              <br />
-              <br />
-              <p className="font-bold underline">Budi Santoso, S.Pd</p>
-              <p>NIP. 19850101...</p>
+              <p className="font-bold underline">Siti Aminah, S.Pd</p>
+              <p>NIP. 19850505 201001 2 005</p>
             </div>
           </div>
 
-          <div className="mt-8 flex justify-end print:hidden">
-            <Button onClick={handlePrint} className="bg-blue-600">
-              <Printer className="mr-2 h-4 w-4" /> Cetak / Simpan PDF
+          <div className="mt-8 flex justify-end print:hidden fixed bottom-8 right-8 z-50">
+            <Button
+              onClick={handlePrint}
+              className="bg-school-navy hover:bg-school-gold hover:text-school-navy text-white font-bold shadow-xl rounded-full px-6 py-6 h-auto transition-transform hover:scale-105"
+            >
+              <Printer className="mr-2 h-5 w-5" /> Cetak Rapor (PDF)
             </Button>
           </div>
         </div>
