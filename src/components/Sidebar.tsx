@@ -234,7 +234,7 @@ const Sidebar = () => {
       </div>
 
       {/* Menu Items */}
-      <div className="flex-1 overflow-y-auto py-6 px-3 z-10 space-y-6 custom-scrollbar">
+      <div className="flex-1 overflow-y-auto py-6 px-3 z-10 space-y-6 scrollbar-hide">
         {menuGroups.map((group, idx) => {
           const filteredItems = group.items.filter((item) =>
             item.roles.includes(role),

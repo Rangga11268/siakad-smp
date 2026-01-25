@@ -43,21 +43,17 @@ const DashboardPage = () => {
   const [myGrades, setMyGrades] = useState<any[]>([]);
   const [attendanceLoading, setAttendanceLoading] = useState(false);
 
-  const chartData = [
-    { name: "Jul", value: 4000000 },
-    { name: "Agu", value: 3000000 },
-    { name: "Sep", value: 2000000 },
-    { name: "Okt", value: 2780000 },
-    { name: "Nov", value: 1890000 },
-    { name: "Des", value: 2390000 },
-    { name: "Jan", value: 3490000 },
-  ];
+  // Chart Data State (Real-time from API)
+  const [chartData, setChartData] = useState<{ name: string; value: number }[]>(
+    [],
+  );
 
   useEffect(() => {
     if (user?.role === "student") {
       fetchStudentData();
     } else {
       fetchAdminData();
+      fetchChartData();
     }
   }, [user]);
 
@@ -67,6 +63,19 @@ const DashboardPage = () => {
       setStatsData(data);
     } catch (error) {
       console.error("Failed to fetch dashboard stats", error);
+    }
+  };
+
+  const fetchChartData = async () => {
+    try {
+      const { data } = await api.get("/finance/chart");
+      // Expected format: [{ name: "Jul", value: 4000000 }, ...]
+      if (data && Array.isArray(data)) {
+        setChartData(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch chart data", error);
+      // Fallback to empty or keep default
     }
   };
 
