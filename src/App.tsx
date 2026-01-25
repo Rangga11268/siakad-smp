@@ -1,4 +1,10 @@
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom"; // Restored import
+import PublicLayout from "@/layouts/PublicLayout";
+import AboutPage from "@/pages/public/AboutPage";
+import AcademicPage from "@/pages/public/AcademicPage";
+import FacilitiesPage from "@/pages/public/FacilitiesPage";
+import ContactPage from "@/pages/public/ContactPage";
+
 import LoginPage from "@/pages/LoginPage";
 import DashboardLayout from "@/layouts/DashboardLayout";
 import DashboardPage from "@/pages/DashboardPage";
@@ -38,12 +44,19 @@ function App() {
     <>
       <ErrorBoundary>
         <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/login" element={<LoginPage />} />
+          {/* Public Routes with Layout */}
+          <Route element={<PublicLayout />}>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/academic" element={<AcademicPage />} />
+            <Route path="/facilities" element={<FacilitiesPage />} />
+            <Route path="/contact" element={<ContactPage />} />
+            {/* Public PPDB Routes */}
+            <Route path="/ppdb/register" element={<PPDBRegisterPage />} />
+            <Route path="/ppdb/status" element={<PPDBStatusPage />} />
+          </Route>
 
-          {/* Public PPDB Routes */}
-          <Route path="/ppdb/register" element={<PPDBRegisterPage />} />
-          <Route path="/ppdb/status" element={<PPDBStatusPage />} />
+          <Route path="/login" element={<LoginPage />} />
 
           {/* Protected Routes */}
           <Route path="/dashboard" element={<DashboardLayout />}>
