@@ -2,37 +2,37 @@ const FacilitiesPage = () => {
   const facilities = [
     {
       name: "Perpustakaan Digital",
-      img: "/img/PerpusIMG.jpeg",
+      img: "/img/PerpusIMG.webp",
       desc: "Ribuan koleksi buku fisik dan e-book dengan area baca yang nyaman.",
     },
     {
       name: "Smart Classroom",
-      img: "/img/RuangKelasIMG.png",
+      img: "/img/RuangKelasIMG.webp",
       desc: "Kelas ber-AC dengan proyektor interaktif, CCTV, dan WiFi berkecepatan tinggi.",
     },
     {
       name: "Laboratorium Sains",
-      img: "/img/LaboratoriumIMG.jpeg",
+      img: "/img/LaboratoriumIMG.webp",
       desc: "Peralatan lengkap untuk praktikum Fisika, Kimia, dan Biologi standar nasional.",
     },
     {
       name: "Gedung Olahraga (GOR)",
-      img: "/img/GorFasilitas.jpeg",
+      img: "/img/GorFasilitas.webp",
       desc: "Lapangan indoor untuk Basket, Futsal, dan Badminton.",
     },
     {
       name: "Studio Seni & Musik",
-      img: "/img/FasilitasSeni.jpeg",
+      img: "/img/FasilitasSeni.webp",
       desc: "Ruang kedap suara dengan alat musik lengkap untuk pengembangan bakat seni.",
     },
     {
       name: "Ruang Kelas Modern",
-      img: "/img/RuangKelasIMG2.jpeg",
+      img: "/img/RuangKelasIMG2.webp",
       desc: "Desain ergonomis dengan pencahayaan natural untuk kenyamanan belajar.",
     },
     {
       name: "Lorong Inspirasi",
-      img: "/img/lorongImg.jpeg",
+      img: "/img/lorongImg.webp",
       desc: "Area terbuka hijau dan galeri untuk pameran karya siswa.",
     },
   ];

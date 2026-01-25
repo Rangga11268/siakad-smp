@@ -9,7 +9,7 @@ const ContactPage = () => {
       {/* Background with Overlay */}
       <div className="absolute top-0 w-full h-[50vh] bg-school-navy overflow-hidden">
         <img
-          src="/img/KontakIMG2.jpeg"
+          src="/img/KontakIMG2.webp"
           alt="Contact Banner"
           className="w-full h-full object-cover opacity-20"
         />
@@ -25,7 +25,7 @@ const ContactPage = () => {
           {/* Contact Info Side with Image Background */}
           <div className="relative bg-school-navy text-white p-12 flex flex-col justify-center min-h-[500px]">
             <img
-              src="/img/KontakIMG.jpeg"
+              src="/img/KontakIMG.webp"
               alt="Reception"
               className="absolute inset-0 w-full h-full object-cover opacity-20 mix-blend-luminosity"
             />

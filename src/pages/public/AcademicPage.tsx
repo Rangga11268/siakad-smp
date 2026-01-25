@@ -8,7 +8,7 @@ const AcademicPage = () => {
       <div className="relative bg-school-navy text-white py-32 text-center overflow-hidden">
         <div className="absolute inset-0">
           <img
-            src="/img/AkademikIMG.png"
+            src="/img/AkademikIMG.webp"
             alt="Academic Header"
             className="w-full h-full object-cover opacity-30"
           />
@@ -71,7 +71,7 @@ const AcademicPage = () => {
         <div className="grid md:grid-cols-2 gap-16 items-center mb-24">
           <div className="relative rounded-2xl overflow-hidden shadow-2xl rotate-2 hover:rotate-0 transition-transform duration-500">
             <img
-              src="/img/AkademikIMG2.jpeg"
+              src="/img/AkademikIMG2.webp"
               alt="Activities"
               className="w-full h-auto object-cover"
             />

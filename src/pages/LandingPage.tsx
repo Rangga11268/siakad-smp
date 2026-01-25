@@ -10,7 +10,7 @@ const LandingPage = () => {
         {/* Background Image with Overlay */}
         <div className="absolute inset-0 z-0">
           <img
-            src="/img/ImageSekolah1.png"
+            src="/img/ImageSekolah1.webp"
             alt="School Atrium"
             className="w-full h-full object-cover"
           />
@@ -121,7 +121,7 @@ const LandingPage = () => {
             {/* Library */}
             <div className="group relative h-96 overflow-hidden cursor-pointer">
               <img
-                src="/img/PerpusIMG.jpeg"
+                src="/img/PerpusIMG.webp"
                 alt="Modern Library"
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100"
               />
@@ -141,7 +141,7 @@ const LandingPage = () => {
             {/* Smart Classroom */}
             <div className="group relative h-96 overflow-hidden cursor-pointer md:-mt-8 md:mb-8 border-4 border-school-gold z-10 shadow-2xl">
               <img
-                src="/img/RuangKelasIMG.png"
+                src="/img/RuangKelasIMG.webp"
                 alt="Smart Classroom"
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
               />
@@ -160,7 +160,7 @@ const LandingPage = () => {
             {/* Lab */}
             <div className="group relative h-96 overflow-hidden cursor-pointer">
               <img
-                src="/img/LaboratoriumIMG.jpeg"
+                src="/img/LaboratoriumIMG.webp"
                 alt="Science Lab"
                 className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100"
               />

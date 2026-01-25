@@ -40,7 +40,7 @@ const AboutPage = () => {
             <div className="absolute -top-4 -right-4 w-full h-full border-4 border-school-gold -z-10"></div>
             {/* Updated to Mentor Image for context about teaching/environment */}
             <img
-              src="/img/MentorIMGAbout.jpeg"
+              src="/img/MentorIMGAbout.webp"
               alt="Mentoring Session"
               className="w-full h-auto shadow-xl object-cover"
             />
@@ -52,7 +52,7 @@ const AboutPage = () => {
           <div className="grid md:grid-cols-12">
             <div className="md:col-span-4 relative h-96 md:h-auto">
               <img
-                src="/img/KepalaSekolahAboutIMG.jpeg"
+                src="/img/KepalaSekolahAboutIMG.webp"
                 alt="Kepala Sekolah"
                 className="absolute inset-0 w-full h-full object-cover"
               />

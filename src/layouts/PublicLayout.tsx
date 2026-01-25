@@ -45,7 +45,7 @@ const PublicLayout = () => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2">
             <img
-              src="/img/logoNoBg.png"
+              src="/img/logoNoBg.webp"
               alt="Logo SMP Satya Cendekia"
               className="w-12 h-12 object-contain"
             />
@@ -134,7 +134,7 @@ const PublicLayout = () => {
             <div className="md:col-span-1">
               <div className="flex items-center gap-3 mb-6">
                 <img
-                  src="/img/logoNoBg.png"
+                  src="/img/logoNoBg.webp"
                   alt="Logo SMP Satya Cendekia"
                   className="w-12 h-12 object-contain brightness-0 invert"
                 />
