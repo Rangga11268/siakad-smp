@@ -1,8 +1,8 @@
 const AboutPage = () => {
   return (
-    <div className="pt-24 bg-white min-h-screen">
+    <div className="pt-20 md:pt-24 bg-white min-h-screen">
       <div className="container mx-auto px-6 py-12">
-        <h1 className="font-serif text-5xl font-bold text-school-navy mb-8 text-center">
+        <h1 className="font-serif text-3xl md:text-5xl font-bold text-school-navy mb-8 text-center">
           Tentang Kami
         </h1>
         <div className="w-24 h-1 bg-school-gold mx-auto mb-16"></div>

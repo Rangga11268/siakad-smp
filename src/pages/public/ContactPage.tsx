@@ -5,7 +5,7 @@ import { Mail, MapPin, Phone } from "lucide-react";
 
 const ContactPage = () => {
   return (
-    <div className="relative min-h-screen pt-24 bg-slate-50">
+    <div className="relative min-h-screen pt-20 md:pt-24 bg-slate-50">
       {/* Background with Overlay */}
       <div className="absolute top-0 w-full h-[50vh] bg-school-navy overflow-hidden">
         <img
@@ -17,7 +17,7 @@ const ContactPage = () => {
       </div>
 
       <div className="container relative z-10 mx-auto px-6 py-12">
-        <h1 className="font-serif text-5xl font-bold text-school-gold mb-16 text-center drop-shadow-md">
+        <h1 className="font-serif text-3xl md:text-5xl font-bold text-school-gold mb-16 text-center drop-shadow-md">
           Hubungi Kami
         </h1>
 

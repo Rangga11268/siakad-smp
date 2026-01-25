@@ -3,9 +3,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const AcademicPage = () => {
   return (
-    <div className="pt-24 bg-slate-50 min-h-screen">
+    <div className="pt-20 md:pt-24 bg-slate-50 min-h-screen">
       {/* Hero for Academic - Updated with Image */}
-      <div className="relative bg-school-navy text-white py-32 text-center overflow-hidden">
+      <div className="relative bg-school-navy text-white py-20 md:py-32 text-center overflow-hidden">
         <div className="absolute inset-0">
           <img
             src="/img/AkademikIMG.webp"
@@ -15,7 +15,9 @@ const AcademicPage = () => {
           <div className="absolute inset-0 bg-gradient-to-t from-school-navy via-school-navy/80 to-transparent"></div>
         </div>
         <div className="relative z-10 container mx-auto px-6">
-          <h1 className="font-serif text-6xl font-bold mb-4">Akademik</h1>
+          <h1 className="font-serif text-4xl md:text-6xl font-bold mb-4">
+            Akademik
+          </h1>
           <p className="text-xl text-white/90 max-w-3xl mx-auto font-light leading-relaxed">
             Kurikulum komprehensif yang dirancang untuk mempersiapkan siswa
             menghadapi tantangan global dengan landasan karakter yang kuat.
