@@ -1,12 +1,13 @@
 const cron = require("node-cron");
 const Billing = require("../models/Billing");
 const User = require("../models/User");
+const logger = require("../config/logger");
 
 const startBillingScheduler = () => {
   // Run regularly (Every 1st of Month at 00:01)
   // Format: Minute Hour DayMonth Month DayWeek
   cron.schedule("1 0 1 * *", async () => {
-    console.log("⏳ Running Monthly Billing Job...");
+    logger.info("⏳ Running Monthly Billing Job...");
     try {
       const today = new Date();
       const monthNames = [
@@ -35,7 +36,7 @@ const startBillingScheduler = () => {
       const students = await User.find({ role: "student", isActive: true });
 
       if (students.length === 0) {
-        console.log("⚠️ No active students found");
+        logger.warn("⚠️ No active students found");
         return;
       }
 
@@ -65,18 +66,18 @@ const startBillingScheduler = () => {
       // Bulk insert all new billings at once
       if (newBillings.length > 0) {
         await Billing.insertMany(newBillings);
-        console.log(
+        logger.info(
           `✅ Monthly Billing Job Completed: Generated ${newBillings.length} bills for ${title}`,
         );
       } else {
-        console.log(`ℹ️ All students already have billing for ${title}`);
+        logger.info(`ℹ️ All students already have billing for ${title}`);
       }
     } catch (error) {
-      console.error("❌ Monthly Billing Job Failed:", error);
+      logger.error("❌ Monthly Billing Job Failed:", error);
     }
   });
 
-  console.log("🕒 Billing Scheduler Initialized (Runs on 1st of every month)");
+  logger.info("🕒 Billing Scheduler Initialized (Runs on 1st of every month)");
 };
 
 module.exports = { startBillingScheduler };

@@ -9,6 +9,9 @@ require("dotenv").config();
 // Validate environment variables on startup
 require("./config/validateEnv");
 
+// Import logger
+const logger = require("./config/logger");
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -46,15 +49,20 @@ const authLimiter = rateLimit({
 app.use(express.json());
 app.use(cors(corsOptions));
 app.use(helmet());
-app.use(morgan("dev"));
+// Use morgan with winston for HTTP logging
+app.use(
+  morgan("combined", {
+    stream: { write: (message) => logger.info(message.trim()) },
+  }),
+);
 const path = require("path");
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// Database Connection
+// MongoDB Connection with logger
 mongoose
-  .connect(process.env.MONGO_URI || "mongodb://127.0.0.1:27017/siakad_smp")
-  .then(() => console.log("✅ MongoDB Connected"))
-  .catch((err) => console.error("❌ MongoDB Connection Error:", err));
+  .connect(process.env.MONGO_URI || "mongodb://localhost:27017/siakad_smp")
+  .then(() => logger.info("✅ MongoDB Connected"))
+  .catch((err) => logger.error("❌ MongoDB Connection Error:", err));
 
 const authRoutes = require("./routes/authRoutes");
 const academicRoutes = require("./routes/academicRoutes");
@@ -84,9 +92,9 @@ app.get("/", (req, res) => {
   res.send({ message: "Welcome to SIAKAD SMP API" });
 });
 
-// Start Server
+// Start Server with logger
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
+  logger.info(`🚀 Server running on port ${PORT}`);
 
   // Start Cron Jobs
   require("./cron/billingScheduler").startBillingScheduler();
