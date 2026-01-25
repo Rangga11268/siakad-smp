@@ -42,6 +42,9 @@ import {
   XCircle,
   Printer,
   AlertOctagon,
+  Loader2,
+  DollarSign,
+  FileText,
 } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
 import api from "@/services/api";
@@ -200,115 +203,148 @@ const FinanceDashboard = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="space-y-8">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Keuangan & SPP</h2>
-          <p className="text-muted-foreground">
-            Monitoring pembayaran siswa dan generate tagihan rutin.
+          <h2 className="font-serif text-3xl font-bold tracking-tight text-school-navy">
+            Keuangan & SPP
+          </h2>
+          <p className="text-slate-500">
+            Monitoring pembayaran siswa, generate tagihan (SPP/Gedung), dan
+            laporan piutang.
           </p>
         </div>
         {user?.role !== "student" && (
           <Dialog open={openGenerate} onOpenChange={setOpenGenerate}>
             <DialogTrigger asChild>
-              <Button className="bg-emerald-600 hover:bg-emerald-700">
+              <Button className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold shadow-md transition-all">
                 <Plus className="mr-2 h-4 w-4" /> Generate Tagihan Massal
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
-                <DialogTitle>Buat Tagihan (Massal)</DialogTitle>
+                <DialogTitle className="font-serif text-2xl text-school-navy">
+                  Buat Tagihan (Massal)
+                </DialogTitle>
                 <DialogDescription>
-                  Membuat tagihan untuk siswa sesuai kriteria.
+                  Tagihan akan dikirim ke seluruh siswa atau kelas tertentu.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-right">Judul</Label>
+              <div className="grid gap-6 py-4">
+                <div className="space-y-2">
+                  <Label className="font-semibold text-school-navy">
+                    Judul Tagihan
+                  </Label>
                   <Input
-                    className="col-span-3"
                     value={formData.title}
                     onChange={(e) =>
                       setFormData({ ...formData, title: e.target.value })
                     }
                     placeholder="Misal: SPP Februari 2025"
+                    className="bg-slate-50 border-slate-200"
                   />
                 </div>
 
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-right">Target Kelas</Label>
-                  <Select
-                    value={formData.targetClass}
-                    onValueChange={(v) =>
-                      setFormData({ ...formData, targetClass: v })
-                    }
-                  >
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Semua Siswa" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all_classes">Semua Siswa</SelectItem>
-                      {classes.map((c: any) => (
-                        <SelectItem key={c._id} value={c.name}>
-                          {c.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="font-semibold text-school-navy">
+                      Target Kelas
+                    </Label>
+                    <Select
+                      value={formData.targetClass}
+                      onValueChange={(v) =>
+                        setFormData({ ...formData, targetClass: v })
+                      }
+                    >
+                      <SelectTrigger className="bg-slate-50 border-slate-200">
+                        <SelectValue placeholder="Semua Siswa" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all_classes">Semua Siswa</SelectItem>
+                        {classes.map((c: any) => (
+                          <SelectItem key={c._id} value={c.name}>
+                            {c.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="font-semibold text-school-navy">
+                      Jenis Tagihan
+                    </Label>
+                    <Select
+                      value={formData.type}
+                      onValueChange={(v) =>
+                        setFormData({ ...formData, type: v })
+                      }
+                    >
+                      <SelectTrigger className="bg-slate-50 border-slate-200">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="SPP">SPP Bulanan</SelectItem>
+                        <SelectItem value="Gedung">Uang Gedung</SelectItem>
+                        <SelectItem value="Seragam">Seragam</SelectItem>
+                        <SelectItem value="Lainnya">Lainnya</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-right">Jenis Tagihan</Label>
-                  <Select
-                    value={formData.type}
-                    onValueChange={(v) => setFormData({ ...formData, type: v })}
-                  >
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="SPP">SPP Bulanan</SelectItem>
-                      <SelectItem value="Gedung">Uang Gedung</SelectItem>
-                      <SelectItem value="Seragam">Seragam</SelectItem>
-                      <SelectItem value="Lainnya">Lainnya</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-right">Nominal (Rp)</Label>
-                  <div className="col-span-3 relative">
-                    <span className="absolute left-3 top-2.5 text-muted-foreground text-sm">
-                      Rp
-                    </span>
-                    <Input
-                      className="pl-9"
-                      value={formData.amount}
-                      onChange={handleAmountChange}
-                      placeholder="0"
-                    />
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="font-semibold text-school-navy">
+                      Nominal (Rp)
+                    </Label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-2 text-slate-500 font-semibold">
+                        Rp
+                      </span>
+                      <Input
+                        className="pl-9 bg-slate-50 border-slate-200 font-bold text-school-navy"
+                        value={formData.amount}
+                        onChange={handleAmountChange}
+                        placeholder="0"
+                      />
+                    </div>
                     <p className="text-xs text-muted-foreground mt-1">
                       {formData.amount
                         ? formatRupiah(parseInt(formData.amount))
                         : "Rp 0"}
                     </p>
                   </div>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label className="text-right">Jatuh Tempo</Label>
-                  <Input
-                    type="date"
-                    className="col-span-3"
-                    value={formData.dueDate}
-                    onChange={(e) =>
-                      setFormData({ ...formData, dueDate: e.target.value })
-                    }
-                  />
+                  <div className="space-y-2">
+                    <Label className="font-semibold text-school-navy">
+                      Jatuh Tempo
+                    </Label>
+                    <Input
+                      type="date"
+                      value={formData.dueDate}
+                      onChange={(e) =>
+                        setFormData({ ...formData, dueDate: e.target.value })
+                      }
+                      className="bg-slate-50 border-slate-200"
+                    />
+                  </div>
                 </div>
               </div>
               <DialogFooter>
-                <Button onClick={handleGenerate} disabled={submitting}>
-                  {submitting ? "Memproses..." : "Generate & Kirim"}
+                <Button
+                  onClick={handleGenerate}
+                  disabled={submitting}
+                  className="bg-school-navy hover:bg-school-gold hover:text-school-navy w-full font-bold"
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sedang
+                      Memproses...
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="mr-2 h-4 w-4" /> Generate & Kirim Tagihan
+                    </>
+                  )}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -316,145 +352,220 @@ const FinanceDashboard = () => {
         )}
       </div>
 
+      {/* Stats Cards */}
+      <div className="grid gap-6 md:grid-cols-3">
+        <Card className="border-none shadow-md bg-white">
+          <CardContent className="p-6 flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-medium text-slate-500">
+                Total Tagihan
+              </h3>
+              <div className="text-2xl font-bold text-school-navy mt-1">
+                {formatRupiah(stats.total)}
+              </div>
+            </div>
+            <div className="p-3 bg-blue-50 rounded-full text-blue-600">
+              <DollarSign className="w-6 h-6" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-none shadow-md bg-white">
+          <CardContent className="p-6 flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-medium text-slate-500">
+                Lunas / Diterima
+              </h3>
+              <div className="text-2xl font-bold text-green-600 mt-1">
+                {formatRupiah(stats.paid)}
+              </div>
+            </div>
+            <div className="p-3 bg-green-50 rounded-full text-green-600">
+              <CheckCircle className="w-6 h-6" />
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="border-none shadow-md bg-white">
+          <CardContent className="p-6 flex items-center justify-between">
+            <div>
+              <h3 className="text-sm font-medium text-slate-500">
+                Belum Dibayar (Piutang)
+              </h3>
+              <div className="text-2xl font-bold text-red-600 mt-1">
+                {formatRupiah(stats.unpaid)}
+              </div>
+            </div>
+            <div className="p-3 bg-red-50 rounded-full text-red-600">
+              <AlertOctagon className="w-6 h-6" />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <Tabs
         defaultValue="overview"
         onValueChange={setActiveTab}
-        className="space-y-4"
+        className="space-y-6"
       >
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
+        <TabsList className="bg-slate-100 p-1 rounded-lg">
+          <TabsTrigger
+            value="overview"
+            className="data-[state=active]:bg-school-navy data-[state=active]:text-white px-6"
+          >
+            <Wallet className="w-4 h-4 mr-2" /> Data Tagihan
+          </TabsTrigger>
           {user?.role !== "student" && (
-            <TabsTrigger value="report">Laporan Piutang (Aging)</TabsTrigger>
+            <TabsTrigger
+              value="report"
+              className="data-[state=active]:bg-school-navy data-[state=active]:text-white px-6"
+            >
+              <FileText className="w-4 h-4 mr-2" /> Laporan Piutang (Aging)
+            </TabsTrigger>
           )}
         </TabsList>
 
         <TabsContent value="overview" className="space-y-4">
-          {/* Stats Cards */}
-          <div className="grid gap-4 md:grid-cols-3">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  Total Tagihan (Filter)
-                </CardTitle>
-                <Wallet className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">
-                  {formatRupiah(stats.total)}
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-green-600">
-                  Lunas / Masuk
-                </CardTitle>
-                <CheckCircle className="h-4 w-4 text-green-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-green-600">
-                  {formatRupiah(stats.paid)}
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-red-600">
-                  Belum Bayar
-                </CardTitle>
-                <XCircle className="h-4 w-4 text-red-600" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-red-600">
-                  {formatRupiah(stats.unpaid)}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          <Card>
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex gap-2">
-                  <Select value={statusFilter} onValueChange={setStatusFilter}>
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Semua Status</SelectItem>
-                      <SelectItem value="paid">Lunas</SelectItem>
-                      <SelectItem value="unpaid">Belum Lunas</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+          <Card className="border-t-4 border-t-school-gold shadow-lg border-none overflow-hidden">
+            <CardHeader className="bg-white border-b border-slate-100 flex flex-row items-center justify-between pb-4">
+              <CardTitle className="font-serif text-lg text-school-navy">
+                Daftar Tagihan Siswa
+              </CardTitle>
+              <div className="w-[200px]">
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="bg-slate-50 border-slate-200 h-8">
+                    <SelectValue placeholder="Filter Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Status</SelectItem>
+                    <SelectItem value="paid">Lunas</SelectItem>
+                    <SelectItem value="unpaid">Belum Lunas</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Siswa</TableHead>
-                    <TableHead>Tagihan</TableHead>
-                    <TableHead>Nominal</TableHead>
-                    <TableHead>Jatuh Tempo</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Aksi</TableHead>
+                <TableHeader className="bg-school-navy">
+                  <TableRow className="hover:bg-school-navy">
+                    <TableHead className="text-white font-bold">
+                      Siswa
+                    </TableHead>
+                    <TableHead className="text-white font-bold">
+                      Judul Tagihan
+                    </TableHead>
+                    <TableHead className="text-white font-bold">
+                      Nominal
+                    </TableHead>
+                    <TableHead className="text-white font-bold">
+                      Jatuh Tempo
+                    </TableHead>
+                    <TableHead className="text-white font-bold">
+                      Status
+                    </TableHead>
+                    <TableHead className="text-white font-bold text-right">
+                      Aksi
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {(user?.role === "student"
-                    ? billings.filter(
-                        (b: any) =>
-                          b.student?._id === (user as any).id ||
-                          b.student?._id === (user as any)._id,
-                      )
-                    : billings
-                  ).map((bill: any) => (
-                    <TableRow key={bill._id}>
-                      <TableCell>
-                        <div className="font-medium">
-                          {bill.student?.profile?.fullName}
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center h-24">
+                        <div className="flex flex-col items-center justify-center text-school-gold">
+                          <Loader2 className="h-6 w-6 animate-spin mb-2" />
+                          <p className="text-sm text-slate-500">
+                            Memuat data tagihan...
+                          </p>
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          {bill.student?.profile?.nisn}
-                        </div>
-                      </TableCell>
-                      <TableCell>{bill.title}</TableCell>
-                      <TableCell>{formatRupiah(bill.amount)}</TableCell>
-                      <TableCell>
-                        {new Date(bill.dueDate).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={
-                            bill.status === "paid" ? "default" : "destructive"
-                          }
-                          className={
-                            bill.status === "paid" ? "bg-green-600" : ""
-                          }
-                        >
-                          {bill.status === "paid" ? "Lunas" : "Belum Bayar"}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {bill.status === "unpaid" &&
-                          user?.role !== "student" && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handlePay(bill._id, bill.status)}
-                            >
-                              Verifikasi Bayar
-                            </Button>
-                          )}
-                        {bill.status === "paid" && (
-                          <span className="text-xs text-muted-foreground">
-                            {new Date(bill.paidDate).toLocaleDateString()}
-                          </span>
-                        )}
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (user?.role === "student"
+                      ? billings.filter(
+                          (b: any) =>
+                            b.student?._id === (user as any).id ||
+                            b.student?._id === (user as any)._id,
+                        )
+                      : billings
+                    ).length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={6}
+                        className="text-center h-24 text-slate-500"
+                      >
+                        Tidak ada data tagihan.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    (user?.role === "student"
+                      ? billings.filter(
+                          (b: any) =>
+                            b.student?._id === (user as any).id ||
+                            b.student?._id === (user as any)._id,
+                        )
+                      : billings
+                    ).map((bill: any) => (
+                      <TableRow
+                        key={bill._id}
+                        className="hover:bg-slate-50 border-b border-slate-100"
+                      >
+                        <TableCell>
+                          <div className="font-bold text-school-navy">
+                            {bill.student?.profile?.fullName}
+                          </div>
+                          <div className="text-xs text-slate-500">
+                            {bill.student?.profile?.nisn}
+                          </div>
+                        </TableCell>
+                        <TableCell className="font-medium text-slate-700">
+                          {bill.title}
+                        </TableCell>
+                        <TableCell className="font-bold text-school-navy">
+                          {formatRupiah(bill.amount)}
+                        </TableCell>
+                        <TableCell className="text-sm text-slate-500">
+                          {new Date(bill.dueDate).toLocaleDateString("id-ID", {
+                            day: "numeric",
+                            month: "short",
+                            year: "numeric",
+                          })}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant={
+                              bill.status === "paid" ? "default" : "destructive"
+                            }
+                            className={
+                              bill.status === "paid"
+                                ? "bg-green-600 hover:bg-green-700"
+                                : "bg-red-500 hover:bg-red-600"
+                            }
+                          >
+                            {bill.status === "paid" ? "Lunas" : "Belum Bayar"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {bill.status === "unpaid" &&
+                            user?.role !== "student" && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-school-navy text-school-navy hover:bg-school-navy hover:text-white"
+                                onClick={() => handlePay(bill._id, bill.status)}
+                              >
+                                <CheckCircle className="w-3 h-3 mr-1" />{" "}
+                                Verifikasi Bayar
+                              </Button>
+                            )}
+                          {bill.status === "paid" && (
+                            <span className="text-xs text-green-600 font-medium flex items-center justify-end gap-1">
+                              <CheckCircle className="w-3 h-3" />
+                              Dibayar:{" "}
+                              {new Date(bill.paidDate).toLocaleDateString()}
+                            </span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
@@ -462,75 +573,98 @@ const FinanceDashboard = () => {
         </TabsContent>
 
         <TabsContent value="report" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Laporan Piutang (Aging Report)</CardTitle>
+          <Card className="border-t-4 border-t-school-gold shadow-lg border-none overflow-hidden">
+            <CardHeader className="bg-white border-b border-slate-100">
+              <CardTitle className="font-serif text-lg text-school-navy">
+                Laporan Detail Tunggakan (Aging Report)
+              </CardTitle>
               <CardDescription>
-                Monitor tunggakan siswa berdasarkan lama keterlambatan.
+                Analisis kesehatan keuangan sekolah berdasarkan lama tunggakan
+                siswa.
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Siswa</TableHead>
-                    <TableHead>Kelas</TableHead>
-                    <TableHead className="text-right">
+                <TableHeader className="bg-school-navy">
+                  <TableRow className="hover:bg-school-navy">
+                    <TableHead className="text-white font-bold">
+                      Nama Siswa
+                    </TableHead>
+                    <TableHead className="text-white font-bold">
+                      Kelas
+                    </TableHead>
+                    <TableHead className="text-white font-bold text-right">
                       Total Tunggakan
                     </TableHead>
-                    <TableHead className="text-right">
+                    <TableHead className="text-white font-bold text-right bg-green-700/20">
                       Lancar (Current)
                     </TableHead>
-                    <TableHead className="text-right text-orange-600">
+                    <TableHead className="text-white font-bold text-right bg-yellow-600/20">
                       30-60 Hari
                     </TableHead>
-                    <TableHead className="text-right text-red-600">
+                    <TableHead className="text-white font-bold text-right bg-red-700/20">
                       &gt; 60 Hari (Macet)
                     </TableHead>
-                    <TableHead>Aksi</TableHead>
+                    <TableHead className="text-white font-bold text-right text-center">
+                      Aksi
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {agingReport.map((item: any) => (
-                    <TableRow key={item.student._id}>
-                      <TableCell className="font-medium">
-                        {item.student?.profile?.fullName}
-                      </TableCell>
-                      <TableCell>{item.student?.profile?.class}</TableCell>
-                      <TableCell className="text-right font-bold">
-                        {formatRupiah(item.totalDebt)}
-                      </TableCell>
-                      <TableCell className="text-right text-green-700">
-                        {formatRupiah(item.breakdown.current)}
-                      </TableCell>
-                      <TableCell className="text-right text-orange-600 font-medium">
-                        {formatRupiah(item.breakdown.medium)}
-                      </TableCell>
-                      <TableCell className="text-right text-red-600 font-bold">
-                        {item.breakdown.bad > 0 && (
-                          <div className="flex items-center justify-end gap-1">
-                            <AlertOctagon className="h-4 w-4" />
-                            {formatRupiah(item.breakdown.bad)}
-                          </div>
-                        )}
-                        {item.breakdown.bad === 0 && formatRupiah(0)}
-                      </TableCell>
-                      <TableCell>
-                        <Button size="sm" variant="outline">
-                          <Printer className="h-3 w-3 mr-2" /> Tagih
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  {agingReport.length === 0 && (
+                  {agingReport.length === 0 ? (
                     <TableRow>
                       <TableCell
                         colSpan={7}
-                        className="text-center py-8 text-muted-foreground"
+                        className="text-center h-24 text-slate-500"
                       >
-                        Tidak ada data piutang.
+                        Tidak ada data piutang ditemukan.
                       </TableCell>
                     </TableRow>
+                  ) : (
+                    agingReport.map((item: any) => (
+                      <TableRow
+                        key={item.student._id}
+                        className="hover:bg-slate-50 border-b border-slate-100"
+                      >
+                        <TableCell className="font-bold text-school-navy">
+                          {item.student?.profile?.fullName}
+                        </TableCell>
+                        <TableCell>
+                          <span className="inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-bold border-blue-200 bg-blue-50 text-blue-700">
+                            {item.student?.profile?.class || "-"}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right font-black text-school-navy text-lg">
+                          {formatRupiah(item.totalDebt)}
+                        </TableCell>
+                        <TableCell className="text-right text-green-700 font-medium">
+                          {formatRupiah(item.breakdown.current)}
+                        </TableCell>
+                        <TableCell className="text-right text-orange-600 font-medium">
+                          {formatRupiah(item.breakdown.medium)}
+                        </TableCell>
+                        <TableCell className="text-right text-red-600 font-bold">
+                          {item.breakdown.bad > 0 && (
+                            <div className="flex items-center justify-end gap-1">
+                              <AlertOctagon className="h-4 w-4" />
+                              {formatRupiah(item.breakdown.bad)}
+                            </div>
+                          )}
+                          {item.breakdown.bad === 0 && (
+                            <span className="text-slate-300">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 w-8 p-0"
+                          >
+                            <Printer className="h-4 w-4 text-slate-500" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
                   )}
                 </TableBody>
               </Table>
