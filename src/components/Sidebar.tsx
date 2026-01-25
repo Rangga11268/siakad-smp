@@ -74,6 +74,12 @@ const Sidebar = () => {
           roles: ["admin", "teacher"],
         },
         {
+          title: "Data Guru",
+          icon: Users,
+          path: "/dashboard/academic/teachers",
+          roles: ["admin"],
+        },
+        {
           title: "Data Mapel",
           icon: BookOpen,
           path: "/dashboard/academic/subjects",
