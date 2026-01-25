@@ -47,7 +47,7 @@ const LandingPage = () => {
       </section>
 
       {/* 3. Introduction Section */}
-      <section className="py-24 bg-white">
+      <section className="py-12 md:py-24 bg-white">
         <div className="container mx-auto px-6">
           <div className="grid md:grid-cols-12 gap-12 items-center">
             <div className="md:col-span-5">
@@ -106,7 +106,7 @@ const LandingPage = () => {
       </section>
 
       {/* 4. Facilities Showcase Grid */}
-      <section className="py-24 bg-school-navy text-white relative">
+      <section className="py-12 md:py-24 bg-school-navy text-white relative">
         <div className="container mx-auto px-6">
           <div className="text-center mb-16">
             <span className="text-school-gold uppercase tracking-widest text-sm font-bold mb-2 block">
