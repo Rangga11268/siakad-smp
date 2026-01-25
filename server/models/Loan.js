@@ -18,10 +18,11 @@ const loanSchema = new mongoose.Schema(
       default: "Borrowed",
     },
 
+    isOverdue: { type: Boolean, default: false }, // Flag for late returns
     fine: { type: Number, default: 0 }, // Denda keterlambatan
     finePaid: { type: Boolean, default: false },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = mongoose.model("Loan", loanSchema);

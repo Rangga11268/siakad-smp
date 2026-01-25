@@ -24,19 +24,17 @@ exports.generateMonthlyBilling = async (req, res) => {
     let skipped = 0;
 
     for (const student of students) {
-      const billTitle = `${title} - ${student.username}`;
-
-      // Cek duplikasi (optional but good)
+      // Cek duplikasi menggunakan title asli (tanpa username)
       const exists = await Billing.findOne({
         student: student._id,
-        title: billTitle,
+        title: title, // Use original title for proper duplicate check
         status: { $ne: "cancelled" },
       });
 
       if (!exists) {
         billings.push({
           student: student._id,
-          title: billTitle,
+          title: title, // Store original title
           amount,
           type: type || "SPP",
           dueDate,
@@ -75,7 +73,7 @@ exports.payBilling = async (req, res) => {
         paidDate: new Date(),
         paymentMethod: "Manual",
       },
-      { new: true }
+      { new: true },
     );
 
     res.json(billing);
@@ -115,7 +113,7 @@ exports.getAllBillings = async (req, res) => {
     const billings = await Billing.find(query)
       .populate(
         "student",
-        "username profile.fullName profile.nisn profile.class"
+        "username profile.fullName profile.nisn profile.class",
       )
       .sort({ createdAt: -1 });
 
@@ -135,7 +133,7 @@ exports.getAgingReport = async (req, res) => {
     // Find all unpaid bills
     const unpaidBills = await Billing.find({ status: "unpaid" }).populate(
       "student",
-      "profile.fullName profile.class profile.phone"
+      "profile.fullName profile.class profile.phone",
     );
 
     // Group by Student
@@ -176,16 +174,14 @@ exports.getAgingReport = async (req, res) => {
 
     // Convert to Array
     const report = Object.values(studentDebt).sort(
-      (a, b) => b.totalDebt - a.totalDebt
+      (a, b) => b.totalDebt - a.totalDebt,
     );
 
     res.json(report);
   } catch (error) {
-    res
-      .status(500)
-      .json({
-        message: "Gagal generate laporan piutang",
-        error: error.message,
-      });
+    res.status(500).json({
+      message: "Gagal generate laporan piutang",
+      error: error.message,
+    });
   }
 };

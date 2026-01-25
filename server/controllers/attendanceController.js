@@ -100,6 +100,14 @@ exports.recordSelfAttendance = async (req, res) => {
     const studentId = req.user.id; // From Auth Middleware
     const today = new Date();
     const currentHour = today.getHours();
+    const dayOfWeek = today.getDay(); // 0=Sunday, 6=Saturday
+
+    // Validasi Hari: Tidak bisa absen di akhir pekan
+    if (dayOfWeek === 0 || dayOfWeek === 6) {
+      return res.status(400).json({
+        message: "Tidak bisa absen di hari libur (Sabtu/Minggu).",
+      });
+    }
 
     // Validasi Waktu: Absen hanya boleh jam 06:00 - 15:00
     if (currentHour < 6 || currentHour >= 15) {

@@ -16,8 +16,43 @@ exports.createSchedule = async (req, res) => {
       semester,
     } = req.body;
 
-    // Basic Validation: Check for clashes (Optional but good)
-    // For now, allow overwrite or duplicate for simplicity phase
+    // Check for teacher clash (same teacher at overlapping time)
+    const teacherClash = await Schedule.findOne({
+      teacher,
+      day,
+      academicYear,
+      semester,
+      $or: [
+        { startTime: { $lt: endTime, $gte: startTime } },
+        { endTime: { $gt: startTime, $lte: endTime } },
+        { startTime: { $lte: startTime }, endTime: { $gte: endTime } },
+      ],
+    });
+
+    if (teacherClash) {
+      return res.status(400).json({
+        message: "Guru sudah memiliki jadwal di waktu tersebut.",
+      });
+    }
+
+    // Check for class clash (same class at overlapping time)
+    const classClash = await Schedule.findOne({
+      class: classId,
+      day,
+      academicYear,
+      semester,
+      $or: [
+        { startTime: { $lt: endTime, $gte: startTime } },
+        { endTime: { $gt: startTime, $lte: endTime } },
+        { startTime: { $lte: startTime }, endTime: { $gte: endTime } },
+      ],
+    });
+
+    if (classClash) {
+      return res.status(400).json({
+        message: "Kelas sudah memiliki jadwal di waktu tersebut.",
+      });
+    }
 
     const newSchedule = new Schedule({
       day,

@@ -173,12 +173,14 @@ exports.returnBook = async (req, res) => {
       return res.status(400).json({ message: "Buku sudah dikembalikan" });
 
     loan.returnDate = new Date();
-    loan.status = "Returned";
+    loan.status = "Returned"; // Always set to Returned
 
-    // Calculate fine (Logic simplified)
+    // Calculate fine if overdue
     if (loan.returnDate > loan.dueDate) {
-      loan.status = "Overdue"; // Or keep returned but flag fine
-      // Calculate days late * fine per day
+      const diffTime = Math.abs(loan.returnDate - loan.dueDate);
+      const daysLate = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      loan.isOverdue = true;
+      loan.fine = daysLate * 1000; // Rp 1.000 per day late
     }
 
     await loan.save();
@@ -190,7 +192,12 @@ exports.returnBook = async (req, res) => {
       await book.save();
     }
 
-    res.json({ message: "Buku berhasil dikembalikan", loan });
+    res.json({
+      message: loan.isOverdue
+        ? `Buku dikembalikan terlambat. Denda: Rp ${loan.fine?.toLocaleString()}`
+        : "Buku berhasil dikembalikan",
+      loan,
+    });
   } catch (error) {
     res
       .status(500)

@@ -1,4 +1,5 @@
 const ProjectP5 = require("../models/ProjectP5");
+const logger = require("../config/logger");
 
 // Buat Projek P5 Baru
 exports.createProject = async (req, res) => {
@@ -45,11 +46,11 @@ exports.getProjects = async (req, res) => {
     if (academicYear) query.academicYear = academicYear;
     if (level) query.level = level;
 
-    console.log("Fetching P5 Projects with query:", query);
+    logger.debug("Fetching P5 Projects with query:", query);
 
     const projects = await ProjectP5.find(query).populate(
       "facilitators",
-      "username profile.fullName"
+      "username profile.fullName",
     );
     res.json(projects);
   } catch (error) {
@@ -74,7 +75,7 @@ exports.inputAssessment = async (req, res) => {
         scores,
         finalNotes,
       },
-      { new: true, upsert: true } // Create if not exists
+      { new: true, upsert: true }, // Create if not exists
     );
 
     res.json(assessment);
