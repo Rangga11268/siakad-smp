@@ -27,7 +27,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Trash2, Edit, Loader2, Users, UserPlus, X } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Edit,
+  Loader2,
+  Users,
+  UserPlus,
+  X,
+  Building2,
+} from "lucide-react";
 import api from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -129,7 +138,7 @@ const MasterClassPage = () => {
       });
       // Refresh members
       const res = await api.get(
-        `/academic/class/${selectedClass._id}/students`
+        `/academic/class/${selectedClass._id}/students`,
       );
       setMembers(res.data);
       setSelectedStudentId("");
@@ -166,37 +175,44 @@ const MasterClassPage = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Data Kelas</h2>
-          <p className="text-muted-foreground">
-            Kelola daftar kelas dan wali kelas.
+          <h2 className="font-serif text-3xl font-bold tracking-tight text-school-navy">
+            Master Data Kelas
+          </h2>
+          <p className="text-slate-500">
+            Kelola daftar kelas aktif dan pembagian siswa.
           </p>
         </div>
 
         <Dialog open={openDialog} onOpenChange={setOpenDialog}>
           <DialogTrigger asChild>
-            <Button className="bg-blue-600 hover:bg-blue-700">
+            <Button className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold shadow-md transition-all">
               <Plus className="mr-2 h-4 w-4" /> Tambah Kelas
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Tambah Kelas Baru</DialogTitle>
+              <DialogTitle className="font-serif text-2xl text-school-navy">
+                Tambah Kelas Baru
+              </DialogTitle>
               <DialogDescription>
                 Buat kelas baru untuk tahun ajaran aktif.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right">
+            <div className="grid gap-6 py-4">
+              <div className="grid gap-2">
+                <Label
+                  htmlFor="name"
+                  className="font-semibold text-school-navy"
+                >
                   Nama Kelas
                 </Label>
                 <Input
                   id="name"
                   placeholder="Contoh: 7A"
-                  className="col-span-3"
+                  className="bg-slate-50 focus:border-school-gold focus:ring-school-gold"
                   value={formData.name}
                   onChange={(e) =>
                     setFormData({
@@ -206,8 +222,11 @@ const MasterClassPage = () => {
                   }
                 />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="level" className="text-right">
+              <div className="grid gap-2">
+                <Label
+                  htmlFor="level"
+                  className="font-semibold text-school-navy"
+                >
                   Tingkat
                 </Label>
                 <Select
@@ -216,7 +235,7 @@ const MasterClassPage = () => {
                     setFormData({ ...formData, level: val })
                   }
                 >
-                  <SelectTrigger className="col-span-3">
+                  <SelectTrigger className="bg-slate-50 focus:border-school-gold focus:ring-school-gold">
                     <SelectValue placeholder="Pilih Tingkat" />
                   </SelectTrigger>
                   <SelectContent>
@@ -232,6 +251,7 @@ const MasterClassPage = () => {
                 type="submit"
                 disabled={submitting}
                 onClick={handleCreate}
+                className="bg-school-navy hover:bg-school-gold hover:text-school-navy w-full"
               >
                 {submitting && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -245,66 +265,86 @@ const MasterClassPage = () => {
 
       {/* Manage Members Dialog */}
       <Dialog open={openMembersDialog} onOpenChange={setOpenMembersDialog}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>
-              Kelola Anggota Kelas - {selectedClass?.name}
+        <DialogContent className="max-w-3xl">
+          <DialogHeader className="border-b pb-4">
+            <DialogTitle className="font-serif text-2xl text-school-navy">
+              Kelola Siswa -{" "}
+              <span className="text-school-gold">{selectedClass?.name}</span>
             </DialogTitle>
             <DialogDescription>
               Tambah atau hapus siswa dari kelas ini.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div className="flex gap-2">
-              <Select
-                onValueChange={setSelectedStudentId}
-                value={selectedStudentId}
-              >
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Pilih Siswa (Cari Nama...)" />
-                </SelectTrigger>
-                <SelectContent className="max-h-[200px]">
-                  {allStudents
-                    .filter((s) => !s.profile.class || s.profile.class === "")
-                    .map((s) => (
-                      <SelectItem key={s._id} value={s._id}>
-                        {s.profile.fullName} ({s.username})
-                      </SelectItem>
-                    ))}
-                  {/* Option to show all even if assigned, mostly relying on filter for now */}
-                </SelectContent>
-              </Select>
+          <div className="space-y-6 pt-2">
+            <div className="flex gap-3 bg-slate-50 p-4 rounded-lg border border-slate-200">
+              <div className="flex-1">
+                <Select
+                  onValueChange={setSelectedStudentId}
+                  value={selectedStudentId}
+                >
+                  <SelectTrigger className="w-full bg-white border-slate-300 focus:border-school-gold focus:ring-school-gold">
+                    <SelectValue placeholder="Cari Siswa Belum Ada Kelas..." />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[300px]">
+                    {allStudents
+                      .filter((s) => !s.profile.class || s.profile.class === "")
+                      .map((s) => (
+                        <SelectItem key={s._id} value={s._id}>
+                          {s.profile.fullName} ({s.username})
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <Button
                 onClick={handleAddMember}
                 disabled={!selectedStudentId || submitting}
+                className="bg-school-navy hover:bg-school-gold hover:text-school-navy"
               >
-                <UserPlus className="mr-2 h-4 w-4" /> Tambah
+                <UserPlus className="mr-2 h-4 w-4" /> Tambah Siswa
               </Button>
             </div>
 
-            <div className="border rounded-md max-h-[300px] overflow-y-auto">
+            <div className="border border-slate-200 rounded-lg max-h-[400px] overflow-y-auto">
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>No</TableHead>
-                    <TableHead>Nama Siswa</TableHead>
-                    <TableHead>NISN</TableHead>
-                    <TableHead className="text-right">Aksi</TableHead>
+                <TableHeader className="bg-school-navy sticky top-0">
+                  <TableRow className="hover:bg-school-navy">
+                    <TableHead className="text-white w-12 text-center">
+                      No
+                    </TableHead>
+                    <TableHead className="text-white">Nama Siswa</TableHead>
+                    <TableHead className="text-white">NISN</TableHead>
+                    <TableHead className="text-white text-right">
+                      Aksi
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
+                  {members.length === 0 && (
+                    <TableRow>
+                      <TableCell
+                        colSpan={4}
+                        className="text-center py-8 text-slate-500"
+                      >
+                        Belum ada siswa di kelas ini.
+                      </TableCell>
+                    </TableRow>
+                  )}
                   {members.map((m, idx) => (
-                    <TableRow key={m._id}>
-                      <TableCell>{idx + 1}</TableCell>
-                      <TableCell>{m.profile.fullName}</TableCell>
-                      <TableCell>{m.profile.nisn}</TableCell>
+                    <TableRow key={m._id} className="hover:bg-slate-50">
+                      <TableCell className="text-center">{idx + 1}</TableCell>
+                      <TableCell className="font-medium text-school-navy">
+                        {m.profile.fullName}
+                      </TableCell>
+                      <TableCell>{m.profile.nisn || "-"}</TableCell>
                       <TableCell className="text-right">
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => handleRemoveMember(m._id)}
+                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
                         >
-                          <X className="h-4 w-4 text-red-500" />
+                          <X className="h-4 w-4" />
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -316,24 +356,37 @@ const MasterClassPage = () => {
         </DialogContent>
       </Dialog>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Daftar Kelas (Tahun Ajaran 2024/2025)</CardTitle>
+      <Card className="border-t-4 border-t-school-gold shadow-lg border-none">
+        <CardHeader className="border-b border-slate-100 bg-white">
+          <CardTitle className="font-serif text-xl text-school-navy flex items-center gap-2">
+            <Building2 className="w-5 h-5 text-school-gold" /> Daftar Kelas
+            Aktif
+          </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {loading && !openMembersDialog ? (
-            <div className="flex justify-center p-8">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <div className="flex justify-center p-12">
+              <Loader2 className="h-8 w-8 animate-spin text-school-gold" />
             </div>
           ) : (
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nama Kelas</TableHead>
-                  <TableHead>Tingkat</TableHead>
-                  <TableHead>Wali Kelas</TableHead>
-                  <TableHead>Jumlah Siswa</TableHead>
-                  <TableHead className="text-right">Aksi</TableHead>
+              <TableHeader className="bg-school-navy">
+                <TableRow className="hover:bg-school-navy">
+                  <TableHead className="text-white font-bold">
+                    Nama Kelas
+                  </TableHead>
+                  <TableHead className="text-white font-bold">
+                    Tingkat
+                  </TableHead>
+                  <TableHead className="text-white font-bold">
+                    Wali Kelas
+                  </TableHead>
+                  <TableHead className="text-white font-bold">
+                    Jumlah Siswa
+                  </TableHead>
+                  <TableHead className="text-white font-bold text-right">
+                    Aksi
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -341,35 +394,61 @@ const MasterClassPage = () => {
                   <TableRow>
                     <TableCell
                       colSpan={5}
-                      className="text-center py-8 text-muted-foreground"
+                      className="text-center py-12 text-slate-500"
                     >
-                      Belum ada data kelas
+                      <div className="flex flex-col items-center justify-center">
+                        <Building2 className="h-12 w-12 text-slate-200 mb-3" />
+                        <p>Belum ada data kelas.</p>
+                      </div>
                     </TableCell>
                   </TableRow>
                 )}
                 {classes.map((cls) => (
-                  <TableRow key={cls._id}>
-                    <TableCell className="font-medium">{cls.name}</TableCell>
-                    <TableCell>Kelas {cls.level}</TableCell>
+                  <TableRow
+                    key={cls._id}
+                    className="hover:bg-slate-50 border-b border-slate-100"
+                  >
+                    <TableCell className="font-bold text-lg text-school-navy">
+                      {cls.name}
+                    </TableCell>
                     <TableCell>
+                      <span className="px-2 py-1 rounded bg-blue-50 text-blue-700 text-xs font-bold">
+                        Kelas {cls.level}
+                      </span>
+                    </TableCell>
+                    <TableCell className="font-medium">
                       {cls.homeroomTeacher?.profile?.fullName ||
                         cls.homeroomTeacher?.username ||
                         "-"}
                     </TableCell>
-                    <TableCell>{cls.students?.length || 0} Siswa</TableCell>
+                    <TableCell>
+                      <span className="flex items-center gap-1 text-slate-600">
+                        <Users className="w-4 h-4" />{" "}
+                        {cls.students?.length || 0} Siswa
+                      </span>
+                    </TableCell>
                     <TableCell className="text-right space-x-2">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => openManageMembers(cls)}
+                        className="border-school-navy text-school-navy hover:bg-school-navy hover:text-white"
                       >
-                        <Users className="h-4 w-4 mr-2" /> Anggota
+                        <Users className="h-3 w-3 mr-2" /> Detail Siswa
                       </Button>
-                      <Button variant="ghost" size="icon">
-                        <Edit className="h-4 w-4 text-orange-500" />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="hover:bg-orange-50 text-orange-500"
+                      >
+                        <Edit className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon">
-                        <Trash2 className="h-4 w-4 text-red-500" />
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="hover:bg-red-50 text-red-500"
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </TableCell>
                   </TableRow>

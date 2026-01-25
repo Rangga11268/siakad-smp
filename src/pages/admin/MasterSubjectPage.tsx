@@ -27,7 +27,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Plus, Search, Trash2, Loader2 } from "lucide-react";
+import { Plus, Search, Trash2, Loader2, BookOpen } from "lucide-react";
 import api from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -104,8 +104,7 @@ const MasterSubjectPage = () => {
       toast({
         variant: "destructive",
         title: "Gagal Simpan",
-        description:
-          "Terjadi kesalahan saat menyimpan mapel. Cek koneksi atau data duplikat.",
+        description: "Terjadi kesalahan saat menyimpan mapel.",
       });
     } finally {
       setSubmitting(false);
@@ -115,43 +114,48 @@ const MasterSubjectPage = () => {
   const filteredSubjects = subjects.filter(
     (s) =>
       s.name.toLowerCase().includes(search.toLowerCase()) ||
-      s.code.toLowerCase().includes(search.toLowerCase())
+      s.code.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">
+          <h2 className="font-serif text-3xl font-bold tracking-tight text-school-navy">
             Master Data Mata Pelajaran
           </h2>
-          <p className="text-muted-foreground">
-            Kelola mata pelajaran dan Tujuan Pembelajaran (TP).
+          <p className="text-slate-500">
+            Kelola daftar mata pelajaran dan Tujuan Pembelajaran (TP).
           </p>
         </div>
 
         <Dialog open={openDialog} onOpenChange={setOpenDialog}>
           <DialogTrigger asChild>
-            <Button className="bg-blue-600 hover:bg-blue-700">
+            <Button className="bg-school-navy hover:bg-school-gold hover:text-school-navy transition-colors font-bold shadow-md">
               <Plus className="mr-2 h-4 w-4" /> Tambah Mapel
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-[425px]">
+          <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Tambah Mata Pelajaran</DialogTitle>
+              <DialogTitle className="font-serif text-2xl text-school-navy">
+                Tambah Mata Pelajaran
+              </DialogTitle>
               <DialogDescription>
                 Masukan detail mata pelajaran baru untuk kurikulum merdeka.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="code" className="text-right">
-                  Kode
+            <div className="grid gap-6 py-4">
+              <div className="grid gap-2">
+                <Label
+                  htmlFor="code"
+                  className="font-semibold text-school-navy"
+                >
+                  Kode Mapel
                 </Label>
                 <Input
                   id="code"
                   placeholder="Contoh: MAT"
-                  className="col-span-3"
+                  className="focus:border-school-gold focus:ring-school-gold bg-slate-50"
                   value={formData.code}
                   onChange={(e) =>
                     setFormData({
@@ -161,58 +165,69 @@ const MasterSubjectPage = () => {
                   }
                 />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right">
-                  Nama
+              <div className="grid gap-2">
+                <Label
+                  htmlFor="name"
+                  className="font-semibold text-school-navy"
+                >
+                  Nama Mapel
                 </Label>
                 <Input
                   id="name"
                   placeholder="Contoh: Matematika"
-                  className="col-span-3"
+                  className="focus:border-school-gold focus:ring-school-gold bg-slate-50"
                   value={formData.name}
                   onChange={(e) =>
                     setFormData({ ...formData, name: e.target.value })
                   }
                 />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="level" className="text-right">
-                  Kelas
-                </Label>
-                <Select
-                  value={formData.level}
-                  onValueChange={(val) =>
-                    setFormData({ ...formData, level: val })
-                  }
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Pilih Kelas" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="7">Kelas 7</SelectItem>
-                    <SelectItem value="8">Kelas 8</SelectItem>
-                    <SelectItem value="9">Kelas 9</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="kktp" className="text-right">
-                  KKTP
-                </Label>
-                <Select
-                  value={formData.kktpType}
-                  onValueChange={(val) =>
-                    setFormData({ ...formData, kktpType: val })
-                  }
-                >
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Pilih Jenis KKTP" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="interval">Interval Nilai</SelectItem>
-                    <SelectItem value="rubric">Rubrik (Deskripsi)</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label
+                    htmlFor="level"
+                    className="font-semibold text-school-navy"
+                  >
+                    Tingkat Kelas
+                  </Label>
+                  <Select
+                    value={formData.level}
+                    onValueChange={(val) =>
+                      setFormData({ ...formData, level: val })
+                    }
+                  >
+                    <SelectTrigger className="focus:border-school-gold focus:ring-school-gold bg-slate-50">
+                      <SelectValue placeholder="Pilih Kelas" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="7">Kelas 7</SelectItem>
+                      <SelectItem value="8">Kelas 8</SelectItem>
+                      <SelectItem value="9">Kelas 9</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-2">
+                  <Label
+                    htmlFor="kktp"
+                    className="font-semibold text-school-navy"
+                  >
+                    Jenis KKTP
+                  </Label>
+                  <Select
+                    value={formData.kktpType}
+                    onValueChange={(val) =>
+                      setFormData({ ...formData, kktpType: val })
+                    }
+                  >
+                    <SelectTrigger className="focus:border-school-gold focus:ring-school-gold bg-slate-50">
+                      <SelectValue placeholder="Pilih Jenis KKTP" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="interval">Interval Nilai</SelectItem>
+                      <SelectItem value="rubric">Rubrik (Deskripsi)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
             <DialogFooter>
@@ -220,46 +235,60 @@ const MasterSubjectPage = () => {
                 type="submit"
                 disabled={submitting}
                 onClick={handleCreate}
+                className="bg-school-navy hover:bg-school-gold hover:text-school-navy sm:w-auto w-full"
               >
                 {submitting && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                Simpan
+                Simpan Data
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Daftar Mata Pelajaran</CardTitle>
-            <div className="w-1/3 relative">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+      <Card className="border-t-4 border-t-school-gold shadow-lg border-none">
+        <CardHeader className="bg-white border-b border-slate-100 pb-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <CardTitle className="font-serif text-xl text-school-navy flex items-center gap-2">
+              <BookOpen className="w-5 h-5 text-school-gold" />
+              Daftar Mata Pelajaran
+            </CardTitle>
+            <div className="w-full md:w-1/3 relative">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
               <Input
-                placeholder="Cari mapel..."
-                className="pl-8"
+                placeholder="Cari kode atau nama mapel..."
+                className="pl-9 border-slate-200 focus:border-school-gold focus:ring-school-gold bg-slate-50 rounded-full"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           {loading ? (
-            <div className="flex justify-center p-8">
-              <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <div className="flex justify-center p-12">
+              <Loader2 className="h-8 w-8 animate-spin text-school-gold" />
             </div>
           ) : (
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Kode</TableHead>
-                  <TableHead>Nama Mapel</TableHead>
-                  <TableHead>Tingkat</TableHead>
-                  <TableHead>Jenis Asesmen</TableHead>
-                  <TableHead className="text-right">Aksi</TableHead>
+              <TableHeader className="bg-school-navy">
+                <TableRow className="hover:bg-school-navy">
+                  <TableHead className="text-white font-bold w-[100px]">
+                    Kode
+                  </TableHead>
+                  <TableHead className="text-white font-bold">
+                    Nama Mapel
+                  </TableHead>
+                  <TableHead className="text-white font-bold">
+                    Tingkat
+                  </TableHead>
+                  <TableHead className="text-white font-bold">
+                    Jenis Asesmen
+                  </TableHead>
+                  <TableHead className="text-white font-bold text-right">
+                    Aksi
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -267,25 +296,39 @@ const MasterSubjectPage = () => {
                   <TableRow>
                     <TableCell
                       colSpan={5}
-                      className="text-center py-8 text-muted-foreground"
+                      className="text-center py-12 text-slate-500"
                     >
-                      Belum ada data mata pelajaran.
+                      <div className="flex flex-col items-center justify-center">
+                        <BookOpen className="h-12 w-12 text-slate-200 mb-3" />
+                        <p>Belum ada data mata pelajaran.</p>
+                      </div>
                     </TableCell>
                   </TableRow>
                 )}
                 {filteredSubjects.map((subject) => (
-                  <TableRow key={subject._id}>
-                    <TableCell className="font-medium">
+                  <TableRow
+                    key={subject._id}
+                    className="hover:bg-slate-50 border-b border-slate-100"
+                  >
+                    <TableCell className="font-bold text-school-navy">
                       {subject.code}
                     </TableCell>
-                    <TableCell>{subject.name}</TableCell>
-                    <TableCell>Kelas {subject.level}</TableCell>
-                    <TableCell>{subject.kktpType}</TableCell>
+                    <TableCell className="font-medium text-slate-700">
+                      {subject.name}
+                    </TableCell>
+                    <TableCell>
+                      <span className="px-2 py-1 rounded bg-blue-50 text-blue-700 text-xs font-bold">
+                        Kelas {subject.level}
+                      </span>
+                    </TableCell>
+                    <TableCell className="capitalize text-slate-600">
+                      {subject.kktpType}
+                    </TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="text-red-500"
+                        className="text-slate-400 hover:text-red-600 hover:bg-red-50"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

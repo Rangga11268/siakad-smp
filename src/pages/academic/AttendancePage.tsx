@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -18,9 +18,19 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Calendar, Save } from "lucide-react";
+import {
+  Calendar,
+  Save,
+  CheckCircle2,
+  XCircle,
+  Clock,
+  FileQuestion,
+  Loader2,
+  Users,
+} from "lucide-react";
 import api from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
 
 const AttendancePage = () => {
   const [classes, setClasses] = useState<any[]>([]);
@@ -56,19 +66,16 @@ const AttendancePage = () => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      // 1. Get Students in Class
       const resStudents = await api.get(
-        `/academic/class/${selectedClass}/students`
+        `/academic/class/${selectedClass}/students`,
       );
       const studentList = resStudents.data;
 
-      // 2. Get Existing Attendance
       const resAttendance = await api.get("/attendance/daily", {
         params: { classId: selectedClass, date },
       });
       const existingRecords = resAttendance.data;
 
-      // 3. Merge Data (Default "null" if no record)
       const initialData: any = {};
       studentList.forEach((s: any) => {
         const record = existingRecords.find((r: any) => r.student === s._id);
@@ -109,7 +116,6 @@ const AttendancePage = () => {
   const handleSave = async () => {
     setSubmitting(true);
     try {
-      // Only include records with a status set
       const records = Object.keys(attendanceData)
         .filter((studentId) => attendanceData[studentId].status)
         .map((studentId) => ({
@@ -120,7 +126,7 @@ const AttendancePage = () => {
 
       if (records.length === 0) {
         toast({
-          variant: "destructive", // Changed from warning to destructive as warning might not exist
+          variant: "destructive",
           title: "Peringatan",
           description: "Belum ada status absensi yang dipilih.",
         });
@@ -135,7 +141,7 @@ const AttendancePage = () => {
       });
 
       toast({ title: "Berhasil", description: "Data absensi tersimpan." });
-      fetchData(); // Refresh to confirm
+      fetchData();
     } catch (error) {
       toast({
         variant: "destructive",
@@ -147,23 +153,60 @@ const AttendancePage = () => {
     }
   };
 
+  // Status Configurations
+  const statuses = [
+    {
+      id: "Present",
+      label: "Hadir",
+      icon: CheckCircle2,
+      color: "text-green-600",
+      activeClass:
+        "bg-green-100 border-green-500 text-green-700 font-bold shadow-sm",
+    },
+    {
+      id: "Sick",
+      label: "Sakit",
+      icon: FileQuestion,
+      color: "text-yellow-600",
+      activeClass:
+        "bg-yellow-100 border-yellow-500 text-yellow-700 font-bold shadow-sm",
+    },
+    {
+      id: "Permission",
+      label: "Izin",
+      icon: Clock,
+      color: "text-blue-600",
+      activeClass:
+        "bg-blue-100 border-blue-500 text-blue-700 font-bold shadow-sm",
+    },
+    {
+      id: "Alpha",
+      label: "Alpha",
+      icon: XCircle,
+      color: "text-red-600",
+      activeClass: "bg-red-100 border-red-500 text-red-700 font-bold shadow-sm",
+    },
+  ];
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Absensi Harian</h2>
-        <p className="text-muted-foreground">
-          Catat kehadiran siswa per kelas.
+        <h2 className="font-serif text-3xl font-bold tracking-tight text-school-navy">
+          Absensi Harian
+        </h2>
+        <p className="text-slate-500">
+          Catat dan kelola kehadiran siswa per kelas dan tanggal.
         </p>
       </div>
 
-      <Card>
+      <Card className="border-none shadow-md bg-white">
         <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row gap-4 mb-6">
-            <div className="w-full md:w-1/3">
-              <Label>Pilih Kelas</Label>
+          <div className="flex flex-col md:flex-row gap-6 items-end">
+            <div className="w-full md:w-1/3 space-y-2">
+              <Label className="font-bold text-school-navy">Pilih Kelas</Label>
               <Select value={selectedClass} onValueChange={setSelectedClass}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Pilih Kelas" />
+                <SelectTrigger className="border-slate-300 focus:ring-school-gold bg-slate-50 h-10">
+                  <SelectValue placeholder="-- Pilih Kelas --" />
                 </SelectTrigger>
                 <SelectContent>
                   {classes.map((cls) => (
@@ -174,191 +217,164 @@ const AttendancePage = () => {
                 </SelectContent>
               </Select>
             </div>
-            <div className="w-full md:w-1/3">
-              <Label>Tanggal</Label>
+            <div className="w-full md:w-1/3 space-y-2">
+              <Label className="font-bold text-school-navy">
+                Tanggal Absensi
+              </Label>
               <Input
                 type="date"
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
+                className="border-slate-300 focus:ring-school-gold bg-slate-50 h-10"
               />
             </div>
-            <div className="w-full md:w-1/3 flex items-end">
-              <Button onClick={fetchData} variant="outline" className="w-full">
-                <Calendar className="mr-2 h-4 w-4" /> Refresh Data
+            <div className="w-full md:w-1/3">
+              <Button
+                onClick={fetchData}
+                variant="outline"
+                className="w-full h-10 border-school-navy text-school-navy hover:bg-school-navy hover:text-white transition-colors font-semibold"
+              >
+                <Calendar className="mr-2 h-4 w-4" /> Load Data Data
               </Button>
             </div>
           </div>
-
-          {selectedClass && (
-            <>
-              <div className="border rounded-md">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>No</TableHead>
-                      <TableHead>Nama Siswa</TableHead>
-                      <TableHead className="text-center">
-                        Status Kehadiran
-                      </TableHead>
-                      <TableHead>Keterangan</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {loading ? (
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-center py-8">
-                          Loading...
-                        </TableCell>
-                      </TableRow>
-                    ) : students.length === 0 ? (
-                      <TableRow>
-                        <TableCell colSpan={4} className="text-center py-8">
-                          Tidak ada siswa di kelas ini.
-                        </TableCell>
-                      </TableRow>
-                    ) : (
-                      students.map((student, idx) => (
-                        <TableRow key={student._id}>
-                          <TableCell>{idx + 1}</TableCell>
-                          <TableCell className="font-medium">
-                            {student.profile?.fullName || student.username}
-                            <div className="text-xs text-muted-foreground">
-                              {student.username}
-                            </div>
-                            {attendanceData[student._id]?.status ? (
-                              <span
-                                className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium mt-1 ${getStatusBadgeColor(
-                                  attendanceData[student._id].status
-                                )}`}
-                              >
-                                {getStatusLabel(
-                                  attendanceData[student._id].status
-                                )}
-                              </span>
-                            ) : (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-800 mt-1">
-                                Belum Absen
-                              </span>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <div className="flex justify-center gap-2">
-                              {["Present", "Sick", "Permission", "Alpha"].map(
-                                (status) => (
-                                  <div
-                                    key={status}
-                                    onClick={() =>
-                                      handleStatusChange(student._id, status)
-                                    }
-                                    className={`
-                                                            cursor-pointer px-3 py-2 rounded-md border text-sm font-medium transition-all
-                                                            ${
-                                                              attendanceData[
-                                                                student._id
-                                                              ]?.status ===
-                                                              status
-                                                                ? getStatusColor(
-                                                                    status
-                                                                  )
-                                                                : "bg-background hover:bg-muted text-muted-foreground"
-                                                            }
-                                                        `}
-                                  >
-                                    {status === "Present" && "Hadir"}
-                                    {status === "Sick" && "Sakit"}
-                                    {status === "Permission" && "Izin"}
-                                    {status === "Alpha" && "Alpha"}
-                                  </div>
-                                )
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Input
-                              placeholder="Catatan..."
-                              value={attendanceData[student._id]?.note || ""}
-                              onChange={(e) =>
-                                handleNoteChange(student._id, e.target.value)
-                              }
-                              className="h-8 w-[200px]"
-                            />
-                          </TableCell>
-                        </TableRow>
-                      ))
-                    )}
-                  </TableBody>
-                </Table>
-              </div>
-
-              <div className="mt-6 flex justify-end">
-                <Button
-                  size="lg"
-                  onClick={handleSave}
-                  disabled={submitting || students.length === 0}
-                >
-                  {submitting ? (
-                    "Menyimpan..."
-                  ) : (
-                    <>
-                      <Save className="mr-2 h-4 w-4" /> Simpan Absensi
-                    </>
-                  )}
-                </Button>
-              </div>
-            </>
-          )}
         </CardContent>
       </Card>
+
+      {selectedClass && (
+        <Card className="border-t-4 border-t-school-gold shadow-lg border-none overflow-hidden">
+          <CardHeader className="bg-white border-b border-slate-100 flex flex-row justify-between items-center py-4">
+            <div>
+              <CardTitle className="font-serif text-xl text-school-navy flex items-center gap-2">
+                <Users className="w-5 h-5 text-school-gold" />
+                Daftar Kehadiran Siswa
+              </CardTitle>
+              <p className="text-xs text-slate-400 mt-1">
+                Pastikan data kelas dan tanggal sudah benar sebelum menyimpan.
+              </p>
+            </div>
+            <div>
+              <Button
+                size="lg"
+                onClick={handleSave}
+                disabled={submitting || students.length === 0}
+                className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold shadow-md transition-all"
+              >
+                {submitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                    Menyimpan...
+                  </>
+                ) : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" /> Simpan Perubahan
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader className="bg-school-navy">
+                  <TableRow className="hover:bg-school-navy">
+                    <TableHead className="text-white font-bold w-[50px] text-center">
+                      No
+                    </TableHead>
+                    <TableHead className="text-white font-bold w-[250px]">
+                      Nama Siswa
+                    </TableHead>
+                    <TableHead className="text-center text-white font-bold">
+                      Status Kehadiran
+                    </TableHead>
+                    <TableHead className="text-white font-bold w-[250px]">
+                      Keterangan (Opsional)
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {loading ? (
+                    <TableRow>
+                      <TableCell colSpan={4} className="text-center py-12">
+                        <div className="flex flex-col items-center justify-center text-school-gold">
+                          <Loader2 className="h-8 w-8 animate-spin mb-2" />
+                          <p className="text-sm text-slate-500">
+                            Memuat data absensi...
+                          </p>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ) : students.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={4}
+                        className="text-center py-12 text-slate-500"
+                      >
+                        Tidak ada siswa di kelas ini.
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    students.map((student, idx) => (
+                      <TableRow
+                        key={student._id}
+                        className="hover:bg-slate-50 border-b border-slate-100"
+                      >
+                        <TableCell className="text-center font-medium text-slate-500">
+                          {idx + 1}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col">
+                            <span className="font-bold text-school-navy">
+                              {student.profile?.fullName || student.username}
+                            </span>
+                            <span className="text-[10px] text-slate-400 uppercase tracking-wide">
+                              {student.username}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <div className="flex justify-center gap-2">
+                            {statuses.map((item) => (
+                              <div
+                                key={item.id}
+                                onClick={() =>
+                                  handleStatusChange(student._id, item.id)
+                                }
+                                className={cn(
+                                  "flex items-center gap-1 px-3 py-2 rounded-md border text-xs cursor-pointer transition-all duration-200 select-none",
+                                  attendanceData[student._id]?.status ===
+                                    item.id
+                                    ? item.activeClass
+                                    : "bg-white border-slate-200 text-slate-500 hover:bg-slate-100 hover:border-slate-300",
+                                )}
+                              >
+                                <item.icon className="w-3 h-3" />
+                                {item.label}
+                              </div>
+                            ))}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            placeholder="Catatan..."
+                            value={attendanceData[student._id]?.note || ""}
+                            onChange={(e) =>
+                              handleNoteChange(student._id, e.target.value)
+                            }
+                            className="h-9 w-full border-slate-200 bg-slate-50 focus:bg-white transition-colors"
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
-};
-
-// Helper for UI Data
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "Present":
-      return "bg-green-100 border-green-500 text-green-700";
-    case "Sick":
-      return "bg-yellow-100 border-yellow-500 text-yellow-700";
-    case "Permission":
-      return "bg-blue-100 border-blue-500 text-blue-700";
-    case "Alpha":
-      return "bg-red-100 border-red-500 text-red-700";
-    default:
-      return "bg-gray-100";
-  }
-};
-
-// Helper for Status Badge Color
-const getStatusBadgeColor = (status: string) => {
-  switch (status) {
-    case "Present":
-      return "bg-green-100 text-green-800";
-    case "Sick":
-      return "bg-yellow-100 text-yellow-800";
-    case "Permission":
-      return "bg-blue-100 text-blue-800";
-    case "Alpha":
-      return "bg-red-100 text-red-800";
-    default:
-      return "bg-gray-100 text-gray-800";
-  }
-};
-
-// Helper for Status Label
-const getStatusLabel = (status: string) => {
-  switch (status) {
-    case "Present":
-      return "Hadir";
-    case "Sick":
-      return "Sakit";
-    case "Permission":
-      return "Izin";
-    case "Alpha":
-      return "Alpha";
-    default:
-      return status;
-  }
 };
 
 export default AttendancePage;

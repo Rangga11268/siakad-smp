@@ -201,31 +201,37 @@ const Sidebar = () => {
   ];
 
   return (
-    <div className="flex h-full w-72 flex-col bg-[#0f172a] text-slate-100 shadow-2xl relative overflow-hidden border-r border-slate-800">
+    <div className="flex h-full w-72 flex-col bg-school-navy text-white shadow-2xl relative overflow-hidden border-r border-white/10 font-sans">
       {/* Background decoration */}
-      <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl -ml-32 -mb-32 pointer-events-none" />
+      <div className="absolute top-0 right-0 w-64 h-64 bg-school-gold/10 rounded-full blur-3xl -mr-32 -mt-32 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-64 h-64 bg-school-gold/5 rounded-full blur-3xl -ml-32 -mb-32 pointer-events-none" />
 
-      <div className="flex h-20 items-center px-6 z-10 border-b border-slate-800/50 bg-[#0f172a]/50 backdrop-blur-sm">
+      {/* Header / Logo */}
+      <div className="flex h-24 items-center px-6 z-10 border-b border-white/10 bg-school-navy/80 backdrop-blur-sm">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-blue-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-600/20">
-            <GraduationCap className="h-6 w-6" />
+          <div className="w-12 h-12 bg-white/10 rounded-full flex items-center justify-center p-2 border border-white/20 shadow-lg">
+            <img
+              src="/img/logoNoBg.webp"
+              alt="Logo"
+              className="w-full h-full object-contain brightness-0 invert"
+            />
           </div>
           <div>
-            <h1 className="text-xl font-bold tracking-tight bg-gradient-to-r from-white to-slate-400 bg-clip-text text-transparent">
-              SIAKAD SMP
+            <h1 className="text-lg font-serif font-bold tracking-wide text-school-gold leading-tight">
+              SATYA CENDEKIA
             </h1>
-            <p className="text-[10px] text-slate-400 font-medium tracking-widest uppercase">
-              School Management
+            <p className="text-[10px] text-white/60 font-medium tracking-widest uppercase">
+              Management System
             </p>
           </div>
         </div>
       </div>
 
+      {/* Menu Items */}
       <div className="flex-1 overflow-y-auto py-6 px-3 z-10 space-y-6 custom-scrollbar">
         {menuGroups.map((group, idx) => {
           const filteredItems = group.items.filter((item) =>
-            item.roles.includes(role)
+            item.roles.includes(role),
           );
           if (filteredItems.length === 0) return null;
 
@@ -250,13 +256,13 @@ const Sidebar = () => {
               <CollapsibleTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="w-full justify-between hover:bg-slate-800/50 text-slate-400 hover:text-slate-200 h-8 px-3 text-xs font-semibold uppercase tracking-wider mb-1"
+                  className="w-full justify-between hover:bg-white/10 text-white/50 hover:text-white h-9 px-4 text-xs font-bold uppercase tracking-wider mb-2"
                 >
                   {group.label}
                   <ChevronDown
                     className={cn(
                       "h-4 w-4 transition-transform duration-200",
-                      openSections[group.label] ? "" : "-rotate-90"
+                      openSections[group.label] ? "" : "-rotate-90",
                     )}
                   />
                 </Button>
@@ -271,13 +277,14 @@ const Sidebar = () => {
         })}
       </div>
 
-      <div className="p-4 border-t border-slate-800 z-10 bg-[#0f172a]">
+      {/* Footer */}
+      <div className="p-4 border-t border-white/10 z-10 bg-school-navy">
         <Button
           variant="outline"
-          className="w-full justify-start border-slate-700 bg-transparent text-slate-400 hover:text-red-400 hover:border-red-500/50 hover:bg-red-500/10 transition-all h-11 group"
+          className="w-full justify-start border-white/20 bg-transparent text-white/70 hover:text-school-gold hover:border-school-gold/50 hover:bg-school-gold/10 transition-all h-12 group rounded-none"
           onClick={logout}
         >
-          <LogOut className="mr-2 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
+          <LogOut className="mr-3 h-4 w-4 group-hover:-translate-x-1 transition-transform" />
           Logout System
         </Button>
       </div>
@@ -295,25 +302,28 @@ const MenuItem = ({ item, location }: { item: any; location: any }) => {
     <Link to={item.path} className="block">
       <div
         className={cn(
-          "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group relative overflow-hidden",
+          "flex items-center gap-3 px-4 py-3 mx-1 rounded-sm transition-all duration-300 group relative overflow-hidden",
           isActive
-            ? "bg-indigo-600 text-white shadow-md shadow-indigo-600/20"
-            : "text-slate-400 hover:text-slate-100 hover:bg-slate-800/50"
+            ? "text-school-gold bg-gradient-to-r from-white/10 to-transparent border-l-4 border-school-gold"
+            : "text-white/70 hover:text-white hover:bg-white/5 border-l-4 border-transparent",
         )}
       >
-        {isActive && (
-          <div className="absolute left-0 top-0 bottom-0 w-1 bg-white/20" />
-        )}
-
         <item.icon
           className={cn(
             "h-5 w-5 shrink-0 transition-colors",
             isActive
-              ? "text-white"
-              : "text-slate-500 group-hover:text-slate-300"
+              ? "text-school-gold"
+              : "text-white/50 group-hover:text-white",
           )}
         />
-        <span className="font-medium text-sm">{item.title}</span>
+        <span
+          className={cn(
+            "font-medium text-sm tracking-wide",
+            isActive ? "font-semibold" : "",
+          )}
+        >
+          {item.title}
+        </span>
       </div>
     </Link>
   );

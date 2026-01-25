@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import {
   Table,
   TableBody,
@@ -20,7 +26,15 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Loader2, Calendar } from "lucide-react";
+import {
+  Loader2,
+  Calendar,
+  Save,
+  History,
+  BookOpen,
+  Presentation,
+  FileText,
+} from "lucide-react";
 import api from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/AuthContext";
@@ -153,33 +167,59 @@ const JournalPage = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h2 className="text-3xl font-bold tracking-tight">Jurnal Mengajar</h2>
-        <p className="text-muted-foreground">
-          Catat aktivitas belajar mengajar harian.
+        <h2 className="font-serif text-3xl font-bold tracking-tight text-school-navy">
+          Jurnal Mengajar
+        </h2>
+        <p className="text-slate-500">
+          Catat aktivitas belajar mengajar harian, materi yang disampaikan, dan
+          kejadian penting di kelas.
         </p>
       </div>
 
-      <Tabs defaultValue="entry" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="entry">Entri Jurnal</TabsTrigger>
-          <TabsTrigger value="history">Riwayat Saya</TabsTrigger>
+      <Tabs defaultValue="entry" className="space-y-6">
+        <TabsList className="bg-slate-100 p-1 rounded-lg w-full md:w-auto grid grid-cols-2 md:inline-flex md:grid-cols-none">
+          <TabsTrigger
+            value="entry"
+            className="data-[state=active]:bg-school-navy data-[state=active]:text-white font-medium px-6"
+          >
+            Entri Jurnal
+          </TabsTrigger>
+          <TabsTrigger
+            value="history"
+            className="data-[state=active]:bg-school-navy data-[state=active]:text-white font-medium px-6"
+          >
+            Riwayat Saya
+          </TabsTrigger>
           {user?.role === "admin" && (
-            <TabsTrigger value="monitoring">Monitoring (Admin)</TabsTrigger>
+            <TabsTrigger
+              value="monitoring"
+              className="data-[state=active]:bg-school-navy data-[state=active]:text-white font-medium px-6"
+            >
+              Monitoring Admin
+            </TabsTrigger>
           )}
         </TabsList>
 
         <TabsContent value="entry">
-          <Card>
-            <CardHeader>
-              <CardTitle>Form Jurnal Kelas</CardTitle>
+          <Card className="border-t-4 border-t-school-gold shadow-lg border-none">
+            <CardHeader className="bg-white border-b border-slate-100">
+              <CardTitle className="font-serif text-xl text-school-navy flex items-center gap-2">
+                <Presentation className="w-5 h-5 text-school-gold" /> Form
+                Jurnal Kelas
+              </CardTitle>
+              <CardDescription>
+                Lengkapi data di bawah ini setelah selesai mengajar.
+              </CardDescription>
             </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CardContent className="pt-6">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label>Tanggal</Label>
+                    <Label className="font-semibold text-school-navy">
+                      Tanggal Mengajar
+                    </Label>
                     <Input
                       type="date"
                       value={formData.date}
@@ -187,11 +227,14 @@ const JournalPage = () => {
                         setFormData({ ...formData, date: e.target.value })
                       }
                       required
+                      className="bg-slate-50 border-slate-200"
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label>Jam Mulai</Label>
+                      <Label className="font-semibold text-school-navy">
+                        Jam Mulai
+                      </Label>
                       <Input
                         type="time"
                         value={formData.startTime}
@@ -202,10 +245,13 @@ const JournalPage = () => {
                           })
                         }
                         required
+                        className="bg-slate-50 border-slate-200"
                       />
                     </div>
                     <div className="space-y-2">
-                      <Label>Jam Selesai</Label>
+                      <Label className="font-semibold text-school-navy">
+                        Jam Selesai
+                      </Label>
                       <Input
                         type="time"
                         value={formData.endTime}
@@ -213,19 +259,22 @@ const JournalPage = () => {
                           setFormData({ ...formData, endTime: e.target.value })
                         }
                         required
+                        className="bg-slate-50 border-slate-200"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Kelas</Label>
+                    <Label className="font-semibold text-school-navy">
+                      Kelas
+                    </Label>
                     <Select
                       value={formData.classId}
                       onValueChange={(v) =>
                         setFormData({ ...formData, classId: v })
                       }
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-slate-50 border-slate-200">
                         <SelectValue placeholder="Pilih Kelas" />
                       </SelectTrigger>
                       <SelectContent>
@@ -239,14 +288,16 @@ const JournalPage = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <Label>Mata Pelajaran</Label>
+                    <Label className="font-semibold text-school-navy">
+                      Mata Pelajaran
+                    </Label>
                     <Select
                       value={formData.subjectId}
                       onValueChange={(v) =>
                         setFormData({ ...formData, subjectId: v })
                       }
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-slate-50 border-slate-200">
                         <SelectValue placeholder="Pilih Mapel" />
                       </SelectTrigger>
                       <SelectContent>
@@ -261,7 +312,9 @@ const JournalPage = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Topik / Materi Pembelajaran</Label>
+                  <Label className="font-semibold text-school-navy">
+                    Topik / Materi Pembelajaran
+                  </Label>
                   <Input
                     placeholder="Contoh: Aljabar Linear - Pertemuan 1"
                     value={formData.topic}
@@ -269,21 +322,27 @@ const JournalPage = () => {
                       setFormData({ ...formData, topic: e.target.value })
                     }
                     required
+                    className="bg-slate-50 border-slate-200"
                   />
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <Label>Metode Pembelajaran</Label>
+                    <Label className="font-semibold text-school-navy">
+                      Metode Pembelajaran
+                    </Label>
                     <Input
                       value={formData.method}
                       onChange={(e) =>
                         setFormData({ ...formData, method: e.target.value })
                       }
+                      className="bg-slate-50 border-slate-200"
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Aktivitas Siswa</Label>
+                    <Label className="font-semibold text-school-navy">
+                      Aktivitas Siswa
+                    </Label>
                     <Input
                       placeholder="Contoh: Diskusi Kelompok"
                       value={formData.studentActivity}
@@ -293,30 +352,36 @@ const JournalPage = () => {
                           studentActivity: e.target.value,
                         })
                       }
+                      className="bg-slate-50 border-slate-200"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Catatan / Kejadian Khusus</Label>
+                  <Label className="font-semibold text-school-navy">
+                    Catatan / Kejadian Khusus
+                  </Label>
                   <Textarea
-                    placeholder="Kendala teknis, siswa sakit, dll."
+                    placeholder="Contoh: Kendala teknis, siswa sakit, catatan perilaku, dll."
                     value={formData.notes}
                     onChange={(e) =>
                       setFormData({ ...formData, notes: e.target.value })
                     }
+                    className="min-h-[100px] bg-slate-50 border-slate-200"
                   />
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Gunakan Bahan Ajar (Opsional)</Label>
+                  <Label className="font-semibold text-school-navy">
+                    Gunakan Bahan Ajar (Opsional)
+                  </Label>
                   <Select
                     value={formData.materialIds[0] || ""}
                     onValueChange={(v) =>
                       setFormData({ ...formData, materialIds: [v] as any })
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-slate-50 border-slate-200">
                       <SelectValue placeholder="Pilih Materi Terkait" />
                     </SelectTrigger>
                     <SelectContent>
@@ -324,7 +389,7 @@ const JournalPage = () => {
                         .filter(
                           (m) =>
                             !formData.subjectId ||
-                            m.subject?._id === formData.subjectId
+                            m.subject?._id === formData.subjectId,
                         )
                         .map((m) => (
                           <SelectItem key={m._id} value={m._id}>
@@ -336,23 +401,34 @@ const JournalPage = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Lampiran (PDF/Gambar/Doc)</Label>
+                  <Label className="font-semibold text-school-navy">
+                    Lampiran (File Bukti/Dokumentasi)
+                  </Label>
                   <Input
                     type="file"
                     onChange={(e) => {
                       if (e.target.files) setFile(e.target.files[0]);
                     }}
+                    className="cursor-pointer file:bg-school-navy file:text-white file:border-0 file:rounded-md file:px-2 file:text-sm hover:file:bg-school-gold hover:file:text-school-navy transition-all"
                   />
                 </div>
 
-                <div className="flex justify-end">
-                  <Button type="submit" disabled={submitting}>
+                <div className="flex justify-end pt-4 border-t border-slate-100">
+                  <Button
+                    type="submit"
+                    disabled={submitting}
+                    className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold shadow-md min-w-[150px]"
+                  >
                     {submitting ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <>
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
+                        Menyimpan...
+                      </>
                     ) : (
-                      <SaveIcon className="mr-2 h-4 w-4" />
+                      <>
+                        <Save className="mr-2 h-4 w-4" /> Simpan Jurnal
+                      </>
                     )}
-                    Simpan Jurnal
                   </Button>
                 </div>
               </form>
@@ -361,11 +437,14 @@ const JournalPage = () => {
         </TabsContent>
 
         <TabsContent value="history">
-          <Card>
-            <CardHeader>
-              <CardTitle>Riwayat Jurnal Mengajar</CardTitle>
+          <Card className="border-none shadow-md">
+            <CardHeader className="bg-white border-b border-slate-100">
+              <CardTitle className="font-serif text-xl text-school-navy flex items-center gap-2">
+                <History className="w-5 h-5 text-school-gold" /> Riwayat Jurnal
+                Mengajar Saya
+              </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               <JournalTable journals={myJournals} loading={loading} />
             </CardContent>
           </Card>
@@ -373,11 +452,17 @@ const JournalPage = () => {
 
         {user?.role === "admin" && (
           <TabsContent value="monitoring">
-            <Card>
-              <CardHeader>
-                <CardTitle>Monitoring Semua Jurnal</CardTitle>
+            <Card className="border-none shadow-md">
+              <CardHeader className="bg-white border-b border-slate-100">
+                <CardTitle className="font-serif text-xl text-school-navy flex items-center gap-2">
+                  <FileText className="w-5 h-5 text-school-gold" /> Monitoring
+                  Semua Jurnal
+                </CardTitle>
+                <CardDescription>
+                  Pantau aktivitas mengajar seluruh guru.
+                </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="p-0">
                 <JournalTable
                   journals={allJournals}
                   loading={false}
@@ -404,66 +489,102 @@ const JournalTable = ({
 }) => {
   return (
     <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead>Tanggal</TableHead>
-          <TableHead>Jam</TableHead>
-          {showTeacher && <TableHead>Guru</TableHead>}
-          <TableHead>Kelas</TableHead>
-          <TableHead>Mapel</TableHead>
-          <TableHead>Materi</TableHead>
-          <TableHead>Lampiran</TableHead>
-          <TableHead>Catatan</TableHead>
+      <TableHeader className="bg-school-navy">
+        <TableRow className="hover:bg-school-navy">
+          <TableHead className="text-white font-bold whitespace-nowrap">
+            Tanggal & Jam
+          </TableHead>
+          {showTeacher && (
+            <TableHead className="text-white font-bold">Guru</TableHead>
+          )}
+          <TableHead className="text-white font-bold">Kelas</TableHead>
+          <TableHead className="text-white font-bold">Mapel</TableHead>
+          <TableHead className="text-white font-bold max-w-[200px]">
+            Materi / Topik
+          </TableHead>
+          <TableHead className="text-white font-bold">Lampiran</TableHead>
+          <TableHead className="text-white font-bold">Catatan</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
         {loading ? (
           <TableRow>
-            <TableCell colSpan={7} className="text-center">
-              Loading...
+            <TableCell colSpan={7} className="text-center h-24">
+              <div className="flex flex-col items-center justify-center text-school-gold">
+                <Loader2 className="h-6 w-6 animate-spin mb-2" />
+                <p className="text-sm text-slate-500">Memuat data jurnal...</p>
+              </div>
             </TableCell>
           </TableRow>
         ) : journals.length === 0 ? (
           <TableRow>
-            <TableCell colSpan={7} className="text-center">
-              Belum ada data.
+            <TableCell colSpan={7} className="text-center h-24 text-slate-500">
+              <div className="flex flex-col items-center justify-center">
+                <BookOpen className="h-8 w-8 text-slate-200 mb-2" />
+                <p>Belum ada data jurnal yang tersimpan.</p>
+              </div>
             </TableCell>
           </TableRow>
         ) : (
           journals.map((j: any) => (
-            <TableRow key={j._id}>
-              <TableCell className="whitespace-nowrap font-medium">
-                <div className="flex items-center">
-                  <Calendar className="mr-2 h-3 w-3" />{" "}
-                  {new Date(j.date).toLocaleDateString("id-ID")}
+            <TableRow
+              key={j._id}
+              className="hover:bg-slate-50 border-b border-slate-100"
+            >
+              <TableCell className="whitespace-nowrap font-medium text-school-navy">
+                <div className="flex flex-col">
+                  <span className="flex items-center gap-1">
+                    <Calendar className="h-3 w-3 text-slate-400" />
+                    {new Date(j.date).toLocaleDateString("id-ID", {
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </span>
+                  <span className="text-xs text-slate-400 mt-1">
+                    {j.startTime} - {j.endTime}
+                  </span>
                 </div>
-              </TableCell>
-              <TableCell>
-                {j.startTime} - {j.endTime}
               </TableCell>
               {showTeacher && (
                 <TableCell>
-                  {j.teacher?.profile?.fullName || j.teacher?.username}
+                  <div className="font-semibold text-slate-700">
+                    {j.teacher?.profile?.fullName || j.teacher?.username}
+                  </div>
                 </TableCell>
               )}
-              <TableCell>{j.class?.name}</TableCell>
-              <TableCell>{j.subject?.name}</TableCell>
-              <TableCell>{j.topic}</TableCell>
+              <TableCell>
+                <span className="inline-flex items-center rounded-md border px-2 py-1 text-xs font-bold border-blue-200 bg-blue-50 text-blue-700">
+                  {j.class?.name || "-"}
+                </span>
+              </TableCell>
+              <TableCell className="font-medium">
+                {j.subject?.name || "-"}
+              </TableCell>
+              <TableCell
+                className="max-w-[200px] truncate font-medium text-slate-600"
+                title={j.topic}
+              >
+                {j.topic}
+              </TableCell>
               <TableCell>
                 {j.attachment ? (
                   <a
                     href={`http://localhost:5000${j.attachment}`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-blue-600 underline text-xs"
+                    className="inline-flex items-center px-2 py-1 rounded bg-slate-100 text-slate-600 hover:bg-school-navy hover:text-white transition-colors text-xs font-medium"
                   >
-                    Unduh
+                    Unduh File
                   </a>
                 ) : (
                   "-"
                 )}
               </TableCell>
-              <TableCell className="max-w-[200px] truncate" title={j.notes}>
+              <TableCell
+                className="max-w-[200px] truncate text-slate-500 text-sm italic"
+                title={j.notes}
+              >
                 {j.notes || "-"}
               </TableCell>
             </TableRow>
@@ -473,26 +594,5 @@ const JournalTable = ({
     </Table>
   );
 };
-
-function SaveIcon(props: any) {
-  return (
-    <svg
-      {...props}
-      xmlns="http://www.w3.org/2000/svg"
-      width="24"
-      height="24"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    >
-      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-      <polyline points="17 21 17 13 7 13 7 21" />
-      <polyline points="7 3 7 8 15 8" />
-    </svg>
-  );
-}
 
 export default JournalPage;

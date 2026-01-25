@@ -35,7 +35,14 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
-import { Loader2, Plus, RefreshCw, Trash2, BookOpen } from "lucide-react";
+import {
+  Loader2,
+  Plus,
+  RefreshCw,
+  Trash2,
+  BookOpen,
+  Target,
+} from "lucide-react";
 
 interface Subject {
   _id: string;
@@ -100,7 +107,7 @@ const LearningGoalPage = () => {
 
       // Auto select active year if any
       const activeYear = yearRes.data.find(
-        (y: AcademicYear) => y.status === "active"
+        (y: AcademicYear) => y.status === "active",
       );
       if (activeYear) setSelectedYear(activeYear._id);
     } catch (error) {
@@ -118,11 +125,8 @@ const LearningGoalPage = () => {
   const fetchLearningGoals = async () => {
     setLoadingTP(true);
     try {
-      // Note: Backend getLearningGoals currently filters by subject and level,
-      // but ideally should also filter by academicYear.
-      // We'll pass it anyway to be safe or if backend is updated later.
       const res = await api.get(
-        `/academic/tp?subjectId=${selectedSubject}&level=${selectedLevel}`
+        `/academic/tp?subjectId=${selectedSubject}&level=${selectedLevel}`,
       );
       setLearningGoals(res.data);
     } catch (error) {
@@ -171,47 +175,68 @@ const LearningGoalPage = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex flex-col md:flex-row justify-between items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">
+          <h2 className="font-serif text-3xl font-bold tracking-tight text-school-navy">
             Tujuan Pembelajaran (TP)
           </h2>
-          <p className="text-muted-foreground">
-            Kelola TP untuk setiap Mata Pelajaran dan Jenjang.
+          <p className="text-slate-500">
+            Kelola TP (Tujuan Pembelajaran) untuk penilaian rapor Kurikulum
+            Merdeka.
           </p>
         </div>
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-blue-600 hover:bg-blue-700">
+            <Button className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold shadow-md transition-all">
               <Plus className="mr-2 h-4 w-4" /> Tambah TP Baru
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
-              <DialogTitle>Tambah Tujuan Pembelajaran</DialogTitle>
+              <DialogTitle className="font-serif text-2xl text-school-navy">
+                Tambah Tujuan Pembelajaran
+              </DialogTitle>
               <DialogDescription>
-                TP akan dikaitkan dengan Mapel dan Jenjang yang dipilih saat
-                ini.
+                TP akan dikaitkan dengan Mapel dan Jenjang yang sedang dipilih
+                di filter.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label className="text-right">Kode TP</Label>
+            <div className="grid gap-6 py-4">
+              <div className="bg-blue-50 p-4 rounded-md border border-blue-100 mb-2">
+                <p className="text-sm text-blue-800 font-medium">
+                  Konteks Data:
+                </p>
+                <ul className="list-disc list-inside text-sm text-blue-700 mt-1">
+                  <li>
+                    Mapel:{" "}
+                    {subjects.find((s) => s._id === selectedSubject)?.name ||
+                      "-"}
+                  </li>
+                  <li>Kelas: {selectedLevel}</li>
+                </ul>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="font-semibold text-school-navy">
+                  Kode TP
+                </Label>
                 <Input
-                  className="col-span-3"
-                  placeholder="Misal: 7.1.1"
+                  className="bg-slate-50 focus:border-school-gold"
+                  placeholder="Misal: 7.1.1 (Kelas 7, Bab 1, TP 1)"
                   value={formData.code}
                   onChange={(e) =>
                     setFormData({ ...formData, code: e.target.value })
                   }
                 />
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label className="text-right">Deskripsi</Label>
+              <div className="space-y-2">
+                <Label className="font-semibold text-school-navy">
+                  Deskripsi Kompetensi
+                </Label>
                 <Input
-                  className="col-span-3"
-                  placeholder="Peserta didik mampu..."
+                  className="bg-slate-50 focus:border-school-gold"
+                  placeholder="Peserta didik mampu memahami konsep..."
                   value={formData.description}
                   onChange={(e) =>
                     setFormData({ ...formData, description: e.target.value })
@@ -220,30 +245,39 @@ const LearningGoalPage = () => {
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={handleCreate} disabled={submitting}>
+              <Button
+                onClick={handleCreate}
+                disabled={submitting}
+                className="bg-school-navy hover:bg-school-gold hover:text-school-navy w-full font-bold"
+              >
                 {submitting && (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                Simpan
+                Simpan TP
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
-      <Card>
+      <Card className="border-none shadow-md bg-white">
         <CardHeader>
-          <CardTitle>Filter & Data</CardTitle>
+          <CardTitle className="font-serif text-xl text-school-navy">
+            Filter Data
+          </CardTitle>
           <CardDescription>
-            Pilih Tahun Ajaran, Mapel, dan Jenjang untuk menampilkan TP.
+            Pilih Tahun Ajaran, Mapel, dan Jenjang untuk menampilkan TP yang
+            relevan.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-4 mb-6">
+          <div className="grid gap-6 md:grid-cols-4">
             <div className="space-y-2">
-              <Label>Tahun Ajaran</Label>
+              <Label className="font-semibold text-school-navy">
+                Tahun Ajaran
+              </Label>
               <Select value={selectedYear} onValueChange={setSelectedYear}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-slate-50 border-slate-300">
                   <SelectValue placeholder="Pilih Tahun" />
                 </SelectTrigger>
                 <SelectContent>
@@ -256,12 +290,14 @@ const LearningGoalPage = () => {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Mata Pelajaran</Label>
+              <Label className="font-semibold text-school-navy">
+                Mata Pelajaran
+              </Label>
               <Select
                 value={selectedSubject}
                 onValueChange={setSelectedSubject}
               >
-                <SelectTrigger>
+                <SelectTrigger className="bg-slate-50 border-slate-300">
                   <SelectValue placeholder="Pilih Mapel" />
                 </SelectTrigger>
                 <SelectContent>
@@ -274,9 +310,11 @@ const LearningGoalPage = () => {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label>Jenjang / Kelas</Label>
+              <Label className="font-semibold text-school-navy">
+                Jenjang / Kelas
+              </Label>
               <Select value={selectedLevel} onValueChange={setSelectedLevel}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-slate-50 border-slate-300">
                   <SelectValue placeholder="Pilih Tingkat" />
                 </SelectTrigger>
                 <SelectContent>
@@ -291,67 +329,94 @@ const LearningGoalPage = () => {
                 variant="outline"
                 onClick={fetchLearningGoals}
                 disabled={loadingTP}
-                className="w-full"
+                className="w-full border-school-navy text-school-navy hover:bg-school-navy hover:text-white transition-colors"
               >
                 <RefreshCw
                   className={`mr-2 h-4 w-4 ${loadingTP ? "animate-spin" : ""}`}
                 />
-                Refresh Data
+                Refresh Table
               </Button>
             </div>
           </div>
+        </CardContent>
+      </Card>
 
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
+      <Card className="border-t-4 border-t-school-gold shadow-lg border-none overflow-hidden">
+        <CardHeader className="bg-white border-b border-slate-100 flex flex-row items-center gap-2">
+          <Target className="w-5 h-5 text-school-gold" />
+          <CardTitle className="font-serif text-lg text-school-navy">
+            Daftar Tujuan Pembelajaran
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader className="bg-school-navy">
+              <TableRow className="hover:bg-school-navy">
+                <TableHead className="text-white font-bold w-[150px]">
+                  Kode TP
+                </TableHead>
+                <TableHead className="text-white font-bold">
+                  Deskripsi Kompetensi
+                </TableHead>
+                <TableHead className="text-white font-bold w-[100px] text-right">
+                  Aksi
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {loadingTP ? (
                 <TableRow>
-                  <TableHead className="w-[150px]">Kode TP</TableHead>
-                  <TableHead>Deskripsi Kompetensi</TableHead>
-                  <TableHead className="w-[100px] text-right">Aksi</TableHead>
+                  <TableCell colSpan={3} className="text-center h-24">
+                    <div className="flex flex-col items-center justify-center text-school-gold">
+                      <Loader2 className="h-6 w-6 animate-spin mb-2" />
+                      <p className="text-sm text-slate-500">
+                        Memuat data TP...
+                      </p>
+                    </div>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {loadingTP ? (
-                  <TableRow>
-                    <TableCell colSpan={3} className="text-center h-24">
-                      <Loader2 className="h-6 w-6 animate-spin mx-auto text-muted-foreground" />
-                    </TableCell>
-                  </TableRow>
-                ) : learningGoals.length === 0 ? (
-                  <TableRow>
-                    <TableCell
-                      colSpan={3}
-                      className="text-center h-24 text-muted-foreground"
-                    >
+              ) : learningGoals.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={3}
+                    className="text-center h-24 text-slate-500"
+                  >
+                    <div className="flex flex-col items-center justify-center">
+                      <BookOpen className="h-8 w-8 text-slate-200 mb-2" />
                       {!selectedSubject || !selectedYear
-                        ? "Silakan pilih filter terlebih dahulu."
-                        : "Belum ada TP untuk mapel ini."}
+                        ? "Silakan pilih filter Mapel dan Kelas terlebih dahulu."
+                        : "Belum ada TP untuk kategori ini."}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : (
+                learningGoals.map((tp) => (
+                  <TableRow
+                    key={tp._id}
+                    className="hover:bg-slate-50 border-b border-slate-100"
+                  >
+                    <TableCell className="font-medium align-top">
+                      <span className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-bold transition-colors focus:outline-none border-transparent bg-school-navy text-white shadow">
+                        {tp.code}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-slate-700 leading-relaxed">
+                      {tp.description}
+                    </TableCell>
+                    <TableCell className="text-right align-top">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-slate-400 hover:text-red-600 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
                     </TableCell>
                   </TableRow>
-                ) : (
-                  learningGoals.map((tp) => (
-                    <TableRow key={tp._id}>
-                      <TableCell className="font-medium">
-                        <span className="inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-primary text-primary-foreground shadow hover:bg-primary/80">
-                          {tp.code}
-                        </span>
-                      </TableCell>
-                      <TableCell>{tp.description}</TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-red-500 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </div>
+                ))
+              )}
+            </TableBody>
+          </Table>
         </CardContent>
       </Card>
     </div>

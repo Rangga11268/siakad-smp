@@ -20,7 +20,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Search, UserPlus, Loader2, Users, Edit, Trash2 } from "lucide-react";
+import {
+  Search,
+  UserPlus,
+  Loader2,
+  Users,
+  Edit,
+  Trash2,
+  GraduationCap,
+} from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -215,51 +223,68 @@ const MasterStudentPage = () => {
   };
 
   const filteredStudents = students.filter((s) =>
-    s.profile?.fullName?.toLowerCase().includes(search.toLowerCase())
+    s.profile?.fullName?.toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+    <div className="space-y-8">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-6">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">
+          <h2 className="font-serif text-3xl font-bold tracking-tight text-school-navy">
             Data Siswa (Buku Induk)
           </h2>
-          <p className="text-muted-foreground">
-            Manajemen data indik siswa lengkap sesuai Dapodik.
+          <p className="text-slate-500">
+            Manajemen data induk siswa lengkap sesuai Dapodik & Kurikulum
+            Merdeka.
           </p>
         </div>
         <Button
           onClick={() => handleOpenDialog()}
-          className="bg-indigo-600 hover:bg-indigo-700"
+          className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold shadow-lg transition-all text-white px-6 py-2"
         >
-          <UserPlus className="mr-2 h-4 w-4" /> Tambah Siswa Baru
+          <UserPlus className="mr-2 h-4 w-4" /> Registrasi Siswa Baru
         </Button>
       </div>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>
+        <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="border-b pb-4">
+            <DialogTitle className="font-serif text-2xl text-school-navy">
               {isEditing ? "Edit Data Siswa" : "Registrasi Siswa Baru"}
             </DialogTitle>
             <DialogDescription>
-              Lengkapi biodata siswa, data fisik, dan informasi orang tua.
+              Lengkapi biodata siswa, data fisik, dan informasi orang tua dengan
+              benar.
             </DialogDescription>
           </DialogHeader>
 
           <Tabs defaultValue="identity" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="identity">Identitas</TabsTrigger>
-              <TabsTrigger value="physical">Fisik & Kesehatan</TabsTrigger>
-              <TabsTrigger value="family">Keluarga & Wali</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 bg-slate-100 p-1 rounded-lg mb-6">
+              <TabsTrigger
+                value="identity"
+                className="data-[state=active]:bg-school-navy data-[state=active]:text-white data-[state=active]:shadow-md font-medium transition-all"
+              >
+                Identitas
+              </TabsTrigger>
+              <TabsTrigger
+                value="physical"
+                className="data-[state=active]:bg-school-navy data-[state=active]:text-white data-[state=active]:shadow-md font-medium transition-all"
+              >
+                Fisik & Kesehatan
+              </TabsTrigger>
+              <TabsTrigger
+                value="family"
+                className="data-[state=active]:bg-school-navy data-[state=active]:text-white data-[state=active]:shadow-md font-medium transition-all"
+              >
+                Keluarga & Wali
+              </TabsTrigger>
             </TabsList>
 
             {/* TAB IDENTITAS */}
-            <TabsContent value="identity" className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
+            <TabsContent value="identity" className="space-y-6 py-2">
+              <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label>NISN</Label>
+                  <Label className="font-semibold text-slate-700">NISN</Label>
                   <Input
                     value={formData.nisn}
                     onChange={(e) =>
@@ -272,15 +297,18 @@ const MasterStudentPage = () => {
                       })
                     }
                     placeholder="0012345678"
+                    className="border-slate-300 focus:border-school-gold bg-slate-50"
                   />
                   {!isEditing && (
-                    <p className="text-[10px] text-muted-foreground">
-                      *Username otomatis NISN
+                    <p className="text-[10px] text-slate-400 font-medium">
+                      *Username otomatis mengikuti NISN
                     </p>
                   )}
                 </div>
                 <div className="space-y-2">
-                  <Label>Password {isEditing && "(Isi jika ingin ubah)"}</Label>
+                  <Label className="font-semibold text-slate-700">
+                    Password {isEditing && "(Isi jika ingin ubah)"}
+                  </Label>
                   <Input
                     type="password"
                     value={formData.password}
@@ -292,30 +320,34 @@ const MasterStudentPage = () => {
                         ? "Biarkan kosong jika tetap"
                         : "Default: 123456"
                     }
+                    className="border-slate-300 focus:border-school-gold bg-slate-50"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label>Nama Lengkap</Label>
+                <Label className="font-semibold text-slate-700">
+                  Nama Lengkap
+                </Label>
                 <Input
                   value={formData.fullName}
                   onChange={(e) =>
                     setFormData({ ...formData, fullName: e.target.value })
                   }
+                  className="border-slate-300 focus:border-school-gold bg-slate-50"
                 />
               </div>
 
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 gap-6">
                 <div className="space-y-2">
-                  <Label>Gender</Label>
+                  <Label className="font-semibold text-slate-700">Gender</Label>
                   <Select
                     value={formData.gender}
                     onValueChange={(v) =>
                       setFormData({ ...formData, gender: v })
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="border-slate-300 bg-slate-50">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -325,14 +357,16 @@ const MasterStudentPage = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Tingkat</Label>
+                  <Label className="font-semibold text-slate-700">
+                    Tingkat
+                  </Label>
                   <Select
                     value={formData.level}
                     onValueChange={(v) =>
                       setFormData({ ...formData, level: v })
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="border-slate-300 bg-slate-50">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -343,75 +377,93 @@ const MasterStudentPage = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label>Kelas</Label>
+                  <Label className="font-semibold text-slate-700">Kelas</Label>
                   <Input
                     value={formData.className}
                     onChange={(e) =>
                       setFormData({ ...formData, className: e.target.value })
                     }
                     placeholder="7A"
+                    className="border-slate-300 focus:border-school-gold bg-slate-50"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label>Tempat Lahir</Label>
+                  <Label className="font-semibold text-slate-700">
+                    Tempat Lahir
+                  </Label>
                   <Input
                     value={formData.birthPlace}
                     onChange={(e) =>
                       setFormData({ ...formData, birthPlace: e.target.value })
                     }
+                    className="border-slate-300 focus:border-school-gold bg-slate-50"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Tanggal Lahir</Label>
+                  <Label className="font-semibold text-slate-700">
+                    Tanggal Lahir
+                  </Label>
                   <Input
                     type="date"
                     value={formData.birthDate}
                     onChange={(e) =>
                       setFormData({ ...formData, birthDate: e.target.value })
                     }
+                    className="border-slate-300 focus:border-school-gold bg-slate-50"
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Alamat Lengkap</Label>
+                <Label className="font-semibold text-slate-700">
+                  Alamat Lengkap
+                </Label>
                 <Input
                   value={formData.address}
                   onChange={(e) =>
                     setFormData({ ...formData, address: e.target.value })
                   }
                   placeholder="Jl. Raya..."
+                  className="border-slate-300 focus:border-school-gold bg-slate-50"
                 />
               </div>
             </TabsContent>
 
             {/* TAB FISIK */}
-            <TabsContent value="physical" className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
+            <TabsContent value="physical" className="space-y-6 py-2">
+              <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label>Tinggi Badan (cm)</Label>
+                  <Label className="font-semibold text-slate-700">
+                    Tinggi Badan (cm)
+                  </Label>
                   <Input
                     type="number"
                     value={formData.height}
                     onChange={(e) =>
                       setFormData({ ...formData, height: e.target.value })
                     }
+                    className="border-slate-300 focus:border-school-gold bg-slate-50"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Berat Badan (kg)</Label>
+                  <Label className="font-semibold text-slate-700">
+                    Berat Badan (kg)
+                  </Label>
                   <Input
                     type="number"
                     value={formData.weight}
                     onChange={(e) =>
                       setFormData({ ...formData, weight: e.target.value })
                     }
+                    className="border-slate-300 focus:border-school-gold bg-slate-50"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Lingkar Kepala (cm)</Label>
+                  <Label className="font-semibold text-slate-700">
+                    Lingkar Kepala (cm)
+                  </Label>
                   <Input
                     type="number"
                     value={formData.headCircumference}
@@ -421,17 +473,20 @@ const MasterStudentPage = () => {
                         headCircumference: e.target.value,
                       })
                     }
+                    className="border-slate-300 focus:border-school-gold bg-slate-50"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Golongan Darah</Label>
+                  <Label className="font-semibold text-slate-700">
+                    Golongan Darah
+                  </Label>
                   <Select
                     value={formData.bloodType}
                     onValueChange={(v) =>
                       setFormData({ ...formData, bloodType: v })
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="border-slate-300 bg-slate-50">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -447,46 +502,57 @@ const MasterStudentPage = () => {
             </TabsContent>
 
             {/* TAB KELUARGA */}
-            <TabsContent value="family" className="space-y-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
+            <TabsContent value="family" className="space-y-6 py-2">
+              <div className="grid grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <Label>Nama Ayah</Label>
+                  <Label className="font-semibold text-slate-700">
+                    Nama Ayah
+                  </Label>
                   <Input
                     value={formData.fatherName}
                     onChange={(e) =>
                       setFormData({ ...formData, fatherName: e.target.value })
                     }
+                    className="border-slate-300 focus:border-school-gold bg-slate-50"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Nama Ibu</Label>
+                  <Label className="font-semibold text-slate-700">
+                    Nama Ibu
+                  </Label>
                   <Input
                     value={formData.motherName}
                     onChange={(e) =>
                       setFormData({ ...formData, motherName: e.target.value })
                     }
+                    className="border-slate-300 focus:border-school-gold bg-slate-50"
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Pekerjaan Orang Tua</Label>
+                <Label className="font-semibold text-slate-700">
+                  Pekerjaan Orang Tua
+                </Label>
                 <Input
                   value={formData.parentJob}
                   onChange={(e) =>
                     setFormData({ ...formData, parentJob: e.target.value })
                   }
                   placeholder="Wiraswasta/PNS/Buruh..."
+                  className="border-slate-300 focus:border-school-gold bg-slate-50"
                 />
               </div>
               <div className="space-y-2">
-                <Label>Penghasilan Bulanan</Label>
+                <Label className="font-semibold text-slate-700">
+                  Penghasilan Bulanan
+                </Label>
                 <Select
                   value={formData.parentIncome}
                   onValueChange={(v) =>
                     setFormData({ ...formData, parentIncome: v })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="border-slate-300 bg-slate-50">
                     <SelectValue placeholder="Pilih Range" />
                   </SelectTrigger>
                   <SelectContent>
@@ -497,16 +563,18 @@ const MasterStudentPage = () => {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid grid-cols-2 gap-4 border p-4 rounded-lg bg-slate-50">
+              <div className="grid grid-cols-2 gap-4 border p-4 rounded-lg bg-orange-50 border-orange-100">
                 <div className="space-y-2">
-                  <Label>Status KIP/KKS</Label>
+                  <Label className="font-semibold text-slate-700">
+                    Status KIP/KKS
+                  </Label>
                   <Select
                     value={formData.kipStatus}
                     onValueChange={(v) =>
                       setFormData({ ...formData, kipStatus: v })
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-white">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -517,12 +585,15 @@ const MasterStudentPage = () => {
                 </div>
                 {formData.kipStatus === "true" && (
                   <div className="space-y-2">
-                    <Label>Nomor KIP</Label>
+                    <Label className="font-semibold text-slate-700">
+                      Nomor KIP
+                    </Label>
                     <Input
                       value={formData.kipNumber}
                       onChange={(e) =>
                         setFormData({ ...formData, kipNumber: e.target.value })
                       }
+                      className="bg-white"
                     />
                   </div>
                 )}
@@ -530,84 +601,142 @@ const MasterStudentPage = () => {
             </TabsContent>
           </Tabs>
 
-          <DialogFooter>
-            <Button onClick={handleSubmit} disabled={submitLoading}>
+          <DialogFooter className="mt-6 border-t pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setIsOpen(false)}
+              className="mr-2"
+            >
+              Batal
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={submitLoading}
+              className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold min-w-[150px]"
+            >
               {submitLoading && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              {isEditing ? "Update Data" : "Simpan Siswa"}
+              {isEditing ? "Update Data Siswa" : "Simpan Siswa"}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      <div className="flex items-center space-x-2">
-        <Search className="h-4 w-4 text-muted-foreground" />
-        <Input
-          placeholder="Cari siswa berdasarkan nama..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="max-w-sm"
-        />
-      </div>
-
-      <div className="rounded-md border bg-white">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>NISN</TableHead>
-              <TableHead>Nama Lengkap</TableHead>
-              <TableHead>L/P</TableHead>
-              <TableHead>Kelas</TableHead>
-              <TableHead className="text-right">Aksi</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {loading ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center h-24">
-                  <Loader2 className="h-6 w-6 animate-spin mx-auto" />
-                </TableCell>
+      <Card className="border-t-4 border-t-school-gold shadow-lg border-none">
+        <CardHeader className="bg-white border-b border-slate-100 pb-4">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <CardTitle className="font-serif text-xl text-school-navy flex items-center gap-2">
+              <GraduationCap className="w-6 h-6 text-school-gold" />
+              Daftar Siswa Aktif
+            </CardTitle>
+            <div className="w-full md:w-1/3 relative">
+              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+              <Input
+                placeholder="Cari siswa berdasarkan nama atau NISN..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="pl-9 border-slate-200 focus:border-school-gold focus:ring-school-gold bg-slate-50 rounded-full"
+              />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="p-0">
+          <Table>
+            <TableHeader className="bg-school-navy">
+              <TableRow className="hover:bg-school-navy">
+                <TableHead className="text-white font-bold w-[120px]">
+                  NISN
+                </TableHead>
+                <TableHead className="text-white font-bold">
+                  Nama Lengkap
+                </TableHead>
+                <TableHead className="text-white font-bold text-center w-[80px]">
+                  L/P
+                </TableHead>
+                <TableHead className="text-white font-bold w-[150px]">
+                  Kelas
+                </TableHead>
+                <TableHead className="text-white font-bold text-right">
+                  Aksi
+                </TableHead>
               </TableRow>
-            ) : filteredStudents.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="text-center h-24">
-                  Tidak ada data siswa.
-                </TableCell>
-              </TableRow>
-            ) : (
-              filteredStudents.map((s) => (
-                <TableRow key={s._id}>
-                  <TableCell className="font-medium">
-                    {s.profile?.nisn || "-"}
-                  </TableCell>
-                  <TableCell>
-                    {s.profile?.fullName}
-                    <div className="text-[10px] text-muted-foreground">
-                      {s.username}
+            </TableHeader>
+            <TableBody>
+              {loading ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center h-48">
+                    <div className="flex flex-col items-center justify-center text-school-gold">
+                      <Loader2 className="h-8 w-8 animate-spin mb-2" />
+                      <p className="text-slate-500 font-medium">
+                        Memuat data siswa...
+                      </p>
                     </div>
                   </TableCell>
-                  <TableCell>{s.profile?.gender}</TableCell>
-                  <TableCell>
-                    <span className="inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-secondary text-secondary-foreground hover:bg-secondary/80">
-                      {s.profile?.class || "-"}
-                    </span>
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleOpenDialog(s)}
-                    >
-                      <Edit className="h-4 w-4 mr-2" /> Detail / Edit
-                    </Button>
+                </TableRow>
+              ) : filteredStudents.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={5}
+                    className="text-center h-48 py-12 text-slate-500"
+                  >
+                    <div className="flex flex-col items-center justify-center">
+                      <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-4">
+                        <Users className="h-8 w-8 text-slate-300" />
+                      </div>
+                      <p className="font-medium text-lg">
+                        Tidak ada data siswa ditemukan.
+                      </p>
+                      <p className="text-sm">
+                        Silakan tambah siswa baru atau gunakan kata kunci lain.
+                      </p>
+                    </div>
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ) : (
+                filteredStudents.map((s) => (
+                  <TableRow
+                    key={s._id}
+                    className="hover:bg-slate-50 border-b border-slate-100 shadow-sm"
+                  >
+                    <TableCell className="font-bold text-school-navy">
+                      {s.profile?.nisn || "-"}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="font-semibold text-slate-700">
+                          {s.profile?.fullName}
+                        </span>
+                        <span className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">
+                          {s.username}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center font-medium bg-slate-50 mx-2">
+                      {s.profile?.gender}
+                    </TableCell>
+                    <TableCell>
+                      <span className="inline-flex items-center rounded-md border px-2.5 py-1 text-xs font-bold transition-colors focus:outline-none border-blue-200 bg-blue-50 text-blue-700">
+                        {s.profile?.class || "Belum Ada"}
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleOpenDialog(s)}
+                        className="border-school-navy text-school-navy hover:bg-school-navy hover:text-white transition-colors"
+                      >
+                        <Edit className="h-3 w-3 mr-2" /> Detail
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 };

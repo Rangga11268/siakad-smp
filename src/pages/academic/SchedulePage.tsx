@@ -26,13 +26,33 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Trash2 } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  CalendarDays,
+  Clock,
+  User,
+  BookOpen,
+  Loader2,
+} from "lucide-react";
 import { Label } from "@/components/ui/label";
 import api from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
 
+interface Schedule {
+  _id: string;
+  day: string;
+  startTime: string;
+  endTime: string;
+  subject: { name: string };
+  teacher: {
+    username: string;
+    profile?: { fullName: string };
+  };
+}
+
 const SchedulePage = () => {
-  const [schedules, setSchedules] = useState<any[]>([]);
+  const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [classes, setClasses] = useState<any[]>([]);
   const [subjects, setSubjects] = useState<any[]>([]);
   const [teachers, setTeachers] = useState<any[]>([]);
@@ -83,7 +103,7 @@ const SchedulePage = () => {
     setLoading(true);
     try {
       const res = await api.get(
-        `/schedule?classId=${selectedClass}&day=${selectedDay}`
+        `/schedule?classId=${selectedClass}&day=${selectedDay}`,
       );
       setSchedules(res.data);
     } catch (error) {
@@ -98,9 +118,8 @@ const SchedulePage = () => {
       await api.post("/schedule", {
         ...formData,
         class: selectedClass,
-        // teacher: formData.teacher, // Use dynamic teacher
-        teacher: formData.teacher || undefined, // Send teacher ID
-        academicYear: "676bd6ef259300302c09ef7a", // still hardcoded temporarily or fetch active
+        teacher: formData.teacher || undefined,
+        academicYear: "676bd6ef259300302c09ef7a", // Consider fetching dynamic active year later
         semester: "Ganjil",
       });
       toast({ title: "Berhasil", description: "Jadwal berhasil ditambahkan" });
@@ -131,57 +150,22 @@ const SchedulePage = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-3xl font-bold tracking-tight">Manajemen Jadwal</h2>
-        <p className="text-muted-foreground">
-          Atur jadwal pelajaran per kelas.
-        </p>
-      </div>
+    <div className="space-y-8">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+        <div>
+          <h2 className="font-serif text-3xl font-bold tracking-tight text-school-navy">
+            Manajemen Jadwal
+          </h2>
+          <p className="text-slate-500">
+            Atur roster pelajaran per kelas per semester.
+          </p>
+        </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Filter Jadwal</CardTitle>
-        </CardHeader>
-        <CardContent className="flex gap-4">
-          <div className="w-1/3">
-            <Label>Pilih Kelas</Label>
-            <Select onValueChange={setSelectedClass} value={selectedClass}>
-              <SelectTrigger>
-                <SelectValue placeholder="Pilih Kelas" />
-              </SelectTrigger>
-              <SelectContent>
-                {classes.map((c) => (
-                  <SelectItem key={c._id} value={c._id}>
-                    {c.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="w-1/3">
-            <Label>Pilih Hari</Label>
-            <Select onValueChange={setSelectedDay} value={selectedDay}>
-              <SelectTrigger>
-                <SelectValue placeholder="Pilih Hari" />
-              </SelectTrigger>
-              <SelectContent>
-                {days.map((d) => (
-                  <SelectItem key={d} value={d}>
-                    {d}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="flex justify-end">
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button
               disabled={!selectedClass}
+              className="bg-school-navy hover:bg-school-gold hover:text-school-navy transition-colors font-bold shadow-md"
               onClick={() =>
                 setFormData((prev) => ({ ...prev, day: selectedDay }))
               }
@@ -189,22 +173,23 @@ const SchedulePage = () => {
               <Plus className="mr-2 h-4 w-4" /> Tambah Jadwal
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
-              <DialogTitle>Tambah Jadwal Pelajaran</DialogTitle>
+              <DialogTitle className="font-serif text-2xl text-school-navy">
+                Tambah Jadwal
+              </DialogTitle>
               <DialogDescription>
-                Tambahkan slot pelajaran baru untuk kelas ini.
+                Tambahkan slot pelajaran baru untuk kelas yang dipilih.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              {/* Day Selection */}
+            <div className="grid gap-6 py-4">
               <div className="space-y-2">
-                <Label>Hari</Label>
+                <Label className="font-semibold text-school-navy">Hari</Label>
                 <Select
                   value={formData.day}
                   onValueChange={(v) => setFormData({ ...formData, day: v })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-slate-50 border-slate-200">
                     <SelectValue placeholder="Pilih Hari" />
                   </SelectTrigger>
                   <SelectContent>
@@ -219,34 +204,42 @@ const SchedulePage = () => {
 
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Jam Mulai</Label>
+                  <Label className="font-semibold text-school-navy">
+                    Jam Mulai
+                  </Label>
                   <Input
                     type="time"
                     value={formData.startTime}
                     onChange={(e) =>
                       setFormData({ ...formData, startTime: e.target.value })
                     }
+                    className="bg-slate-50 border-slate-200"
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label>Jam Selesai</Label>
+                  <Label className="font-semibold text-school-navy">
+                    Jam Selesai
+                  </Label>
                   <Input
                     type="time"
                     value={formData.endTime}
                     onChange={(e) =>
                       setFormData({ ...formData, endTime: e.target.value })
                     }
+                    className="bg-slate-50 border-slate-200"
                   />
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Mata Pelajaran</Label>
+                <Label className="font-semibold text-school-navy">
+                  Mata Pelajaran
+                </Label>
                 <Select
                   onValueChange={(v) =>
                     setFormData({ ...formData, subject: v })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-slate-50 border-slate-200">
                     <SelectValue placeholder="Pilih Mapel" />
                   </SelectTrigger>
                   <SelectContent>
@@ -259,13 +252,15 @@ const SchedulePage = () => {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label>Guru Pengajar</Label>
+                <Label className="font-semibold text-school-navy">
+                  Guru Pengajar
+                </Label>
                 <Select
                   onValueChange={(v) =>
                     setFormData({ ...formData, teacher: v })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-slate-50 border-slate-200">
                     <SelectValue placeholder="Pilih Guru" />
                   </SelectTrigger>
                   <SelectContent>
@@ -279,54 +274,135 @@ const SchedulePage = () => {
               </div>
             </div>
             <DialogFooter>
-              <Button onClick={handleSubmit}>Simpan</Button>
+              <Button
+                onClick={handleSubmit}
+                className="bg-school-navy hover:bg-school-gold hover:text-school-navy w-full"
+              >
+                Simpan Jadwal
+              </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
       </div>
 
-      <Card>
+      <Card className="border-none shadow-md bg-white">
+        <CardContent className="p-6">
+          <div className="flex flex-col md:flex-row gap-6 items-end">
+            <div className="w-full md:w-1/3 space-y-2">
+              <Label className="font-bold text-school-navy">Pilih Kelas</Label>
+              <Select onValueChange={setSelectedClass} value={selectedClass}>
+                <SelectTrigger className="border-slate-300 focus:ring-school-gold bg-slate-50 h-10">
+                  <SelectValue placeholder="-- Pilih Kelas --" />
+                </SelectTrigger>
+                <SelectContent>
+                  {classes.map((c) => (
+                    <SelectItem key={c._id} value={c._id}>
+                      {c.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="w-full md:w-1/3 space-y-2">
+              <Label className="font-bold text-school-navy">Pilih Hari</Label>
+              <Select onValueChange={setSelectedDay} value={selectedDay}>
+                <SelectTrigger className="border-slate-300 focus:ring-school-gold bg-slate-50 h-10">
+                  <SelectValue placeholder="Pilih Hari" />
+                </SelectTrigger>
+                <SelectContent>
+                  {days.map((d) => (
+                    <SelectItem key={d} value={d}>
+                      {d}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="border-t-4 border-t-school-gold shadow-lg border-none overflow-hidden">
+        <CardHeader className="bg-white border-b border-slate-100 pb-4">
+          <CardTitle className="font-serif text-xl text-school-navy flex items-center gap-2">
+            <CalendarDays className="w-5 h-5 text-school-gold" />
+            Jadwal Pelajaran:{" "}
+            <span className="text-school-gold">{selectedDay}</span>
+          </CardTitle>
+        </CardHeader>
         <CardContent className="p-0">
           <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Jam</TableHead>
-                <TableHead>Mata Pelajaran</TableHead>
-                <TableHead>Guru</TableHead>
-                <TableHead className="text-right">Aksi</TableHead>
+            <TableHeader className="bg-school-navy">
+              <TableRow className="hover:bg-school-navy">
+                <TableHead className="text-white font-bold w-[150px]">
+                  Jam
+                </TableHead>
+                <TableHead className="text-white font-bold">
+                  Mata Pelajaran
+                </TableHead>
+                <TableHead className="text-white font-bold">
+                  Guru Pengajar
+                </TableHead>
+                <TableHead className="text-white font-bold text-right">
+                  Aksi
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center">
-                    Loading...
+                  <TableCell colSpan={4} className="text-center h-32">
+                    <div className="flex flex-col items-center justify-center text-school-gold">
+                      <Loader2 className="h-6 w-6 animate-spin mb-2" />
+                      <p className="text-sm text-slate-500">Memuat jadwal...</p>
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : schedules.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="text-center">
-                    Belum ada jadwal hari ini.
+                  <TableCell
+                    colSpan={4}
+                    className="text-center h-32 py-12 text-slate-500"
+                  >
+                    <div className="flex flex-col items-center justify-center">
+                      <CalendarDays className="h-10 w-10 text-slate-200 mb-3" />
+                      <p className="font-medium">
+                        Belum ada jadwal untuk {selectedDay}.
+                      </p>
+                      <p className="text-xs">
+                        Silakan pilih kelas lain atau tambahkan jadwal baru.
+                      </p>
+                    </div>
                   </TableCell>
                 </TableRow>
               ) : (
                 schedules.map((s) => (
-                  <TableRow key={s._id}>
-                    <TableCell>
+                  <TableRow
+                    key={s._id}
+                    className="hover:bg-slate-50 border-b border-slate-100"
+                  >
+                    <TableCell className="font-medium text-school-navy flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-slate-400" />
                       {s.startTime} - {s.endTime}
                     </TableCell>
-                    <TableCell className="font-semibold">
-                      {s.subject?.name}
+                    <TableCell>
+                      <div className="flex items-center gap-2 font-bold text-school-navy">
+                        <BookOpen className="w-4 h-4 text-school-gold" />
+                        {s.subject?.name}
+                      </div>
                     </TableCell>
                     <TableCell>
-                      {s.teacher?.profile?.fullName || "Guru"}
+                      <div className="flex items-center gap-2 text-slate-600">
+                        <User className="w-4 h-4 text-slate-400" />
+                        {s.teacher?.profile?.fullName || "Guru"}
+                      </div>
                     </TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="ghost"
-                        size="sm"
+                        size="icon"
                         onClick={() => handleDelete(s._id)}
-                        className="text-red-500 hover:text-red-700"
+                        className="text-slate-400 hover:text-red-600 hover:bg-red-50"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
