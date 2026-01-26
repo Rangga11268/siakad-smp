@@ -1,6 +1,16 @@
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { ArrowRight, Book, GraduationCap } from "iconoir-react";
+import {
+  ArrowRight,
+  Book,
+  GraduationCap,
+  StatsReport,
+  User,
+  Medal,
+  Calendar,
+  QuoteSolid,
+  HelpCircle,
+} from "iconoir-react";
 
 const LandingPage = () => {
   return (
@@ -105,6 +115,58 @@ const LandingPage = () => {
         </div>
       </section>
 
+      {/* 3.1. Statistics Banner (New) */}
+      <section className="bg-school-navy text-white py-16">
+        <div className="container mx-auto px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center divide-x divide-school-gold/30">
+            <div className="hover:scale-105 transition-transform duration-300">
+              <div className="flex justify-center mb-4">
+                <User className="w-10 h-10 text-school-gold" />
+              </div>
+              <h3 className="text-4xl md:text-5xl font-bold font-serif mb-2">
+                1250+
+              </h3>
+              <p className="uppercasetracking-widest text-sm text-school-gold">
+                Siswa Aktif
+              </p>
+            </div>
+            <div className="hover:scale-105 transition-transform duration-300">
+              <div className="flex justify-center mb-4">
+                <GraduationCap className="w-10 h-10 text-school-gold" />
+              </div>
+              <h3 className="text-4xl md:text-5xl font-bold font-serif mb-2">
+                98%
+              </h3>
+              <p className="uppercasetracking-widest text-sm text-school-gold">
+                Lulusan PTN/Fav
+              </p>
+            </div>
+            <div className="hover:scale-105 transition-transform duration-300">
+              <div className="flex justify-center mb-4">
+                <Medal className="w-10 h-10 text-school-gold" />
+              </div>
+              <h3 className="text-4xl md:text-5xl font-bold font-serif mb-2">
+                150+
+              </h3>
+              <p className="uppercasetracking-widest text-sm text-school-gold">
+                Prestasi Tahunan
+              </p>
+            </div>
+            <div className="hover:scale-105 transition-transform duration-300">
+              <div className="flex justify-center mb-4">
+                <StatsReport className="w-10 h-10 text-school-gold" />
+              </div>
+              <h3 className="text-4xl md:text-5xl font-bold font-serif mb-2">
+                30
+              </h3>
+              <p className="uppercasetracking-widest text-sm text-school-gold">
+                Ekstrakurikuler
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* 4. Facilities Showcase Grid */}
       <section className="py-12 md:py-24 bg-school-navy text-white relative">
         <div className="container mx-auto px-6">
@@ -176,6 +238,204 @@ const LandingPage = () => {
                 </p>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 5. Latest News (New) */}
+      <section className="py-20 bg-slate-50">
+        <div className="container mx-auto px-6">
+          <div className="flex justify-between items-end mb-12">
+            <div>
+              <span className="text-school-navy font-bold tracking-widest uppercase text-sm">
+                Berita Terkini
+              </span>
+              <h2 className="font-serif text-3xl md:text-4xl font-bold text-school-navy mt-2">
+                Kabar Sekolah
+              </h2>
+            </div>
+            <Link
+              to="#"
+              className="hidden md:flex items-center text-school-gold hover:text-school-navy font-bold transition-colors"
+            >
+              Lihat Semua Berita <ArrowRight className="ml-2 w-4 h-4" />
+            </Link>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300 group"
+              >
+                <div className="h-48 overflow-hidden relative">
+                  <img
+                    src={`/img/AkademikIMG${i === 1 ? "" : "2"}.webp`} // Placeholder logic
+                    alt="News Thumbnail"
+                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                  />
+                  <div className="absolute top-4 right-4 bg-school-gold text-school-navy font-bold text-xs px-3 py-1 rounded-full flex items-center">
+                    <Calendar className="w-3 h-3 mr-1" /> 12 Jan 2026
+                  </div>
+                </div>
+                <div className="p-6">
+                  <span className="text-xs font-bold text-school-navy/60 uppercase tracking-wider mb-2 block">
+                    Prestasi
+                  </span>
+                  <h3 className="font-serif text-xl font-bold text-school-navy mb-3 group-hover:text-school-gold transition-colors">
+                    Siswa Satya Cendekia Raih Emas di Olimpiade Sains
+                  </h3>
+                  <p className="text-slate-600 text-sm line-clamp-3 mb-4">
+                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
+                    do eiusmod tempor incididunt ut labore et dolore magna
+                    aliqua.
+                  </p>
+                  <Link
+                    to="#"
+                    className="text-school-navy font-bold text-sm flex items-center hover:underline"
+                  >
+                    Baca Selengkapnya
+                  </Link>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 6. Testimonials (New) */}
+      <section className="py-20 bg-white border-t border-slate-100">
+        <div className="container mx-auto px-6 max-w-5xl">
+          <div className="text-center mb-16">
+            <QuoteSolid className="w-12 h-12 text-school-gold mx-auto mb-4 opacity-50" />
+            <h2 className="font-serif text-3xl md:text-5xl font-bold text-school-navy mb-4">
+              Kata Mereka
+            </h2>
+            <p className="text-slate-500">
+              Apa kata orang tua dan alumni tentang Satya Cendekia.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="bg-slate-50 p-8 rounded-2xl relative">
+              <div className="flex gap-1 text-school-gold mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <span key={i}>★</span>
+                ))}
+              </div>
+              <p className="text-slate-700 italic text-lg mb-6 leading-relaxed">
+                "Sekolah ini tidak hanya fokus pada nilai akademis, tetapi juga
+                pembentukan karakter anak saya sangat terasa. Guru-gurunya
+                sangat perhatian dan fasilitasnya luar biasa."
+              </p>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-school-navy rounded-full flex items-center justify-center text-white font-bold font-serif">
+                  BP
+                </div>
+                <div>
+                  <h4 className="font-bold text-school-navy">Budi Pratama</h4>
+                  <p className="text-xs text-slate-500">Orang Tua Siswa</p>
+                </div>
+              </div>
+            </div>
+            <div className="bg-slate-50 p-8 rounded-2xl relative">
+              <div className="flex gap-1 text-school-gold mb-4">
+                {[...Array(5)].map((_, i) => (
+                  <span key={i}>★</span>
+                ))}
+              </div>
+              <p className="text-slate-700 italic text-lg mb-6 leading-relaxed">
+                "Masuk ke universitas impian jadi lebih mudah berkat bimbingan
+                intensif di sini. Lingkungan belajarnya kompetitif tapi tetap
+                mendukung satu sama lain."
+              </p>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-school-gold rounded-full flex items-center justify-center text-school-navy font-bold font-serif">
+                  AD
+                </div>
+                <div>
+                  <h4 className="font-bold text-school-navy">Adinda Putri</h4>
+                  <p className="text-xs text-slate-500">Alumni 2024</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* 7. FAQ Section (New) */}
+      <section className="py-20 bg-slate-50">
+        <div className="container mx-auto px-6 max-w-4xl">
+          <div className="text-center mb-12">
+            <span className="text-school-navy font-bold tracking-widest uppercase text-sm">
+              Tanya Jawab
+            </span>
+            <h2 className="font-serif text-3xl md:text-4xl font-bold text-school-navy mt-2">
+              Sering Ditanyakan (FAQ)
+            </h2>
+          </div>
+
+          <div className="space-y-4">
+            {[
+              {
+                q: "Kapan pendaftaran siswa baru (PPDB) dibuka?",
+                a: "Pendaftaran gelombang pertama dibuka mulai bulan November hingga Januari setiap tahunnya.",
+              },
+              {
+                q: "Apakah ada beasiswa untuk siswa berprestasi?",
+                a: "Ya, kami menyediakan beasiswa penuh dan parsial untuk siswa dengan prestasi akademik maupun non-akademik tingkat nasional.",
+              },
+              {
+                q: "Bagaimana sistem kurikulum yang diterapkan?",
+                a: "Kami menggunakan Kurikulum Merdeka yang diperkaya dengan program Cambridge Checkpoint untuk mata pelajaran sains, matematika, dan bahasa Inggris.",
+              },
+            ].map((faq, idx) => (
+              <div
+                key={idx}
+                className="bg-white p-6 rounded-xl border border-slate-100 hover:border-school-gold/50 transition-colors cursor-pointer group"
+              >
+                <div className="flex justify-between items-start">
+                  <h4 className="font-bold text-school-navy text-lg group-hover:text-school-gold transition-colors">
+                    {faq.q}
+                  </h4>
+                  <HelpCircle className="w-6 h-6 text-slate-300 group-hover:text-school-gold" />
+                </div>
+                <p className="text-slate-600 mt-2 leading-relaxed">{faq.a}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* 8. Call to Action (New) */}
+      <section className="relative py-24 bg-school-navy overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-school-gold/10 mix-blend-overlay"></div>
+          <div className="w-96 h-96 bg-school-gold/20 rounded-full blur-3xl absolute -top-24 -left-24"></div>
+          <div className="w-96 h-96 bg-blue-500/20 rounded-full blur-3xl absolute bottom-0 right-0"></div>
+        </div>
+        <div className="container relative z-10 mx-auto px-6 text-center text-white">
+          <h2 className="font-serif text-4xl md:text-6xl font-bold mb-6">
+            Siap Bergabung Bersama Kami?
+          </h2>
+          <p className="text-xl text-white/80 max-w-2xl mx-auto mb-10 font-light">
+            Jadilah bagian dari komunitas pembelajar masa depan di SMP Satya
+            Cendekia. Pendaftaran Tahun Ajaran 2026/2027 telah dibuka.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link to="/ppdb/register">
+              <Button className="bg-school-gold hover:bg-yellow-500 text-school-navy font-bold text-lg px-8 py-6 h-auto w-full sm:w-auto">
+                Daftar Sekarang
+              </Button>
+            </Link>
+            <Link to="/contact">
+              <Button
+                variant="outline"
+                className="border-white/30 text-school-navy hover:bg-white/10 text-lg px-8 py-6 h-auto w-full sm:w-auto font-bold"
+              >
+                Hubungi Kami
+              </Button>
+            </Link>
           </div>
         </div>
       </section>

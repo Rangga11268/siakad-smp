@@ -1,4 +1,11 @@
-import { Medal, Book, Group } from "iconoir-react";
+import {
+  Medal,
+  Book,
+  Group,
+  StatsReport,
+  Code,
+  MusicNote,
+} from "iconoir-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 const AcademicPage = () => {
@@ -95,6 +102,54 @@ const AcademicPage = () => {
               modern, pengalaman belajar menjadi lebih menyenangkan dan
               bermakna.
             </p>
+          </div>
+        </div>
+
+        {/* New: Featured Extracurriculars */}
+        <div className="bg-school-navy text-white rounded-3xl p-12 mb-24 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-school-gold rounded-full blur-[100px] opacity-20"></div>
+          <div className="relative z-10 text-center mb-12">
+            <h2 className="font-serif text-3xl font-bold mb-4">
+              Pengembangan Diri
+            </h2>
+            <p className="text-white/80 max-w-2xl mx-auto">
+              Lebih dari sekadar belajar, kami menyediakan wadah bagi siswa
+              untuk mengeksplorasi bakat mereka.
+            </p>
+          </div>
+
+          <div className="relative z-10 grid grid-cols-2 md:grid-cols-4 gap-6">
+            {[
+              {
+                icon: <Code className="w-8 h-8" />,
+                name: "Coding & Robotics",
+                desc: "Digital Skills",
+              },
+              {
+                icon: <StatsReport className="w-8 h-8" />,
+                name: "Science Club",
+                desc: "Research & Experiments",
+              },
+              {
+                icon: <MusicNote className="w-8 h-8" />,
+                name: "Orchestra",
+                desc: "Arts & Culture",
+              },
+              {
+                icon: <Medal className="w-8 h-8" />,
+                name: "Sports Team",
+                desc: "Basketball & Futsal",
+              },
+            ].map((ex, i) => (
+              <div
+                key={i}
+                className="bg-white/10 backdrop-blur-md p-6 rounded-xl border border-white/10 hover:bg-white/20 transition-all cursor-default"
+              >
+                <div className="text-school-gold mb-3">{ex.icon}</div>
+                <h4 className="font-bold text-lg mb-1">{ex.name}</h4>
+                <p className="text-xs text-white/60">{ex.desc}</p>
+              </div>
+            ))}
           </div>
         </div>
 

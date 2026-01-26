@@ -1,3 +1,5 @@
+import { Star, Trophy, Group, Heart } from "iconoir-react";
+
 const AboutPage = () => {
   return (
     <div className="pt-20 md:pt-24 bg-white min-h-screen">
@@ -46,6 +48,120 @@ const AboutPage = () => {
             />
           </div>
         </div>
+
+        {/* New: Core Values (Nilai Inti) */}
+        <div className="mt-24 mb-24">
+          <div className="text-center mb-16">
+            <span className="text-school-gold uppercase tracking-widest text-sm font-bold block mb-2">
+              Nilai Inti
+            </span>
+            <h2 className="font-serif text-3xl md:text-4xl font-bold text-school-navy">
+              Filosofi Pendidikan Kami
+            </h2>
+          </div>
+          <div className="grid md:grid-cols-4 gap-8">
+            <div className="text-center p-6 bg-slate-50 rounded-xl hover:shadow-lg transition-shadow">
+              <div className="w-16 h-16 mx-auto bg-school-navy text-school-gold rounded-full flex items-center justify-center mb-4">
+                <Star className="w-8 h-8" />
+              </div>
+              <h3 className="font-serif text-xl font-bold text-school-navy mb-2">
+                Excellence
+              </h3>
+              <p className="text-slate-600 text-sm">
+                Berkomitmen pada standar kualitas tertinggi dalam akademik dan
+                perilaku.
+              </p>
+            </div>
+            <div className="text-center p-6 bg-slate-50 rounded-xl hover:shadow-lg transition-shadow">
+              <div className="w-16 h-16 mx-auto bg-school-navy text-school-gold rounded-full flex items-center justify-center mb-4">
+                <Heart className="w-8 h-8" />
+              </div>
+              <h3 className="font-serif text-xl font-bold text-school-navy mb-2">
+                Integrity
+              </h3>
+              <p className="text-slate-600 text-sm">
+                Menjunjung tinggi kejujuran dan etika dalam setiap tindakan.
+              </p>
+            </div>
+            <div className="text-center p-6 bg-slate-50 rounded-xl hover:shadow-lg transition-shadow">
+              <div className="w-16 h-16 mx-auto bg-school-navy text-school-gold rounded-full flex items-center justify-center mb-4">
+                <Group className="w-8 h-8" />
+              </div>
+              <h3 className="font-serif text-xl font-bold text-school-navy mb-2">
+                Community
+              </h3>
+              <p className="text-slate-600 text-sm">
+                Membangun kepedulian sosial dan kolaborasi yang harmonis.
+              </p>
+            </div>
+            <div className="text-center p-6 bg-slate-50 rounded-xl hover:shadow-lg transition-shadow">
+              <div className="w-16 h-16 mx-auto bg-school-navy text-school-gold rounded-full flex items-center justify-center mb-4">
+                <Trophy className="w-8 h-8" />
+              </div>
+              <h3 className="font-serif text-xl font-bold text-school-navy mb-2">
+                Innovation
+              </h3>
+              <p className="text-slate-600 text-sm">
+                Terus beradaptasi dengan kemajuan teknologi dan metode
+                pembelajaran.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* New: History Timeline (Milestone) */}
+        <section className="py-12 border-t border-slate-100">
+          <div className="text-center mb-12">
+            <h2 className="font-serif text-3xl font-bold text-school-navy">
+              Perjalanan Kami
+            </h2>
+          </div>
+          <div className="space-y-8 relative before:absolute before:inset-0 before:ml-5 before:-translate-x-px md:before:mx-auto md:before:translate-x-0 before:h-full before:w-0.5 before:bg-gradient-to-b before:from-transparent before:via-slate-300 before:to-transparent">
+            {/* Item 1 */}
+            <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+              <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-slate-300 group-[.is-active]:bg-school-gold text-slate-500 group-[.is-active]:text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
+                <div className="font-bold text-xs">2010</div>
+              </div>
+              <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-4 rounded border border-slate-200 shadow">
+                <div className="font-bold text-school-navy mb-1">Berdiri</div>
+                <p className="text-slate-600 text-sm">
+                  SMP Satya Cendekia didirikan dengan angkatan pertama 50 siswa.
+                </p>
+              </div>
+            </div>
+
+            {/* Item 2 */}
+            <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+              <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-slate-300 group-[.is-active]:bg-school-gold text-slate-500 group-[.is-active]:text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
+                <div className="font-bold text-xs">2015</div>
+              </div>
+              <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-4 rounded border border-slate-200 shadow">
+                <div className="font-bold text-school-navy mb-1">
+                  Akreditasi A
+                </div>
+                <p className="text-slate-600 text-sm">
+                  Meraih akreditasi unggul dan menjadi sekolah percontohan.
+                </p>
+              </div>
+            </div>
+
+            {/* Item 3 */}
+            <div className="relative flex items-center justify-between md:justify-normal md:odd:flex-row-reverse group is-active">
+              <div className="flex items-center justify-center w-10 h-10 rounded-full border border-white bg-slate-300 group-[.is-active]:bg-school-gold text-slate-500 group-[.is-active]:text-white shadow shrink-0 md:order-1 md:group-odd:-translate-x-1/2 md:group-even:translate-x-1/2">
+                <div className="font-bold text-xs">2024</div>
+              </div>
+              <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] bg-white p-4 rounded border border-slate-200 shadow">
+                <div className="font-bold text-school-navy mb-1">
+                  Kampus Baru
+                </div>
+                <p className="text-slate-600 text-sm">
+                  Peresmian gedung baru dengan fasilitas smart classroom dan
+                  sport center modern.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
 
         {/* Principal Message Section */}
         <div className="bg-school-navy text-white rounded-lg shadow-2xl overflow-hidden">
