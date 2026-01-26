@@ -29,6 +29,7 @@ import AttendancePage from "@/pages/academic/AttendancePage";
 import JournalPage from "@/pages/academic/JournalPage";
 import ReportCardPage from "@/pages/academic/ReportCardPage";
 import PPDBRegisterPage from "@/pages/public/PPDBRegisterPage";
+import PPDBInfoPage from "@/pages/public/PPDBInfoPage";
 import PPDBStatusPage from "./pages/public/PPDBStatusPage";
 import PPDBAdminPage from "@/pages/admin/PPDBAdminPage";
 import SchedulePage from "@/pages/academic/SchedulePage";
@@ -56,6 +57,7 @@ function App() {
             <Route path="/facilities" element={<FacilitiesPage />} />
             <Route path="/contact" element={<ContactPage />} />
             {/* Public PPDB Routes */}
+            <Route path="/ppdb" element={<PPDBInfoPage />} />
             <Route path="/ppdb/register" element={<PPDBRegisterPage />} />
             <Route path="/ppdb/status" element={<PPDBStatusPage />} />
 
