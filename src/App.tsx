@@ -4,6 +4,8 @@ import AboutPage from "@/pages/public/AboutPage";
 import AcademicPage from "@/pages/public/AcademicPage";
 import FacilitiesPage from "@/pages/public/FacilitiesPage";
 import ContactPage from "@/pages/public/ContactPage";
+import NewsPage from "@/pages/public/NewsPage";
+import NewsDetailPage from "@/pages/public/NewsDetailPage";
 
 import LoginPage from "@/pages/auth/LoginPage";
 import DashboardLayout from "@/layouts/DashboardLayout";
@@ -12,6 +14,7 @@ import MasterSubjectPage from "@/pages/admin/MasterSubjectPage";
 import MasterClassPage from "@/pages/admin/MasterClassPage";
 import MasterStudentPage from "@/pages/admin/MasterStudentPage";
 import MasterTeacherPage from "@/pages/admin/MasterTeacherPage";
+import MasterNewsPage from "./pages/admin/MasterNewsPage";
 import InputGradePage from "@/pages/academic/InputGradePage";
 import P5Dashboard from "@/pages/p5/P5Dashboard";
 import P5AssessmentPage from "@/pages/p5/P5AssessmentPage";
@@ -55,6 +58,10 @@ function App() {
             {/* Public PPDB Routes */}
             <Route path="/ppdb/register" element={<PPDBRegisterPage />} />
             <Route path="/ppdb/status" element={<PPDBStatusPage />} />
+
+            {/* Public News Routes */}
+            <Route path="/news" element={<NewsPage />} />
+            <Route path="/news/:slug" element={<NewsDetailPage />} />
           </Route>
 
           <Route path="/login" element={<LoginPage />} />
@@ -62,7 +69,6 @@ function App() {
           {/* Protected Routes */}
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<DashboardPage />} />
-
             {/* Admin Routes */}
             <Route path="academic/subjects" element={<MasterSubjectPage />} />
             <Route path="academic/classes" element={<MasterClassPage />} />
@@ -77,18 +83,15 @@ function App() {
             />
             <Route path="academic/report" element={<ReportCardPage />} />
             <Route path="academic/schedule" element={<SchedulePage />} />
-
             {/* Student Routes */}
             <Route
               path="student/attendance"
               element={<StudentAttendancePage />}
             />
             <Route path="student/grades" element={<StudentGradePage />} />
-
             <Route path="p5" element={<P5Dashboard />} />
             <Route path="p5/:projectId" element={<P5AssessmentPage />} />
             <Route path="p5/report" element={<P5ReportPage />} />
-
             {/* Student Affairs Routes */}
             <Route
               path="student-affairs"
@@ -98,26 +101,23 @@ function App() {
               path="student-affairs/letter/:studentId"
               element={<BKLetterPage />}
             />
-
             {/* UKS Routes */}
             <Route path="uks" element={<UksDashboard />} />
-
             {/* Library Routes */}
             <Route path="library" element={<LibraryDashboard />} />
-
             {/* Finance Routes */}
             <Route path="finance" element={<FinanceDashboard />} />
-
             {/* Assets / Sarpras Routes */}
             <Route path="assets" element={<AssetDashboard />} />
-
+            {/* Content Routes */}
+            <Route path="content/news" element={<MasterNewsPage />} />{" "}
+            {/* News Management */}
             {/* Teacher Routes */}
             <Route path="academic/grades" element={<InputGradePage />} />
             <Route
               path="academic/materials"
               element={<TeacherMaterialPage />}
             />
-
             {/* Student Routes */}
             <Route path="student/materials" element={<StudentMaterialPage />} />
           </Route>

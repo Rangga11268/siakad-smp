@@ -12,7 +12,24 @@ import {
   HelpCircle,
 } from "iconoir-react";
 
+import { useState, useEffect } from "react";
+import api from "@/services/api";
+
 const LandingPage = () => {
+  const [newsList, setNewsList] = useState<any[]>([]);
+
+  useEffect(() => {
+    fetchNews();
+  }, []);
+
+  const fetchNews = async () => {
+    try {
+      const res = await api.get("/news?limit=3&isPublished=true");
+      setNewsList(res.data);
+    } catch (error) {
+      console.error("Failed to fetch news", error);
+    }
+  };
   return (
     <>
       {/* 2. Hero Section */}
@@ -255,7 +272,7 @@ const LandingPage = () => {
               </h2>
             </div>
             <Link
-              to="#"
+              to="/news"
               className="hidden md:flex items-center text-school-gold hover:text-school-navy font-bold transition-colors"
             >
               Lihat Semua Berita <ArrowRight className="ml-2 w-4 h-4" />
@@ -263,42 +280,51 @@ const LandingPage = () => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {[1, 2, 3].map((i) => (
-              <div
-                key={i}
-                className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300 group"
-              >
-                <div className="h-48 overflow-hidden relative">
-                  <img
-                    src={`/img/AkademikIMG${i === 1 ? "" : "2"}.webp`} // Placeholder logic
-                    alt="News Thumbnail"
-                    className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute top-4 right-4 bg-school-gold text-school-navy font-bold text-xs px-3 py-1 rounded-full flex items-center">
-                    <Calendar className="w-3 h-3 mr-1" /> 12 Jan 2026
+            {newsList.length === 0 ? (
+              <div className="col-span-3 text-center py-10 text-slate-400">
+                Belum ada berita terbaru.
+              </div>
+            ) : (
+              newsList.map((news) => (
+                <div
+                  key={news._id}
+                  className="bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-shadow duration-300 group"
+                >
+                  <div className="h-48 overflow-hidden relative">
+                    <img
+                      src={
+                        news.thumbnail
+                          ? `http://localhost:5000${news.thumbnail}`
+                          : "/img/AkademikIMG.webp"
+                      }
+                      alt="News Thumbnail"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div className="absolute top-4 right-4 bg-school-gold text-school-navy font-bold text-xs px-3 py-1 rounded-full flex items-center">
+                      <Calendar className="w-3 h-3 mr-1" />{" "}
+                      {new Date(news.createdAt).toLocaleDateString("id-ID")}
+                    </div>
+                  </div>
+                  <div className="p-6">
+                    <span className="text-xs font-bold text-school-navy/60 uppercase tracking-wider mb-2 block">
+                      {news.category}
+                    </span>
+                    <h3 className="font-serif text-xl font-bold text-school-navy mb-3 group-hover:text-school-gold transition-colors line-clamp-2">
+                      {news.title}
+                    </h3>
+                    <p className="text-slate-600 text-sm line-clamp-3 mb-4">
+                      {news.summary || news.content.substring(0, 100) + "..."}
+                    </p>
+                    <Link
+                      to={`/news/${news.slug}`} // Future: /news/{news.slug}
+                      className="text-school-navy font-bold text-sm flex items-center hover:underline"
+                    >
+                      Baca Selengkapnya
+                    </Link>
                   </div>
                 </div>
-                <div className="p-6">
-                  <span className="text-xs font-bold text-school-navy/60 uppercase tracking-wider mb-2 block">
-                    Prestasi
-                  </span>
-                  <h3 className="font-serif text-xl font-bold text-school-navy mb-3 group-hover:text-school-gold transition-colors">
-                    Siswa Satya Cendekia Raih Emas di Olimpiade Sains
-                  </h3>
-                  <p className="text-slate-600 text-sm line-clamp-3 mb-4">
-                    Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed
-                    do eiusmod tempor incididunt ut labore et dolore magna
-                    aliqua.
-                  </p>
-                  <Link
-                    to="#"
-                    className="text-school-navy font-bold text-sm flex items-center hover:underline"
-                  >
-                    Baca Selengkapnya
-                  </Link>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </section>

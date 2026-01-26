@@ -48,7 +48,7 @@ const authLimiter = rateLimit({
 // Middleware
 app.use(express.json());
 app.use(cors(corsOptions));
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: { policy: "cross-origin" } }));
 // Use morgan with winston for HTTP logging
 app.use(
   morgan("combined", {
@@ -87,6 +87,7 @@ app.use("/api/dashboard", require("./routes/dashboardRoutes"));
 app.use("/api/attendance", require("./routes/attendanceRoutes"));
 app.use("/api/journal", require("./routes/journalRoutes"));
 app.use("/api/schedule", require("./routes/scheduleRoutes"));
+app.use("/api/news", require("./routes/newsRoutes"));
 app.use("/api/learning-material", require("./routes/learningMaterialRoutes"));
 app.get("/", (req, res) => {
   res.send({ message: "Welcome to SIAKAD SMP API" });

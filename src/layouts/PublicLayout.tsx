@@ -25,6 +25,7 @@ const PublicLayout = () => {
 
   const navLinks = [
     { name: "Beranda", path: "/" },
+    { name: "Berita", path: "/news" },
     { name: "Tentang Kami", path: "/about" },
     { name: "Akademik", path: "/academic" },
     { name: "Fasilitas", path: "/facilities" },

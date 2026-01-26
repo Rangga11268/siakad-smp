@@ -211,6 +211,17 @@ const Sidebar = () => {
         },
       ],
     },
+    {
+      label: "Konten Website",
+      items: [
+        {
+          title: "Berita & Pengumuman",
+          icon: Journal,
+          path: "/dashboard/content/news",
+          roles: ["admin", "teacher"],
+        },
+      ],
+    },
   ];
 
   return (
