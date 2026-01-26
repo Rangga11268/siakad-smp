@@ -8,20 +8,27 @@ router.post(
   "/generate",
   auth,
   checkRole(["admin"]),
-  financeController.generateMonthlyBilling
+  financeController.generateMonthlyBilling,
 );
 router.post("/pay", auth, checkRole(["admin"]), financeController.payBilling);
 router.get(
   "/all",
   auth,
   checkRole(["admin"]),
-  financeController.getAllBillings
+  financeController.getAllBillings,
 );
 router.get(
   "/aging-report",
   auth,
   checkRole(["admin"]),
-  financeController.getAgingReport
+  financeController.getAgingReport,
+);
+
+router.get(
+  "/chart",
+  auth,
+  checkRole(["admin"]),
+  financeController.getFinanceChart,
 );
 
 // Siswa/Ortu

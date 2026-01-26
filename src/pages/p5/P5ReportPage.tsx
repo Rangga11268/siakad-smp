@@ -68,25 +68,27 @@ const P5ReportPage = () => {
   });
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start gap-4 noprint">
+    <div className="space-y-8">
+      <div className="noprint items-end justify-between gap-4 bg-white p-6 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">
+          <h2 className="font-serif text-3xl font-bold tracking-tight text-school-navy flex items-center gap-2">
+            <Printer className="w-8 h-8 text-school-gold" />
             Cetak Rapor Projek (P5)
           </h2>
-          <p className="text-muted-foreground">
-            Generate rapor projek format Merdeka.
+          <p className="text-slate-500 mt-1 max-w-xl">
+            Generate dan cetak rapor projek penguatan profil pelajar Pancasila
+            (P5) sesuai format Kurikulum Merdeka.
           </p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
           <Select
             onValueChange={(v) => {
               setSelectedProject(v);
               fetchStudents(v);
             }}
           >
-            <SelectTrigger className="w-[250px]">
-              <SelectValue placeholder="Pilih Projek" />
+            <SelectTrigger className="w-full sm:w-[250px] bg-slate-50 border-slate-300 focus:ring-school-gold">
+              <SelectValue placeholder="Pilih Projek..." />
             </SelectTrigger>
             <SelectContent>
               {projects.map((p: any) => (
@@ -98,8 +100,8 @@ const P5ReportPage = () => {
           </Select>
 
           <Select onValueChange={setSelectedStudent}>
-            <SelectTrigger className="w-[250px]">
-              <SelectValue placeholder="Pilih Siswa" />
+            <SelectTrigger className="w-full sm:w-[250px] bg-slate-50 border-slate-300 focus:ring-school-gold">
+              <SelectValue placeholder="Pilih Siswa..." />
             </SelectTrigger>
             <SelectContent>
               {students.map((s: any) => (
@@ -110,17 +112,28 @@ const P5ReportPage = () => {
             </SelectContent>
           </Select>
 
-          <Button onClick={generateReport} disabled={loading}>
-            {loading ? <SystemRestart className="animate-spin" /> : <Search />}{" "}
-            Generate
+          <Button
+            onClick={generateReport}
+            disabled={loading}
+            className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold transition-all shadow-md"
+          >
+            {loading ? (
+              <SystemRestart className="animate-spin mr-2 h-4 w-4" />
+            ) : (
+              <Search className="mr-2 h-4 w-4" />
+            )}
+            Generate Rapor
           </Button>
         </div>
       </div>
 
       {reportData && (
         <div className="flex flex-col items-center">
-          <Button onClick={handlePrint} className="mb-4 noprint">
-            <Printer className="mr-2 h-4 w-4" /> Cetak PDF
+          <Button
+            onClick={handlePrint}
+            className="mb-8 noprint bg-school-gold text-school-navy hover:bg-yellow-500 font-bold px-8 shadow-lg transform hover:-translate-y-1 transition-all"
+          >
+            <Printer className="mr-2 h-5 w-5" /> Cetak PDF Rapor
           </Button>
 
           {/* REPORT PREVIEW (A4 Styled) */}

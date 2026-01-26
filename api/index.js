@@ -37,7 +37,7 @@ const corsOptions = {
 // Rate Limiter for Authentication endpoints
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // 5 attempts
+  max: 100, // Increased for dev
   message: {
     message: "Terlalu banyak percobaan login. Coba lagi dalam 15 menit.",
   },

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import api from "@/services/api";
 import { Button } from "@/components/ui/button";
 import { Printer, ArrowLeft, SystemRestart } from "iconoir-react";
+import { useReactToPrint } from "react-to-print";
 
 const BKLetterPage = () => {
   const { studentId } = useParams();
@@ -42,14 +43,31 @@ const BKLetterPage = () => {
   if (!data) return <div>Data tidak ditemukan</div>;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4 noprint">
-        <Button variant="ghost" onClick={() => navigate(-1)}>
-          <ArrowLeft className="mr-2 h-4 w-4" /> Kembali
-        </Button>
-        <h2 className="text-2xl font-bold">Cetak Surat Panggilan</h2>
-        <Button onClick={handlePrint}>
-          <Printer className="mr-2 h-4 w-4" /> Cetak PDF
+    <div className="space-y-8">
+      <div className="flex items-center justify-between gap-4 noprint bg-white p-4 rounded-lg shadow-sm border border-slate-200">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            className="rounded-full h-10 w-10 p-0 border-school-navy text-school-navy"
+            onClick={() => navigate(-1)}
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h2 className="font-serif text-2xl font-bold text-school-navy">
+              Cetak Surat Panggilan
+            </h2>
+            <p className="text-slate-500 text-sm">
+              Preview surat pemanggilan orang tua siswa.
+            </p>
+          </div>
+        </div>
+
+        <Button
+          onClick={handlePrint}
+          className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold shadow-md"
+        >
+          <Printer className="mr-2 h-4 w-4" /> Cetak PDF / Print
         </Button>
       </div>
 

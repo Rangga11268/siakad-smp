@@ -50,7 +50,7 @@ exports.createSubject = async (req, res) => {
 exports.getTeachers = async (req, res) => {
   try {
     const teachers = await User.find({ role: "teacher" }).select(
-      "username profile.fullName",
+      "username email profile isActive createdAt",
     );
     res.json(teachers);
   } catch (error) {

@@ -249,12 +249,15 @@ const StudentAffairsDashboard = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Kesiswaan & BK</h2>
-          <p className="text-muted-foreground">
-            Monitoring kedisiplinan, poin pelanggaran, dan konseling.
+          <h2 className="font-serif text-3xl font-bold tracking-tight text-school-navy">
+            Kesiswaan & BK
+          </h2>
+          <p className="text-slate-500">
+            Monitoring kedisiplinan, poin pelanggaran, dan bimbingan konseling
+            siswa.
           </p>
         </div>
       </div>
@@ -262,173 +265,262 @@ const StudentAffairsDashboard = () => {
       <Tabs
         defaultValue="incidents"
         onValueChange={setActiveTab}
-        className="space-y-4"
+        className="space-y-6"
       >
-        <TabsList className="grid grid-cols-4 lg:w-[600px]">
-          <TabsTrigger value="incidents">
+        <TabsList className="grid grid-cols-4 lg:w-[700px] h-auto p-1 bg-slate-100 rounded-full border border-slate-200">
+          <TabsTrigger
+            value="incidents"
+            className="rounded-full data-[state=active]:bg-school-navy data-[state=active]:text-white py-2.5 transition-all"
+          >
             <WarningTriangle className="mr-2 h-4 w-4" /> Pelanggaran
           </TabsTrigger>
-          <TabsTrigger value="points">
+          <TabsTrigger
+            value="points"
+            className="rounded-full data-[state=active]:bg-school-navy data-[state=active]:text-white py-2.5 transition-all"
+          >
             <Megaphone className="mr-2 h-4 w-4" /> Poin & Sanksi
           </TabsTrigger>
-          <TabsTrigger value="counseling">
+          <TabsTrigger
+            value="counseling"
+            className="rounded-full data-[state=active]:bg-school-navy data-[state=active]:text-white py-2.5 transition-all"
+          >
             <Heart className="mr-2 h-4 w-4" /> Konseling
           </TabsTrigger>
-          <TabsTrigger value="achievements">
+          <TabsTrigger
+            value="achievements"
+            className="rounded-full data-[state=active]:bg-school-navy data-[state=active]:text-white py-2.5 transition-all"
+          >
             <Trophy className="mr-2 h-4 w-4" /> Prestasi
           </TabsTrigger>
         </TabsList>
 
         {/* Tab Pelanggaran */}
         <TabsContent value="incidents" className="space-y-4">
-          <div className="flex justify-between items-center bg-card p-4 rounded-lg border">
-            <h3 className="text-lg font-semibold">Daftar Pelanggaran</h3>
-            <Dialog
-              open={openIncidentDialog}
-              onOpenChange={setOpenIncidentDialog}
-            >
-              <DialogTrigger asChild>
-                <Button variant="destructive">
-                  <Plus className="mr-2 h-4 w-4" /> Lapor Pelanggaran
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Lapor Pelanggaran</DialogTitle>
-                  <DialogDescription>
-                    Catat ketidakdisiplinan siswa.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Siswa</Label>
-                    <Select
-                      onValueChange={(v) =>
-                        setIncidentForm({ ...incidentForm, studentId: v })
-                      }
-                    >
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Pilih Siswa" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {students.map((s: any) => (
-                          <SelectItem key={s._id} value={s._id}>
-                            {s.profile?.fullName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Jenis</Label>
-                    <Select
-                      value={incidentForm.type}
-                      onValueChange={(v) =>
-                        setIncidentForm({ ...incidentForm, type: v })
-                      }
-                    >
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Jenis" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Keterlambatan">
-                          Keterlambatan
-                        </SelectItem>
-                        <SelectItem value="Atribut">Atribut</SelectItem>
-                        <SelectItem value="Bolos">Bolos</SelectItem>
-                        <SelectItem value="Bullying">Bullying</SelectItem>
-                        <SelectItem value="Berkelahi">Berkelahi</SelectItem>
-                        <SelectItem value="Merokok">Merokok</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Poin</Label>
-                    <Input
-                      type="number"
-                      className="col-span-3"
-                      value={incidentForm.point}
-                      onChange={(e) =>
-                        setIncidentForm({
-                          ...incidentForm,
-                          point: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Ket.</Label>
-                    <Textarea
-                      className="col-span-3"
-                      placeholder="Kronologi..."
-                      value={incidentForm.description}
-                      onChange={(e) =>
-                        setIncidentForm({
-                          ...incidentForm,
-                          description: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Sanksi</Label>
-                    <Input
-                      className="col-span-3"
-                      placeholder="Hukuman"
-                      value={incidentForm.sanction}
-                      onChange={(e) =>
-                        setIncidentForm({
-                          ...incidentForm,
-                          sanction: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
+          <Card className="border-t-4 border-t-school-gold shadow-md border-none bg-white">
+            <CardHeader className="bg-white border-b border-slate-100 flex flex-row items-center justify-between pb-4">
+              <div>
+                <CardTitle className="font-serif text-xl text-school-navy">
+                  Daftar Pelanggaran
+                </CardTitle>
+                <CardDescription>
+                  Catat dan monitoring ketidakdisiplinan siswa.
+                </CardDescription>
+              </div>
+              <Dialog
+                open={openIncidentDialog}
+                onOpenChange={setOpenIncidentDialog}
+              >
+                <DialogTrigger asChild>
                   <Button
                     variant="destructive"
-                    onClick={handleReportIncident}
-                    disabled={submitting}
+                    className="bg-red-600 hover:bg-red-700 shadow-md"
                   >
-                    {submitting ? "Menyimpan.." : "Simpan"}
+                    <Plus className="mr-2 h-4 w-4" /> Lapor Pelanggaran
                   </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
-          <Card>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px]">
+                  <DialogHeader>
+                    <DialogTitle className="font-serif text-2xl text-school-navy">
+                      Lapor Pelanggaran Siswa
+                    </DialogTitle>
+                    <DialogDescription>
+                      Isi form berikut untuk mencatat pelanggaran tata tertib.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-6 py-4">
+                    <div className="space-y-2">
+                      <Label className="font-semibold text-school-navy">
+                        Nama Siswa
+                      </Label>
+                      <Select
+                        onValueChange={(v) =>
+                          setIncidentForm({ ...incidentForm, studentId: v })
+                        }
+                      >
+                        <SelectTrigger className="bg-slate-50 focus:ring-school-gold">
+                          <SelectValue placeholder="Cari Siswa..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {students.map((s: any) => (
+                            <SelectItem key={s._id} value={s._id}>
+                              {s.profile?.fullName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="font-semibold text-school-navy">
+                          Jenis Pelanggaran
+                        </Label>
+                        <Select
+                          value={incidentForm.type}
+                          onValueChange={(v) =>
+                            setIncidentForm({ ...incidentForm, type: v })
+                          }
+                        >
+                          <SelectTrigger className="bg-slate-50">
+                            <SelectValue placeholder="Jenis" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Keterlambatan">
+                              Keterlambatan
+                            </SelectItem>
+                            <SelectItem value="Atribut">
+                              Atribut Tidak Lengkap
+                            </SelectItem>
+                            <SelectItem value="Bolos">
+                              Bolos Sekolah/Pelajaran
+                            </SelectItem>
+                            <SelectItem value="Bullying">
+                              Perundungan (Bullying)
+                            </SelectItem>
+                            <SelectItem value="Berkelahi">Berkelahi</SelectItem>
+                            <SelectItem value="Merokok">Merokok</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-semibold text-school-navy">
+                          Poin Penalti
+                        </Label>
+                        <Input
+                          type="number"
+                          className="bg-slate-50"
+                          value={incidentForm.point}
+                          onChange={(e) =>
+                            setIncidentForm({
+                              ...incidentForm,
+                              point: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="font-semibold text-school-navy">
+                        Keterangan / Kronologi
+                      </Label>
+                      <Textarea
+                        className="bg-slate-50 min-h-[80px]"
+                        placeholder="Jelaskan detail kejadian..."
+                        value={incidentForm.description}
+                        onChange={(e) =>
+                          setIncidentForm({
+                            ...incidentForm,
+                            description: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="font-semibold text-school-navy">
+                        Sanksi / Tindakan
+                      </Label>
+                      <Input
+                        className="bg-slate-50"
+                        placeholder="Contoh: Membersihkan halaman, push up, dsb."
+                        value={incidentForm.sanction}
+                        onChange={(e) =>
+                          setIncidentForm({
+                            ...incidentForm,
+                            sanction: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      variant="destructive"
+                      className="w-full bg-red-600 hover:bg-red-700 font-bold"
+                      onClick={handleReportIncident}
+                      disabled={submitting}
+                    >
+                      {submitting ? (
+                        <SystemRestart className="animate-spin mr-2" />
+                      ) : null}
+                      {submitting ? "Menyimpan.." : "Simpan Laporan"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </CardHeader>
             <CardContent className="p-0">
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Tanggal</TableHead>
-                    <TableHead>Siswa</TableHead>
-                    <TableHead>Jenis</TableHead>
-                    <TableHead>Keterangan</TableHead>
-                    <TableHead>Poin</TableHead>
-                    <TableHead>Status</TableHead>
+                <TableHeader className="bg-school-navy">
+                  <TableRow className="hover:bg-school-navy">
+                    <TableHead className="text-white font-bold w-[120px]">
+                      Tanggal
+                    </TableHead>
+                    <TableHead className="text-white font-bold">
+                      Siswa
+                    </TableHead>
+                    <TableHead className="text-white font-bold">
+                      Jenis
+                    </TableHead>
+                    <TableHead className="text-white font-bold">
+                      Keterangan
+                    </TableHead>
+                    <TableHead className="text-white font-bold w-[80px] text-center">
+                      Poin
+                    </TableHead>
+                    <TableHead className="text-white font-bold w-[100px] text-center">
+                      Status
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {incidents.map((inc: any) => (
-                    <TableRow key={inc._id}>
-                      <TableCell>
-                        {new Date(inc.date).toLocaleDateString()}
+                  {incidents.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={6}
+                        className="text-center py-8 text-slate-500"
+                      >
+                        Belum ada data pelanggaran.
                       </TableCell>
-                      <TableCell className="font-medium">
-                        {inc.student?.profile?.fullName}
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{inc.type}</Badge>
-                      </TableCell>
-                      <TableCell>{inc.description}</TableCell>
-                      <TableCell>
-                        <Badge variant="destructive">+{inc.point}</Badge>
-                      </TableCell>
-                      <TableCell>{inc.status}</TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    incidents.map((inc: any) => (
+                      <TableRow
+                        key={inc._id}
+                        className="hover:bg-slate-50 border-b border-slate-100"
+                      >
+                        <TableCell className="font-medium text-slate-600">
+                          {new Date(inc.date).toLocaleDateString("id-ID")}
+                        </TableCell>
+                        <TableCell className="font-bold text-school-navy">
+                          {inc.student?.profile?.fullName}
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className="border-red-200 text-red-700 bg-red-50"
+                          >
+                            {inc.type}
+                          </Badge>
+                        </TableCell>
+                        <TableCell
+                          className="text-slate-600 max-w-[200px] truncate"
+                          title={inc.description}
+                        >
+                          {inc.description}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span className="font-bold text-red-600">
+                            +{inc.point}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-center text-xs">
+                          {inc.status}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
@@ -437,84 +529,173 @@ const StudentAffairsDashboard = () => {
 
         {/* Tab Poin & Sanksi */}
         <TabsContent value="points" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Monitoring Poin Pelanggaran</CardTitle>
+          <div className="grid gap-4 md:grid-cols-3 mb-4">
+            <Card className="bg-red-50 border-red-100 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-red-700 text-sm font-bold uppercase tracking-wider">
+                  Perhatian Khusus
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-serif font-bold text-red-800">
+                  {
+                    violationStats.filter((s: any) => s.totalPoints >= 50)
+                      .length
+                  }{" "}
+                  Siswa
+                </div>
+                <p className="text-xs text-red-600 mt-1">
+                  Akumulasi poin {">"}= 50
+                </p>
+              </CardContent>
+            </Card>
+            <Card className="bg-orange-50 border-orange-100 shadow-sm">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-orange-700 text-sm font-bold uppercase tracking-wider">
+                  Perlu Pembinaan
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-3xl font-serif font-bold text-orange-800">
+                  {
+                    violationStats.filter(
+                      (s: any) => s.totalPoints >= 25 && s.totalPoints < 50,
+                    ).length
+                  }{" "}
+                  Siswa
+                </div>
+                <p className="text-xs text-orange-600 mt-1">
+                  Akumulasi poin 25-49
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          <Card className="border-t-4 border-t-school-gold shadow-lg border-none bg-white">
+            <CardHeader className="bg-white border-b border-slate-100">
+              <CardTitle className="font-serif text-xl text-school-navy">
+                Monitoring Akumulasi Poin
+              </CardTitle>
               <CardDescription>
-                Siswa dengan akumulasi poin tinggi perlu perhatian khusus
-                (Conseling / Panggilan Ortu).
+                Tindakan otomatis berdasarkan ambang batas poin pelanggaran
+                siswa.
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="p-0">
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nama Siswa</TableHead>
-                    <TableHead>Kelas</TableHead>
-                    <TableHead>Total Pelanggaran</TableHead>
-                    <TableHead>Total Poin</TableHead>
-                    <TableHead>Status / Tindakan</TableHead>
+                <TableHeader className="bg-school-navy">
+                  <TableRow className="hover:bg-school-navy">
+                    <TableHead className="text-white font-bold">
+                      Nama Siswa
+                    </TableHead>
+                    <TableHead className="text-white font-bold">
+                      Kelas
+                    </TableHead>
+                    <TableHead className="text-white font-bold text-center">
+                      Jml Kasus
+                    </TableHead>
+                    <TableHead className="text-white font-bold text-center">
+                      Total Poin
+                    </TableHead>
+                    <TableHead className="text-white font-bold">
+                      Status / Tindakan
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {violationStats.map((stat: any) => (
-                    <TableRow
-                      key={stat._id}
-                      className={stat.totalPoints >= 50 ? "bg-red-50" : ""}
-                    >
-                      <TableCell className="font-bold">
-                        {stat.fullName}
-                      </TableCell>
-                      <TableCell>{stat.className}</TableCell>
-                      <TableCell>{stat.incidentCount} Kasus</TableCell>
-                      <TableCell className="text-lg text-red-600 font-bold">
-                        {stat.totalPoints}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-col gap-2">
-                          {stat.totalPoints >= 100 ? (
-                            <Badge className="bg-red-700 w-fit">
-                              DO / KELUAR
-                            </Badge>
-                          ) : stat.totalPoints >= 75 ? (
-                            <Badge variant="destructive" className="w-fit">
-                              SURAT PERINGATAN 3
-                            </Badge>
-                          ) : stat.totalPoints >= 50 ? (
-                            <Badge variant="destructive" className="w-fit">
-                              PANGGILAN ORTU
-                            </Badge>
-                          ) : stat.totalPoints >= 25 ? (
-                            <Badge className="bg-orange-500 w-fit">
-                              PEMBINAAN WALI KELAS
-                            </Badge>
-                          ) : (
-                            <Badge
-                              variant="outline"
-                              className="text-green-600 w-fit"
-                            >
-                              AMAN
-                            </Badge>
-                          )}
-
-                          {stat.totalPoints >= 25 && (
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="w-fit"
-                              onClick={() =>
-                                navigate(
-                                  `/dashboard/student-affairs/letter/${stat._id}`,
-                                )
-                              }
-                            >
-                              <Printer className="mr-2 h-3 w-3" /> Cetak Surat
-                            </Button>
-                          )}
-                        </div>
+                  {violationStats.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={5}
+                        className="text-center py-8 text-slate-500"
+                      >
+                        Tidak ada data pelanggaran.
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    violationStats.map((stat: any) => (
+                      <TableRow
+                        key={stat._id}
+                        className={
+                          stat.totalPoints >= 50
+                            ? "bg-red-50/50 hover:bg-red-50"
+                            : "hover:bg-slate-50"
+                        }
+                      >
+                        <TableCell className="font-bold text-school-navy">
+                          {stat.fullName}
+                        </TableCell>
+                        <TableCell className="font-mono text-slate-500">
+                          {stat.className}
+                        </TableCell>
+                        <TableCell className="text-center font-medium">
+                          {stat.incidentCount}
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <span
+                            className={`text-lg font-bold px-3 py-1 rounded-full ${
+                              stat.totalPoints >= 50
+                                ? "bg-red-100 text-red-700"
+                                : stat.totalPoints >= 25
+                                  ? "bg-orange-100 text-orange-700"
+                                  : "bg-slate-100 text-slate-700"
+                            }`}
+                          >
+                            {stat.totalPoints}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+                            {stat.totalPoints >= 100 ? (
+                              <Badge className="bg-red-900 border-red-800 text-white font-bold">
+                                DO / KELUAR
+                              </Badge>
+                            ) : stat.totalPoints >= 75 ? (
+                              <Badge
+                                variant="destructive"
+                                className="font-bold animate-pulse"
+                              >
+                                SP 3
+                              </Badge>
+                            ) : stat.totalPoints >= 50 ? (
+                              <Badge
+                                variant="destructive"
+                                className="font-bold"
+                              >
+                                PANGGILAN ORTU
+                              </Badge>
+                            ) : stat.totalPoints >= 25 ? (
+                              <Badge className="bg-orange-500 hover:bg-orange-600 text-white border-orange-600">
+                                PEMBINAAN WALI KELAS
+                              </Badge>
+                            ) : (
+                              <Badge
+                                variant="outline"
+                                className="text-emerald-600 border-emerald-200 bg-emerald-50"
+                              >
+                                AMAN
+                              </Badge>
+                            )}
+
+                            {stat.totalPoints >= 25 && (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 text-xs border-school-navy text-school-navy hover:bg-school-navy hover:text-white"
+                                onClick={() =>
+                                  navigate(
+                                    `/dashboard/student-affairs/letter/${stat._id}`,
+                                  )
+                                }
+                              >
+                                <Printer className="mr-1 h-3 w-3" /> Cetak Surat
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
@@ -523,285 +704,425 @@ const StudentAffairsDashboard = () => {
 
         {/* Tab Konseling */}
         <TabsContent value="counseling" className="space-y-4">
-          <div className="flex justify-between items-center bg-card p-4 rounded-lg border">
-            <h3 className="text-lg font-semibold">Rekam Konseling (Rahasia)</h3>
-            <Dialog
-              open={openCounselingDialog}
-              onOpenChange={setOpenCounselingDialog}
-            >
-              <DialogTrigger asChild>
-                <Button className="bg-indigo-600 hover:bg-indigo-700">
-                  <Plus className="mr-2 h-4 w-4" /> Buka Sesi Konseling
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Rekam Sesi Konseling</DialogTitle>
-                  <DialogDescription>
-                    Catatan ini bersifat rahasia antara Guru BK dan Siswa.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Siswa</Label>
-                    <Select
-                      onValueChange={(v) =>
-                        setCounselingForm({ ...counselingForm, studentId: v })
-                      }
-                    >
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Pilih Siswa" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {students.map((s: any) => (
-                          <SelectItem key={s._id} value={s._id}>
-                            {s.profile?.fullName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Topik</Label>
-                    <Input
-                      className="col-span-3"
-                      placeholder="Masalah Belajar / Pribadi"
-                      value={counselingForm.title}
-                      onChange={(e) =>
-                        setCounselingForm({
-                          ...counselingForm,
-                          title: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Jenis</Label>
-                    <Select
-                      value={counselingForm.type}
-                      onValueChange={(v) =>
-                        setCounselingForm({ ...counselingForm, type: v })
-                      }
-                    >
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Jenis Masalah" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Pribadi">Pribadi</SelectItem>
-                        <SelectItem value="Sosial">Sosial</SelectItem>
-                        <SelectItem value="Belajar">Belajar</SelectItem>
-                        <SelectItem value="Karir">Karir</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Catatan</Label>
-                    <Textarea
-                      className="col-span-3 h-32"
-                      placeholder="Isi sesi konseling..."
-                      value={counselingForm.notes}
-                      onChange={(e) =>
-                        setCounselingForm({
-                          ...counselingForm,
-                          notes: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Tindak Lanjut</Label>
-                    <Input
-                      className="col-span-3"
-                      placeholder="Rencana ke depan"
-                      value={counselingForm.followUp}
-                      onChange={(e) =>
-                        setCounselingForm({
-                          ...counselingForm,
-                          followUp: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button onClick={handleAddCounseling} disabled={submitting}>
-                    {submitting ? "Menyimpan.." : "Simpan Sesi"}
+          <Card className="border-t-4 border-t-school-gold shadow-md border-none bg-white">
+            <CardHeader className="bg-white border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between pb-4 gap-4">
+              <div>
+                <CardTitle className="font-serif text-xl text-school-navy">
+                  Rekam Konseling Privasi
+                </CardTitle>
+                <CardDescription>
+                  Catatan ini bersifat rahasia (hanya guru BK).
+                </CardDescription>
+              </div>
+              <Dialog
+                open={openCounselingDialog}
+                onOpenChange={setOpenCounselingDialog}
+              >
+                <DialogTrigger asChild>
+                  <Button className="bg-indigo-600 hover:bg-indigo-700 shadow-md font-bold text-white">
+                    <Plus className="mr-2 h-4 w-4" /> Buka Sesi Konseling
                   </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
-          <div className="grid gap-4 md:grid-cols-2">
-            {counseling.map((ses: any) => (
-              <Card key={ses._id}>
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <CardTitle className="text-base">{ses.title}</CardTitle>
-                      <CardDescription>
-                        {new Date(ses.date).toLocaleDateString()} •{" "}
-                        {ses.student?.profile?.fullName}
-                      </CardDescription>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[600px]">
+                  <DialogHeader>
+                    <DialogTitle className="font-serif text-2xl text-school-navy">
+                      Rekam Sesi Konseling Baru
+                    </DialogTitle>
+                    <DialogDescription>
+                      Pastikan privasi siswa terjaga saat mengisi data ini.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-6 py-4">
+                    <div className="space-y-2">
+                      <Label className="font-semibold text-school-navy">
+                        Nama Siswa Konseli
+                      </Label>
+                      <Select
+                        onValueChange={(v) =>
+                          setCounselingForm({ ...counselingForm, studentId: v })
+                        }
+                      >
+                        <SelectTrigger className="bg-slate-50 focus:ring-school-gold">
+                          <SelectValue placeholder="Pilih Siswa" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {students.map((s: any) => (
+                            <SelectItem key={s._id} value={s._id}>
+                              {s.profile?.fullName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                    <Badge variant="secondary">{ses.type}</Badge>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="font-semibold text-school-navy">
+                          Topik Masalah
+                        </Label>
+                        <Input
+                          className="bg-slate-50"
+                          placeholder="Cth: Kesulitan Belajar Matematika"
+                          value={counselingForm.title}
+                          onChange={(e) =>
+                            setCounselingForm({
+                              ...counselingForm,
+                              title: e.target.value,
+                            })
+                          }
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-semibold text-school-navy">
+                          Kategori
+                        </Label>
+                        <Select
+                          value={counselingForm.type}
+                          onValueChange={(v) =>
+                            setCounselingForm({ ...counselingForm, type: v })
+                          }
+                        >
+                          <SelectTrigger className="bg-slate-50">
+                            <SelectValue placeholder="Jenis Masalah" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Pribadi">
+                              Masalah Pribadi
+                            </SelectItem>
+                            <SelectItem value="Sosial">
+                              Masalah Sosial/Teman
+                            </SelectItem>
+                            <SelectItem value="Belajar">
+                              Masalah Belajar
+                            </SelectItem>
+                            <SelectItem value="Karir">
+                              Bimbingan Karir
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="font-semibold text-school-navy">
+                        Catatan Sesi (Verbatim/Ringkasan)
+                      </Label>
+                      <Textarea
+                        className="bg-slate-50 h-32 leading-relaxed"
+                        placeholder="Tuliskan inti permasalahan dan proses konseling..."
+                        value={counselingForm.notes}
+                        onChange={(e) =>
+                          setCounselingForm({
+                            ...counselingForm,
+                            notes: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="font-semibold text-school-navy">
+                        Rencana Tindak Lanjut
+                      </Label>
+                      <Input
+                        className="bg-slate-50"
+                        placeholder="Apa yang akan dilakukan setelah ini?"
+                        value={counselingForm.followUp}
+                        onChange={(e) =>
+                          setCounselingForm({
+                            ...counselingForm,
+                            followUp: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
                   </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-sm text-slate-700 bg-slate-50 p-3 rounded-md mb-2">
-                    "{ses.notes}"
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    <strong>Tindak Lanjut:</strong> {ses.followUp || "-"}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Counselor: {ses.counselor?.profile?.fullName}
-                  </p>
-                </CardContent>
-              </Card>
-            ))}
+                  <DialogFooter>
+                    <Button
+                      onClick={handleAddCounseling}
+                      disabled={submitting}
+                      className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold w-full"
+                    >
+                      {submitting ? (
+                        <SystemRestart className="animate-spin mr-2" />
+                      ) : null}
+                      {submitting ? "Menyimpan.." : "Simpan Arsip Konseling"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </CardHeader>
+          </Card>
+
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {counseling.length === 0 ? (
+              <div className="col-span-full text-center py-12 text-slate-500 italic bg-slate-50 border border-dashed rounded-lg">
+                Belum ada riwayat konseling.
+              </div>
+            ) : (
+              counseling.map((ses: any) => (
+                <Card
+                  key={ses._id}
+                  className="hover:shadow-lg transition-all duration-300 border-none shadow-md overflow-hidden group"
+                >
+                  <CardHeader className="bg-indigo-50/50 pb-3 border-b border-indigo-100">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <CardTitle
+                          className="text-lg font-bold text-school-navy line-clamp-1"
+                          title={ses.title}
+                        >
+                          {ses.title}
+                        </CardTitle>
+                        <CardDescription className="flex items-center gap-1 mt-1">
+                          <span className="font-medium text-slate-700">
+                            {ses.student?.profile?.fullName}
+                          </span>
+                        </CardDescription>
+                      </div>
+                      <Badge
+                        variant="secondary"
+                        className="bg-white border-indigo-200 text-indigo-700"
+                      >
+                        {ses.type}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-4">
+                    <p className="text-xs text-slate-400 mb-2">
+                      {new Date(ses.date).toLocaleDateString("id-ID", {
+                        weekday: "long",
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })}
+                    </p>
+                    <div className="text-sm text-slate-600 bg-slate-50 p-3 rounded-md mb-3 border border-slate-100 italic line-clamp-4">
+                      "{ses.notes}"
+                    </div>
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground bg-green-50 p-2 rounded text-green-800 border border-green-100">
+                      <span className="font-bold">Next:</span>{" "}
+                      {ses.followUp || "Sesi selesai"}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
         </TabsContent>
 
         {/* Tab Prestasi */}
         <TabsContent value="achievements" className="space-y-4">
-          <div className="flex justify-between items-center bg-card p-4 rounded-lg border">
-            <h3 className="text-lg font-semibold">Daftar Prestasi</h3>
-            <Dialog
-              open={openAchievementDialog}
-              onOpenChange={setOpenAchievementDialog}
-            >
-              <DialogTrigger asChild>
-                <Button className="bg-amber-500 hover:bg-amber-600">
-                  <Plus className="mr-2 h-4 w-4" /> Catat Prestasi
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Catat Prestasi</DialogTitle>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Siswa</Label>
-                    <Select
-                      onValueChange={(v) =>
-                        setAchievementForm({ ...achievementForm, studentId: v })
-                      }
-                    >
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Pilih Siswa" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {students.map((s: any) => (
-                          <SelectItem key={s._id} value={s._id}>
-                            {s.profile?.fullName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Judul</Label>
-                    <Input
-                      className="col-span-3"
-                      value={achievementForm.title}
-                      onChange={(e) =>
-                        setAchievementForm({
-                          ...achievementForm,
-                          title: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Kategori</Label>
-                    <Select
-                      value={achievementForm.category}
-                      onValueChange={(v) =>
-                        setAchievementForm({ ...achievementForm, category: v })
-                      }
-                    >
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Kategori" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Akademik">Akademik</SelectItem>
-                        <SelectItem value="Non-Akademik">
-                          Non-Akademik
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Tingkat</Label>
-                    <Select
-                      value={achievementForm.level}
-                      onValueChange={(v) =>
-                        setAchievementForm({ ...achievementForm, level: v })
-                      }
-                    >
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Tingkat" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Sekolah">Sekolah</SelectItem>
-                        <SelectItem value="Kecamatan">Kecamatan</SelectItem>
-                        <SelectItem value="Kabupaten">Kabupaten</SelectItem>
-                        <SelectItem value="Provinsi">Provinsi</SelectItem>
-                        <SelectItem value="Nasional">Nasional</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label className="text-right">Ket.</Label>
-                    <Textarea
-                      className="col-span-3"
-                      value={achievementForm.description}
-                      onChange={(e) =>
-                        setAchievementForm({
-                          ...achievementForm,
-                          description: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button
-                    className="bg-amber-500"
-                    onClick={handleAddAchievement}
-                    disabled={submitting}
-                  >
-                    {submitting ? "Menyimpan.." : "Simpan"}
+          <Card className="border-t-4 border-t-school-gold shadow-md border-none bg-white">
+            <CardHeader className="bg-white border-b border-slate-100 flex flex-row items-center justify-between pb-4">
+              <div>
+                <CardTitle className="font-serif text-xl text-school-navy">
+                  Rekap Prestasi Siswa
+                </CardTitle>
+                <CardDescription>
+                  Database pencapaian akademik dan non-akademik.
+                </CardDescription>
+              </div>
+              <Dialog
+                open={openAchievementDialog}
+                onOpenChange={setOpenAchievementDialog}
+              >
+                <DialogTrigger asChild>
+                  <Button className="bg-amber-500 hover:bg-amber-600 text-white font-bold shadow-md">
+                    <Plus className="mr-2 h-4 w-4" /> Catat Prestasi
                   </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-          </div>
-          <Card>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[500px]">
+                  <DialogHeader>
+                    <DialogTitle className="font-serif text-2xl text-school-navy">
+                      Catat Prestasi Baru
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="grid gap-6 py-4">
+                    <div className="space-y-2">
+                      <Label className="font-semibold text-school-navy">
+                        Siswa Berprestasi
+                      </Label>
+                      <Select
+                        onValueChange={(v) =>
+                          setAchievementForm({
+                            ...achievementForm,
+                            studentId: v,
+                          })
+                        }
+                      >
+                        <SelectTrigger className="bg-slate-50 focus:ring-school-gold">
+                          <SelectValue placeholder="Pilih Siswa" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {students.map((s: any) => (
+                            <SelectItem key={s._id} value={s._id}>
+                              {s.profile?.fullName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="font-semibold text-school-navy">
+                        Nama / Judul Prestasi
+                      </Label>
+                      <Input
+                        className="bg-slate-50 font-medium"
+                        placeholder="Juara 1 Lomba Cerdas Cermat..."
+                        value={achievementForm.title}
+                        onChange={(e) =>
+                          setAchievementForm({
+                            ...achievementForm,
+                            title: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="font-semibold text-school-navy">
+                          Kategori
+                        </Label>
+                        <Select
+                          value={achievementForm.category}
+                          onValueChange={(v) =>
+                            setAchievementForm({
+                              ...achievementForm,
+                              category: v,
+                            })
+                          }
+                        >
+                          <SelectTrigger className="bg-slate-50">
+                            <SelectValue placeholder="Kategori" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Akademik">Akademik</SelectItem>
+                            <SelectItem value="Non-Akademik">
+                              Non-Akademik
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="font-semibold text-school-navy">
+                          Tingkat
+                        </Label>
+                        <Select
+                          value={achievementForm.level}
+                          onValueChange={(v) =>
+                            setAchievementForm({ ...achievementForm, level: v })
+                          }
+                        >
+                          <SelectTrigger className="bg-slate-50">
+                            <SelectValue placeholder="Tingkat" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Sekolah">Sekolah</SelectItem>
+                            <SelectItem value="Kecamatan">Kecamatan</SelectItem>
+                            <SelectItem value="Kabupaten">Kabupaten</SelectItem>
+                            <SelectItem value="Provinsi">Provinsi</SelectItem>
+                            <SelectItem value="Nasional">Nasional</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="font-semibold text-school-navy">
+                        Keterangan Tambahan (Opsional)
+                      </Label>
+                      <Textarea
+                        className="bg-slate-50"
+                        placeholder="Diselenggarakan oleh..."
+                        value={achievementForm.description}
+                        onChange={(e) =>
+                          setAchievementForm({
+                            ...achievementForm,
+                            description: e.target.value,
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button
+                      className="bg-amber-500 hover:bg-amber-600 text-white font-bold w-full"
+                      onClick={handleAddAchievement}
+                      disabled={submitting}
+                    >
+                      {submitting ? (
+                        <SystemRestart className="animate-spin mr-2" />
+                      ) : null}
+                      {submitting ? "Menyimpan.." : "Simpan Prestasi"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </CardHeader>
             <CardContent className="p-0">
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Nama</TableHead>
-                    <TableHead>Judul</TableHead>
-                    <TableHead>Tingkat</TableHead>
+                <TableHeader className="bg-school-navy">
+                  <TableRow className="hover:bg-school-navy">
+                    <TableHead className="text-white font-bold">
+                      Nama Siswa
+                    </TableHead>
+                    <TableHead className="text-white font-bold">
+                      Judul Prestasi
+                    </TableHead>
+                    <TableHead className="text-white font-bold w-[150px]">
+                      Tingkat
+                    </TableHead>
+                    <TableHead className="text-white font-bold w-[120px]">
+                      Kategori
+                    </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {achievements.map((ach: any) => (
-                    <TableRow key={ach._id}>
-                      <TableCell>{ach.student?.profile?.fullName}</TableCell>
-                      <TableCell>
-                        <div className="font-bold">{ach.title}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {ach.category}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{ach.level}</Badge>
+                  {achievements.length === 0 ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={4}
+                        className="text-center py-8 text-slate-500"
+                      >
+                        Belum ada data prestasi recorded.
                       </TableCell>
                     </TableRow>
-                  ))}
+                  ) : (
+                    achievements.map((ach: any) => (
+                      <TableRow
+                        key={ach._id}
+                        className="hover:bg-slate-50 border-b border-slate-100"
+                      >
+                        <TableCell className="font-bold text-school-navy">
+                          {ach.student?.profile?.fullName}
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium text-slate-800">
+                            {ach.title}
+                          </div>
+                          <div className="text-xs text-slate-500 italic mt-0.5">
+                            {ach.description}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge
+                            variant="outline"
+                            className="bg-amber-50 text-amber-700 border-amber-200"
+                          >
+                            {ach.level}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-sm text-slate-600">
+                            {ach.category}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>

@@ -60,6 +60,8 @@ const P5Dashboard = () => {
     academicYear: "671234567890abcdef123456",
   });
 
+  const { toast } = useToast();
+
   useEffect(() => {
     fetchProjects();
   }, []);
@@ -78,8 +80,6 @@ const P5Dashboard = () => {
       setLoading(false);
     }
   };
-
-  const { toast } = useToast();
 
   const handleCreate = async () => {
     if (!formData.title || !formData.theme) {
@@ -132,35 +132,40 @@ const P5Dashboard = () => {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8">
+      <div className="flex flex-col md:flex-row justify-between items-center gap-4">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">
+          <h2 className="font-serif text-3xl font-bold tracking-tight text-school-navy">
             Projek Penguatan Profil Pelajar Pancasila (P5)
           </h2>
-          <p className="text-muted-foreground">
-            Kelola projek, tema, dan penilaian siswa.
+          <p className="text-slate-500">
+            Kelola projek, tema, dan penilaian siswa untuk karakter Pancasila.
           </p>
         </div>
 
         {user?.role !== "student" && (
           <Dialog open={openDialog} onOpenChange={setOpenDialog}>
             <DialogTrigger asChild>
-              <Button className="bg-blue-600 hover:bg-blue-700">
+              <Button className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold shadow-md transition-all">
                 <Plus className="mr-2 h-4 w-4" /> Buat Projek Baru
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
-                <DialogTitle>Buat Projek P5 Baru</DialogTitle>
+                <DialogTitle className="font-serif text-2xl text-school-navy">
+                  Buat Projek P5 Baru
+                </DialogTitle>
                 <DialogDescription>
                   Tentukan tema dan deskripsi projek untuk tahun ajaran ini.
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="title" className="text-right">
-                    Judul
+              <div className="grid gap-6 py-4">
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="title"
+                    className="font-semibold text-school-navy"
+                  >
+                    Judul Projek
                   </Label>
                   <Input
                     id="title"
@@ -168,71 +173,85 @@ const P5Dashboard = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, title: e.target.value })
                     }
-                    className="col-span-3"
-                    placeholder="Contoh: Suara Demokrasi"
+                    className="bg-slate-50 focus:border-school-gold"
+                    placeholder="Contoh: Suara Demokrasi - Pemilihan Ketua OSIS"
                   />
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="theme" className="text-right">
-                    Tema
-                  </Label>
-                  <Select
-                    value={formData.theme}
-                    onValueChange={(v) =>
-                      setFormData({ ...formData, theme: v })
-                    }
-                  >
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Pilih Tema" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Gaya Hidup Berkelanjutan">
-                        Gaya Hidup Berkelanjutan
-                      </SelectItem>
-                      <SelectItem value="Kearifan Lokal">
-                        Kearifan Lokal
-                      </SelectItem>
-                      <SelectItem value="Bhinneka Tunggal Ika">
-                        Bhinneka Tunggal Ika
-                      </SelectItem>
-                      <SelectItem value="Bangunlah Jiwa dan Raganya">
-                        Bangunlah Jiwa dan Raganya
-                      </SelectItem>
-                      <SelectItem value="Suara Demokrasi">
-                        Suara Demokrasi
-                      </SelectItem>
-                      <SelectItem value="Rekayasa dan Teknologi">
-                        Rekayasa dan Teknologi
-                      </SelectItem>
-                      <SelectItem value="Kewirausahaan">
-                        Kewirausahaan
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="theme"
+                      className="font-semibold text-school-navy"
+                    >
+                      Tema
+                    </Label>
+                    <Select
+                      value={formData.theme}
+                      onValueChange={(v) =>
+                        setFormData({ ...formData, theme: v })
+                      }
+                    >
+                      <SelectTrigger className="bg-slate-50">
+                        <SelectValue placeholder="Pilih Tema" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Gaya Hidup Berkelanjutan">
+                          Gaya Hidup Berkelanjutan
+                        </SelectItem>
+                        <SelectItem value="Kearifan Lokal">
+                          Kearifan Lokal
+                        </SelectItem>
+                        <SelectItem value="Bhinneka Tunggal Ika">
+                          Bhinneka Tunggal Ika
+                        </SelectItem>
+                        <SelectItem value="Bangunlah Jiwa dan Raganya">
+                          Bangunlah Jiwa dan Raganya
+                        </SelectItem>
+                        <SelectItem value="Suara Demokrasi">
+                          Suara Demokrasi
+                        </SelectItem>
+                        <SelectItem value="Rekayasa dan Teknologi">
+                          Rekayasa dan Teknologi
+                        </SelectItem>
+                        <SelectItem value="Kewirausahaan">
+                          Kewirausahaan
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="level"
+                      className="font-semibold text-school-navy"
+                    >
+                      Fase/Kelas
+                    </Label>
+                    <Select
+                      value={formData.level}
+                      onValueChange={(v) =>
+                        setFormData({ ...formData, level: v })
+                      }
+                    >
+                      <SelectTrigger className="bg-slate-50">
+                        <SelectValue placeholder="Pilih Kelas" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="7">Kelas 7 (Fase D)</SelectItem>
+                        <SelectItem value="8">Kelas 8 (Fase D)</SelectItem>
+                        <SelectItem value="9">Kelas 9 (Fase D)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="level" className="text-right">
-                    Fase/Kelas
-                  </Label>
-                  <Select
-                    value={formData.level}
-                    onValueChange={(v) =>
-                      setFormData({ ...formData, level: v })
-                    }
+
+                <div className="space-y-2">
+                  <Label
+                    htmlFor="desc"
+                    className="font-semibold text-school-navy"
                   >
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Pilih Kelas" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="7">Kelas 7</SelectItem>
-                      <SelectItem value="8">Kelas 8</SelectItem>
-                      <SelectItem value="9">Kelas 9</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-4 items-center gap-4">
-                  <Label htmlFor="desc" className="text-right">
-                    Deskripsi
+                    Deskripsi Singkat
                   </Label>
                   <Input
                     id="desc"
@@ -240,7 +259,7 @@ const P5Dashboard = () => {
                     onChange={(e) =>
                       setFormData({ ...formData, description: e.target.value })
                     }
-                    className="col-span-3"
+                    className="bg-slate-50"
                     placeholder="Deskripsi singkat kegiatan..."
                   />
                 </div>
@@ -250,11 +269,12 @@ const P5Dashboard = () => {
                   type="submit"
                   disabled={submitting}
                   onClick={handleCreate}
+                  className="bg-school-navy hover:bg-school-gold hover:text-school-navy w-full font-bold"
                 >
                   {submitting && (
                     <SystemRestart className="mr-2 h-4 w-4 animate-spin" />
                   )}{" "}
-                  Simpan
+                  Simpan Projek
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -263,49 +283,57 @@ const P5Dashboard = () => {
       </div>
 
       {loading ? (
-        <div className="flex justify-center p-12">
-          <SystemRestart className="h-8 w-8 animate-spin text-muted-foreground" />
+        <div className="flex justify-center p-20">
+          <SystemRestart className="h-10 w-10 animate-spin text-school-gold" />
         </div>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
           {projects.length === 0 && (
-            <div className="col-span-3 text-center py-12 border border-dashed rounded-lg">
-              <h3 className="text-lg font-medium text-muted-foreground">
+            <div className="col-span-3 text-center py-16 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+              <div className="flex justify-center mb-4">
+                <Calendar className="h-12 w-12 text-slate-300" />
+              </div>
+              <h3 className="text-xl font-serif font-bold text-school-navy">
                 Belum ada projek aktif
               </h3>
-              <p className="text-sm text-muted-foreground mt-1">
-                Silahkan buat projek baru untuk memulai.
+              <p className="text-slate-500 mt-2">
+                Silahkan buat projek baru untuk memulai kegiatan P5.
               </p>
             </div>
           )}
           {projects.map((project) => (
             <Card
               key={project._id}
-              className="hover:shadow-md transition-shadow cursor-pointer"
+              className="hover:shadow-xl transition-all duration-300 cursor-pointer border-none shadow-md overflow-hidden group border-t-4 border-t-school-gold bg-white"
               onClick={() => navigate(`/dashboard/p5/${project._id}`)}
             >
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <Badge variant="outline" className="mb-2">
+              <CardHeader className="pb-3 bg-gradient-to-br from-white to-slate-50">
+                <div className="flex justify-between items-start mb-2">
+                  <Badge
+                    variant="outline"
+                    className="text-xs font-bold border-school-navy text-school-navy"
+                  >
                     {project.theme}
                   </Badge>
-                  <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+                  <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-emerald-200">
                     Aktif
                   </Badge>
                 </div>
-                <CardTitle className="text-xl">{project.title}</CardTitle>
-                <CardDescription className="line-clamp-2">
+                <CardTitle className="text-xl font-bold text-school-navy group-hover:text-school-gold transition-colors line-clamp-2 leading-tight">
+                  {project.title}
+                </CardTitle>
+                <CardDescription className="line-clamp-2 mt-2 text-sm text-slate-500">
                   {project.description}
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="flex items-center text-sm text-muted-foreground gap-4">
-                  <div className="flex items-center">
-                    <Calendar className="mr-1 h-3 w-3" />
-                    <span>Kelas {project.level}</span>
+              <CardContent className="pt-4 border-t border-slate-100">
+                <div className="flex items-center justify-between text-sm text-slate-500">
+                  <div className="flex items-center bg-slate-100 px-2 py-1 rounded">
+                    <Calendar className="mr-1.5 h-3.5 w-3.5 text-school-navy" />
+                    <span className="font-medium">Kelas {project.level}</span>
                   </div>
                   <div className="flex items-center">
-                    <User className="mr-1 h-3 w-3" />
+                    <User className="mr-1.5 h-3.5 w-3.5 text-school-gold" />
                     <span>Tim Fasilitator</span>
                   </div>
                 </div>

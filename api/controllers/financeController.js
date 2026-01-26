@@ -61,6 +61,74 @@ exports.generateMonthlyBilling = async (req, res) => {
   }
 };
 
+// Chart Data (Income/Outcome) - Dashboard
+exports.getFinanceChart = async (req, res) => {
+  try {
+    // Aggregate paid billings by month for the current year
+    const currentYear = new Date().getFullYear();
+    const startOfYear = new Date(currentYear, 0, 1);
+    const endOfYear = new Date(currentYear, 11, 31);
+
+    const incomeStats = await Billing.aggregate([
+      {
+        $match: {
+          status: "paid",
+          paidDate: { $gte: startOfYear, $lte: endOfYear },
+        },
+      },
+      {
+        $group: {
+          _id: { $month: "$paidDate" },
+          total: { $sum: "$amount" },
+        },
+      },
+      {
+        $sort: { _id: 1 },
+      },
+    ]);
+
+    // Format for Chart.js (Labels: Jan-Dec, Data: Income, Expense assumed 0 for now or random for demo if needed)
+    // Since we don't have an Expense model, we'll just return Income vs "Target" or similar.
+    // Or just Income.
+
+    const labels = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const data = new Array(12).fill(0);
+
+    incomeStats.forEach((stat) => {
+      data[stat._id - 1] = stat.total;
+    });
+
+    res.json({
+      labels,
+      datasets: [
+        {
+          label: "Pemasukan (SPP & Lainnya)",
+          data,
+          borderColor: "rgb(75, 192, 192)",
+          backgroundColor: "rgba(75, 192, 192, 0.5)",
+        },
+      ],
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal ambil data grafik", error: error.message });
+  }
+};
+
 // Bayar Tagihan (Manual oleh Admin Keuangan)
 exports.payBilling = async (req, res) => {
   try {
@@ -84,6 +152,74 @@ exports.payBilling = async (req, res) => {
   }
 };
 
+// Chart Data (Income/Outcome) - Dashboard
+exports.getFinanceChart = async (req, res) => {
+  try {
+    // Aggregate paid billings by month for the current year
+    const currentYear = new Date().getFullYear();
+    const startOfYear = new Date(currentYear, 0, 1);
+    const endOfYear = new Date(currentYear, 11, 31);
+
+    const incomeStats = await Billing.aggregate([
+      {
+        $match: {
+          status: "paid",
+          paidDate: { $gte: startOfYear, $lte: endOfYear },
+        },
+      },
+      {
+        $group: {
+          _id: { $month: "$paidDate" },
+          total: { $sum: "$amount" },
+        },
+      },
+      {
+        $sort: { _id: 1 },
+      },
+    ]);
+
+    // Format for Chart.js (Labels: Jan-Dec, Data: Income, Expense assumed 0 for now or random for demo if needed)
+    // Since we don't have an Expense model, we'll just return Income vs "Target" or similar.
+    // Or just Income.
+
+    const labels = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const data = new Array(12).fill(0);
+
+    incomeStats.forEach((stat) => {
+      data[stat._id - 1] = stat.total;
+    });
+
+    res.json({
+      labels,
+      datasets: [
+        {
+          label: "Pemasukan (SPP & Lainnya)",
+          data,
+          borderColor: "rgb(75, 192, 192)",
+          backgroundColor: "rgba(75, 192, 192, 0.5)",
+        },
+      ],
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal ambil data grafik", error: error.message });
+  }
+};
+
 // Cek Tagihan Siswa (Untuk Ortu)
 exports.getMyBillings = async (req, res) => {
   try {
@@ -98,6 +234,74 @@ exports.getMyBillings = async (req, res) => {
     res
       .status(500)
       .json({ message: "Gagal ambil tagihan", error: error.message });
+  }
+};
+
+// Chart Data (Income/Outcome) - Dashboard
+exports.getFinanceChart = async (req, res) => {
+  try {
+    // Aggregate paid billings by month for the current year
+    const currentYear = new Date().getFullYear();
+    const startOfYear = new Date(currentYear, 0, 1);
+    const endOfYear = new Date(currentYear, 11, 31);
+
+    const incomeStats = await Billing.aggregate([
+      {
+        $match: {
+          status: "paid",
+          paidDate: { $gte: startOfYear, $lte: endOfYear },
+        },
+      },
+      {
+        $group: {
+          _id: { $month: "$paidDate" },
+          total: { $sum: "$amount" },
+        },
+      },
+      {
+        $sort: { _id: 1 },
+      },
+    ]);
+
+    // Format for Chart.js (Labels: Jan-Dec, Data: Income, Expense assumed 0 for now or random for demo if needed)
+    // Since we don't have an Expense model, we'll just return Income vs "Target" or similar.
+    // Or just Income.
+
+    const labels = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const data = new Array(12).fill(0);
+
+    incomeStats.forEach((stat) => {
+      data[stat._id - 1] = stat.total;
+    });
+
+    res.json({
+      labels,
+      datasets: [
+        {
+          label: "Pemasukan (SPP & Lainnya)",
+          data,
+          borderColor: "rgb(75, 192, 192)",
+          backgroundColor: "rgba(75, 192, 192, 0.5)",
+        },
+      ],
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal ambil data grafik", error: error.message });
   }
 };
 
@@ -122,6 +326,74 @@ exports.getAllBillings = async (req, res) => {
     res
       .status(500)
       .json({ message: "Gagal ambil semua tagihan", error: error.message });
+  }
+};
+
+// Chart Data (Income/Outcome) - Dashboard
+exports.getFinanceChart = async (req, res) => {
+  try {
+    // Aggregate paid billings by month for the current year
+    const currentYear = new Date().getFullYear();
+    const startOfYear = new Date(currentYear, 0, 1);
+    const endOfYear = new Date(currentYear, 11, 31);
+
+    const incomeStats = await Billing.aggregate([
+      {
+        $match: {
+          status: "paid",
+          paidDate: { $gte: startOfYear, $lte: endOfYear },
+        },
+      },
+      {
+        $group: {
+          _id: { $month: "$paidDate" },
+          total: { $sum: "$amount" },
+        },
+      },
+      {
+        $sort: { _id: 1 },
+      },
+    ]);
+
+    // Format for Chart.js (Labels: Jan-Dec, Data: Income, Expense assumed 0 for now or random for demo if needed)
+    // Since we don't have an Expense model, we'll just return Income vs "Target" or similar.
+    // Or just Income.
+
+    const labels = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const data = new Array(12).fill(0);
+
+    incomeStats.forEach((stat) => {
+      data[stat._id - 1] = stat.total;
+    });
+
+    res.json({
+      labels,
+      datasets: [
+        {
+          label: "Pemasukan (SPP & Lainnya)",
+          data,
+          borderColor: "rgb(75, 192, 192)",
+          backgroundColor: "rgba(75, 192, 192, 0.5)",
+        },
+      ],
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal ambil data grafik", error: error.message });
   }
 };
 
@@ -183,5 +455,73 @@ exports.getAgingReport = async (req, res) => {
       message: "Gagal generate laporan piutang",
       error: error.message,
     });
+  }
+};
+
+// Chart Data (Income/Outcome) - Dashboard
+exports.getFinanceChart = async (req, res) => {
+  try {
+    // Aggregate paid billings by month for the current year
+    const currentYear = new Date().getFullYear();
+    const startOfYear = new Date(currentYear, 0, 1);
+    const endOfYear = new Date(currentYear, 11, 31);
+
+    const incomeStats = await Billing.aggregate([
+      {
+        $match: {
+          status: "paid",
+          paidDate: { $gte: startOfYear, $lte: endOfYear },
+        },
+      },
+      {
+        $group: {
+          _id: { $month: "$paidDate" },
+          total: { $sum: "$amount" },
+        },
+      },
+      {
+        $sort: { _id: 1 },
+      },
+    ]);
+
+    // Format for Chart.js (Labels: Jan-Dec, Data: Income, Expense assumed 0 for now or random for demo if needed)
+    // Since we don't have an Expense model, we'll just return Income vs "Target" or similar.
+    // Or just Income.
+
+    const labels = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    const data = new Array(12).fill(0);
+
+    incomeStats.forEach((stat) => {
+      data[stat._id - 1] = stat.total;
+    });
+
+    res.json({
+      labels,
+      datasets: [
+        {
+          label: "Pemasukan (SPP & Lainnya)",
+          data,
+          borderColor: "rgb(75, 192, 192)",
+          backgroundColor: "rgba(75, 192, 192, 0.5)",
+        },
+      ],
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal ambil data grafik", error: error.message });
   }
 };

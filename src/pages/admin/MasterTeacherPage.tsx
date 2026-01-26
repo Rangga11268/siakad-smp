@@ -83,7 +83,7 @@ const MasterTeacherPage = () => {
     nip: "",
     phone: "",
     subject: "",
-    gender: "Laki-laki",
+    gender: "L",
     address: "",
   });
 
@@ -129,7 +129,7 @@ const MasterTeacherPage = () => {
       nip: "",
       phone: "",
       subject: "",
-      gender: "Laki-laki",
+      gender: "L",
       address: "",
     });
     setEditingTeacher(null);
@@ -150,7 +150,7 @@ const MasterTeacherPage = () => {
       nip: teacher.profile?.nip || "",
       phone: teacher.profile?.phone || "",
       subject: teacher.profile?.subject || "",
-      gender: teacher.profile?.gender || "Laki-laki",
+      gender: teacher.profile?.gender || "L",
       address: teacher.profile?.address || "",
     });
     setOpenDialog(true);
@@ -179,7 +179,7 @@ const MasterTeacherPage = () => {
     try {
       const payload = {
         username: formData.username,
-        email: formData.email,
+        email: formData.email || `${formData.username}@sekolah.id`, // Auto-generate if empty
         role: "teacher",
         profile: {
           fullName: formData.fullName,
@@ -419,11 +419,11 @@ const MasterTeacherPage = () => {
                     }
                   >
                     <SelectTrigger className="bg-slate-50">
-                      <SelectValue />
+                      <SelectValue placeholder="Pilih Gender" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Laki-laki">Laki-laki</SelectItem>
-                      <SelectItem value="Perempuan">Perempuan</SelectItem>
+                      <SelectItem value="L">Laki-laki</SelectItem>
+                      <SelectItem value="P">Perempuan</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

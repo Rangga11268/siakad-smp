@@ -170,95 +170,157 @@ const P5AssessmentPage = () => {
   if (!project) return <div>Project tidak ditemukan</div>;
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div>
-          <h2 className="text-2xl font-bold tracking-tight">{project.title}</h2>
-          <p className="text-muted-foreground">
-            {project.theme} - Kelas {project.level}
-          </p>
+    <div className="space-y-8">
+      <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <Button
+            variant="outline"
+            size="icon"
+            onClick={() => navigate(-1)}
+            className="rounded-full border-2 border-school-navy text-school-navy hover:bg-school-navy hover:text-white transition-colors"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h2 className="font-serif text-3xl font-bold tracking-tight text-school-navy">
+              {project?.title}
+            </h2>
+            <div className="flex items-center gap-2 mt-1">
+              <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-xs font-bold border border-blue-100 uppercase tracking-wider">
+                {project?.theme}
+              </span>
+              <span className="text-sm text-slate-500 font-medium">
+                Kelas {project?.level}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Input Penilaian Projek</CardTitle>
-          <CardDescription>
-            Masukan predikat (BB, MB, BSH, SB) untuk setiap dimensi.
+      <Card className="border-t-4 border-t-school-gold shadow-lg border-none overflow-hidden bg-white">
+        <CardHeader className="bg-white border-b border-slate-100 pb-6">
+          <CardTitle className="font-serif text-xl text-school-navy flex items-center gap-2">
+            <CheckCircle className="w-5 h-5 text-school-gold" />
+            Input Penilaian Projek
+          </CardTitle>
+          <CardDescription className="text-slate-500">
+            Masukan predikat (BB, MB, BSH, SB) untuk setiap dimensi profil
+            pelajar Pancasila.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-0">
           <div className="overflow-x-auto">
             <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-[200px] sticky left-0 bg-background z-10">
+              <TableHeader className="bg-school-navy">
+                <TableRow className="hover:bg-school-navy border-none">
+                  <TableHead className="w-[200px] sticky left-0 bg-school-navy text-white font-bold z-20 border-r border-blue-900">
                     Nama Siswa
                   </TableHead>
-                  {project.targets.map((target, idx) => (
+                  {project?.targets.map((target, idx) => (
                     <TableHead
                       key={target._id || idx}
-                      className="min-w-[150px]"
+                      className="min-w-[180px] bg-school-navy text-white border-r border-blue-900 last:border-0"
                     >
-                      <div className="text-xs font-normal text-muted-foreground">
-                        {target.dimension}
-                      </div>
-                      <div
-                        className="font-medium truncate pt-1"
-                        title={target.subElement}
-                      >
-                        {target.element}
+                      <div className="flex flex-col h-full justify-center py-2 gap-1">
+                        <div className="text-[10px] uppercase tracking-wider opacity-70 font-semibold text-blue-200">
+                          {target.dimension}
+                        </div>
+                        <div
+                          className="font-bold text-xs leading-tight line-clamp-2"
+                          title={`${target.element} - ${target.subElement}`}
+                        >
+                          {target.element}
+                        </div>
+                        <div className="text-[10px] font-normal italic text-blue-100 opacity-80 truncate">
+                          ({target.subElement})
+                        </div>
                       </div>
                     </TableHead>
                   ))}
-                  <TableHead className="w-[100px] text-right sticky right-0 bg-background z-10">
-                    Aksi
+                  <TableHead className="w-[80px] text-center sticky right-0 bg-school-navy text-white font-bold z-20 shadow-[-5px_0_10px_-5px_rgba(0,0,0,0.3)]">
+                    Simpan
                   </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {students.map((student) => (
-                  <TableRow key={student._id}>
-                    <TableCell className="font-medium sticky left-0 bg-background z-10 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
-                      {student.profile?.fullName || student.username}
-                      <div className="text-xs text-muted-foreground">
-                        {student.profile?.nisn}
+                {students.map((student, idx) => (
+                  <TableRow
+                    key={student._id}
+                    className={`hover:bg-blue-50/50 transition-colors ${idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"}`}
+                  >
+                    <TableCell className="font-medium sticky left-0 bg-inherit z-10 border-r border-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
+                      <div className="flex flex-col">
+                        <span className="text-school-navy font-bold text-sm">
+                          {student.profile?.fullName || student.username}
+                        </span>
+                        <span className="text-xs text-slate-400 font-mono">
+                          {student.profile?.nisn || "No NISN"}
+                        </span>
                       </div>
                     </TableCell>
-                    {project.targets.map((target, idx) => (
-                      <TableCell key={target._id || idx}>
+                    {project?.targets.map((target, idx) => (
+                      <TableCell
+                        key={target._id || idx}
+                        className="border-r border-slate-100 last:border-0 p-2"
+                      >
                         <Select
                           value={inputs[student._id]?.[target._id] || ""}
                           onValueChange={(val) =>
                             handleScoreChange(student._id, target._id, val)
                           }
                         >
-                          <SelectTrigger className="h-8">
-                            <SelectValue placeholder="Pilih..." />
+                          <SelectTrigger
+                            className={`h-9 border-slate-200 focus:ring-school-gold ${
+                              inputs[student._id]?.[target._id]
+                                ? "bg-white font-bold text-school-navy"
+                                : "bg-slate-50 text-slate-400"
+                            }`}
+                          >
+                            <SelectValue placeholder="-" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="BB">BB</SelectItem>
-                            <SelectItem value="MB">MB</SelectItem>
-                            <SelectItem value="BSH">BSH</SelectItem>
-                            <SelectItem value="SB">SB</SelectItem>
+                            <SelectItem value="BB">
+                              <span className="font-bold text-red-600">BB</span>{" "}
+                              - Belum Berkembang
+                            </SelectItem>
+                            <SelectItem value="MB">
+                              <span className="font-bold text-orange-600">
+                                MB
+                              </span>{" "}
+                              - Mulai Berkembang
+                            </SelectItem>
+                            <SelectItem value="BSH">
+                              <span className="font-bold text-blue-600">
+                                BSH
+                              </span>{" "}
+                              - Berkembang Sesuai Harapan
+                            </SelectItem>
+                            <SelectItem value="SB">
+                              <span className="font-bold text-green-600">
+                                SB
+                              </span>{" "}
+                              - Sangat Berkembang
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </TableCell>
                     ))}
-                    <TableCell className="text-right sticky right-0 bg-background z-10 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                    <TableCell className="text-center sticky right-0 bg-inherit z-10 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.05)] p-2">
                       <Button
-                        size="sm"
+                        size="icon"
                         variant={savedStatus[student._id] ? "ghost" : "default"}
-                        className={
-                          savedStatus[student._id] ? "text-green-600" : ""
-                        }
+                        className={`h-9 w-9 rounded-full transition-all duration-300 ${
+                          savedStatus[student._id]
+                            ? "text-emerald-600 bg-emerald-50 hover:bg-emerald-100"
+                            : "bg-school-navy text-white hover:bg-school-gold hover:text-school-navy shadow-md"
+                        }`}
                         onClick={() => saveStudentAssessment(student._id)}
+                        title={
+                          savedStatus[student._id] ? "Disimpan" : "Simpan Nilai"
+                        }
                       >
                         {savedStatus[student._id] ? (
-                          <CheckCircle className="h-4 w-4" />
+                          <CheckCircle className="h-5 w-5" />
                         ) : (
                           <FloppyDisk className="h-4 w-4" />
                         )}

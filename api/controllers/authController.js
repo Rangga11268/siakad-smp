@@ -29,6 +29,7 @@ exports.register = async (req, res) => {
 
     res.status(201).json({ message: "Registrasi berhasil" });
   } catch (error) {
+    console.error("Register Error:", error);
     res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
@@ -51,7 +52,7 @@ exports.login = async (req, res) => {
     const token = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: "1d" }
+      { expiresIn: "1d" },
     );
 
     let userData = {
@@ -65,7 +66,7 @@ exports.login = async (req, res) => {
     if (user.role === "parent") {
       const fullUser = await User.findById(user._id).populate(
         "children",
-        "username profile"
+        "username profile",
       );
       userData.children = fullUser.children;
     }
@@ -75,6 +76,7 @@ exports.login = async (req, res) => {
       user: userData,
     });
   } catch (error) {
+    console.error("Register Error:", error);
     res.status(500).json({ message: "Server Error", error: error.message });
   }
 };
@@ -93,7 +95,7 @@ exports.getMe = async (req, res) => {
 
       if (foundClass) {
         console.log(
-          `[Auto-Heal] Syncing class for student ${user.username}: ${foundClass.name}`
+          `[Auto-Heal] Syncing class for student ${user.username}: ${foundClass.name}`,
         );
         if (!user.profile) user.profile = {};
         user.profile.class = foundClass.name;

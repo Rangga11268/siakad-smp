@@ -22,6 +22,7 @@ const userSchema = new mongoose.Schema(
       nik: { type: String }, // Sensitive
       nisn: { type: String }, // Student only
       nip: { type: String }, // Teacher only
+      subject: { type: String }, // Teacher only (Mapel Ampu)
       phone: { type: String },
       address: { type: String },
       gender: { type: String, enum: ["L", "P"] },
@@ -64,7 +65,7 @@ const userSchema = new mongoose.Schema(
     // Parent specific relations
     children: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = mongoose.model("User", userSchema);
