@@ -5,7 +5,7 @@ const schemas = {
   // Student registration
   createStudent: Joi.object({
     username: Joi.string().alphanum().min(3).max(30).required(),
-    password: Joi.string().min(6).max(100).optional(),
+    password: Joi.string().min(6).max(100).optional().allow(""),
     fullName: Joi.string().min(3).max(100).required(),
     nisn: Joi.string()
       .length(10)
@@ -13,24 +13,27 @@ const schemas = {
       .required(),
     gender: Joi.string().valid("L", "P").required(),
     level: Joi.string().valid("7", "8", "9").required(),
-    className: Joi.string().min(2).max(10).required(),
-    birthPlace: Joi.string().max(100).optional(),
-    birthDate: Joi.date().optional(),
-    address: Joi.string().max(500).optional(),
+    className: Joi.string().min(2).max(50).required(),
+    birthPlace: Joi.string().max(100).optional().allow(""),
+    birthDate: Joi.date().optional().allow(""), // Joi.date sometimes struggles with empty string, but let's try
+    address: Joi.string().max(500).optional().allow(""),
     physical: Joi.object({
       height: Joi.number().min(0).max(300).optional(),
       weight: Joi.number().min(0).max(300).optional(),
       headCircumference: Joi.number().min(0).max(100).optional(),
-      bloodType: Joi.string().valid("-", "A", "B", "AB", "O").optional(),
+      bloodType: Joi.string()
+        .valid("-", "A", "B", "AB", "O")
+        .optional()
+        .allow(""),
     }).optional(),
     family: Joi.object({
-      fatherName: Joi.string().max(100).optional(),
-      motherName: Joi.string().max(100).optional(),
-      guardianName: Joi.string().max(100).optional(),
-      parentJob: Joi.string().max(100).optional(),
-      parentIncome: Joi.string().max(50).optional(),
+      fatherName: Joi.string().max(100).optional().allow(""),
+      motherName: Joi.string().max(100).optional().allow(""),
+      guardianName: Joi.string().max(100).optional().allow(""),
+      parentJob: Joi.string().max(100).optional().allow(""),
+      parentIncome: Joi.string().max(50).optional().allow(""),
       kipStatus: Joi.boolean().optional(),
-      kipNumber: Joi.string().max(50).optional(),
+      kipNumber: Joi.string().max(50).optional().allow(""),
     }).optional(),
   }),
 

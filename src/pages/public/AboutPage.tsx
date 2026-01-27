@@ -20,7 +20,7 @@ const AboutPage = () => {
               lembaga pendidikan unggulan yang mencetak generasi berkarakter
               luhur, berprestasi akademis, dan berwawasan global.
             </p>
-            <p>
+            <div>
               <strong className="text-school-navy">Misi:</strong>
               <ul className="list-disc pl-6 space-y-2 mt-2">
                 <li>
@@ -36,7 +36,7 @@ const AboutPage = () => {
                   aktivitas sekolah.
                 </li>
               </ul>
-            </p>
+            </div>
           </div>
           <div className="relative">
             <div className="absolute -top-4 -right-4 w-full h-full border-4 border-school-gold -z-10"></div>

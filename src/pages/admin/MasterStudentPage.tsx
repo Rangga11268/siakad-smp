@@ -182,12 +182,12 @@ const MasterStudentPage = () => {
         level: formData.level,
         className: formData.className,
         birthPlace: formData.birthPlace,
-        birthDate: formData.birthDate,
+        birthDate: formData.birthDate || undefined,
         address: formData.address,
         physical: {
-          height: parseInt(formData.height),
-          weight: parseInt(formData.weight),
-          headCircumference: parseInt(formData.headCircumference),
+          height: parseInt(formData.height) || 0,
+          weight: parseInt(formData.weight) || 0,
+          headCircumference: parseInt(formData.headCircumference) || 0,
           bloodType: formData.bloodType,
         },
         family: {
@@ -211,12 +211,29 @@ const MasterStudentPage = () => {
 
       setIsOpen(false);
       fetchStudents();
-    } catch (error) {
-      console.error(error);
+    } catch (error: any) {
+      console.error("Submit Error:", error.response?.data);
+      const errorMessage =
+        error.response?.data?.message ||
+        "Terjadi kesalahan saat menyimpan data.";
+      const validationDetails = error.response?.data?.errors
+        ?.map((e: any) => `- ${e.message}`)
+        .join("\n");
+
       toast({
         variant: "destructive",
-        title: "Gagal",
-        description: "Terjadi kesalahan saat menyimpan data.",
+        title: "Gagal Validasi",
+        description: (
+          <div className="whitespace-pre-wrap">
+            {errorMessage}
+            {validationDetails && (
+              <>
+                <br />
+                {validationDetails}
+              </>
+            )}
+          </div>
+        ),
       });
     } finally {
       setSubmitLoading(false);
