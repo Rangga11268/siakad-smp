@@ -99,7 +99,7 @@ const LearningGoalPage = () => {
   const fetchInitialData = async () => {
     try {
       const [subjRes, yearRes] = await Promise.all([
-        api.get("/academic/subject"),
+        api.get("/academic/subjects"),
         api.get("/academic/years"),
       ]);
       setSubjects(subjRes.data);

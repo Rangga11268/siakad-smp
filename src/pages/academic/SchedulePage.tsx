@@ -88,7 +88,7 @@ const SchedulePage = () => {
     try {
       const [classRes, subjectRes, teacherRes] = await Promise.all([
         api.get("/academic/class"),
-        api.get("/academic/subject"),
+        api.get("/academic/subjects"),
         api.get("/academic/teachers"),
       ]);
       setClasses(classRes.data);

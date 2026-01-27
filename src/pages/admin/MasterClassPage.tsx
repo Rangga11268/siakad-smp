@@ -44,11 +44,27 @@ interface ClassData {
   _id: string;
   name: string;
   level: number;
+  academicYear?: { _id: string; name: string };
   homeroomTeacher?: {
+    _id: string;
     username: string;
     profile?: { fullName: string };
   };
   students?: any[];
+}
+
+interface AcademicYear {
+  _id: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  isActive: boolean;
+}
+
+interface Teacher {
+  _id: string;
+  username: string;
+  profile?: { fullName: string };
 }
 
 const MasterClassPage = () => {
@@ -59,6 +75,9 @@ const MasterClassPage = () => {
   const [selectedClass, setSelectedClass] = useState<ClassData | null>(null);
   const [members, setMembers] = useState<any[]>([]);
   const [allStudents, setAllStudents] = useState<any[]>([]);
+  const [academicYears, setAcademicYears] = useState<AcademicYear[]>([]);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [editingClass, setEditingClass] = useState<ClassData | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const { toast } = useToast();
 
@@ -66,12 +85,38 @@ const MasterClassPage = () => {
   const [formData, setFormData] = useState({
     name: "",
     level: "7",
+    academicYear: "",
+    homeroomTeacher: "",
   });
   const [selectedStudentId, setSelectedStudentId] = useState("");
 
   useEffect(() => {
     fetchClasses();
+    fetchAcademicYears();
+    fetchTeachers();
   }, []);
+
+  const fetchAcademicYears = async () => {
+    try {
+      const res = await api.get("/academic/years");
+      setAcademicYears(res.data);
+      const activeYear = res.data.find((y: AcademicYear) => y.isActive);
+      if (activeYear) {
+        setFormData((prev) => ({ ...prev, academicYear: activeYear._id }));
+      }
+    } catch (error) {
+      console.error("Gagal ambil tahun ajaran", error);
+    }
+  };
+
+  const fetchTeachers = async () => {
+    try {
+      const res = await api.get("/academic/teachers");
+      setTeachers(res.data);
+    } catch (error) {
+      console.error("Gagal ambil data guru", error);
+    }
+  };
 
   const fetchClasses = async () => {
     try {
@@ -85,15 +130,24 @@ const MasterClassPage = () => {
   };
 
   const handleCreate = async () => {
+    if (!formData.academicYear) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Pilih tahun ajaran terlebih dahulu.",
+      });
+      return;
+    }
     setSubmitting(true);
     try {
       await api.post("/academic/class", {
         ...formData,
         level: parseInt(formData.level),
+        homeroomTeacher: formData.homeroomTeacher || undefined,
       });
       setOpenDialog(false);
-      setFormData({ name: "", level: "7" }); // Reset
-      fetchClasses(); // Refresh
+      resetForm();
+      fetchClasses();
       toast({ title: "Berhasil", description: "Kelas berhasil dibuat." });
     } catch (error) {
       console.error("Gagal simpan kelas", error);
@@ -105,6 +159,54 @@ const MasterClassPage = () => {
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleEdit = (cls: ClassData) => {
+    setEditingClass(cls);
+    setFormData({
+      name: cls.name,
+      level: cls.level.toString(),
+      academicYear: cls.academicYear?._id || "",
+      homeroomTeacher: cls.homeroomTeacher?._id || "",
+    });
+    setOpenDialog(true);
+  };
+
+  const handleUpdate = async () => {
+    if (!editingClass) return;
+    setSubmitting(true);
+    try {
+      await api.put(`/academic/class/${editingClass._id}`, {
+        ...formData,
+        level: parseInt(formData.level),
+        homeroomTeacher: formData.homeroomTeacher || null,
+      });
+      setOpenDialog(false);
+      setEditingClass(null);
+      resetForm();
+      fetchClasses();
+      toast({ title: "Berhasil", description: "Kelas berhasil diupdate." });
+    } catch (error) {
+      console.error("Gagal update kelas", error);
+      toast({
+        variant: "destructive",
+        title: "Gagal",
+        description: "Gagal mengupdate kelas.",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const resetForm = () => {
+    const activeYear = academicYears.find((y) => y.isActive);
+    setFormData({
+      name: "",
+      level: "7",
+      academicYear: activeYear?._id || "",
+      homeroomTeacher: "",
+    });
+    setEditingClass(null);
   };
 
   const openManageMembers = async (cls: ClassData) => {
@@ -186,7 +288,13 @@ const MasterClassPage = () => {
           </p>
         </div>
 
-        <Dialog open={openDialog} onOpenChange={setOpenDialog}>
+        <Dialog
+          open={openDialog}
+          onOpenChange={(open) => {
+            setOpenDialog(open);
+            if (!open) resetForm();
+          }}
+        >
           <DialogTrigger asChild>
             <Button className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold shadow-md transition-all">
               <Plus className="mr-2 h-4 w-4" /> Tambah Kelas
@@ -195,10 +303,12 @@ const MasterClassPage = () => {
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle className="font-serif text-2xl text-school-navy">
-                Tambah Kelas Baru
+                {editingClass ? "Edit Kelas" : "Tambah Kelas Baru"}
               </DialogTitle>
               <DialogDescription>
-                Buat kelas baru untuk tahun ajaran aktif.
+                {editingClass
+                  ? "Perbarui data kelas"
+                  : "Buat kelas baru untuk tahun ajaran aktif."}
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-6 py-4">
@@ -245,18 +355,68 @@ const MasterClassPage = () => {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="grid gap-2">
+                <Label
+                  htmlFor="academicYear"
+                  className="font-semibold text-school-navy"
+                >
+                  Tahun Ajaran
+                </Label>
+                <Select
+                  value={formData.academicYear}
+                  onValueChange={(val) =>
+                    setFormData({ ...formData, academicYear: val })
+                  }
+                >
+                  <SelectTrigger className="bg-slate-50 focus:border-school-gold focus:ring-school-gold">
+                    <SelectValue placeholder="Pilih Tahun Ajaran" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {academicYears.map((year) => (
+                      <SelectItem key={year._id} value={year._id}>
+                        {year.name} {year.isActive && "(Aktif)"}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-2">
+                <Label
+                  htmlFor="homeroomTeacher"
+                  className="font-semibold text-school-navy"
+                >
+                  Wali Kelas (Opsional)
+                </Label>
+                <Select
+                  value={formData.homeroomTeacher}
+                  onValueChange={(val) =>
+                    setFormData({ ...formData, homeroomTeacher: val })
+                  }
+                >
+                  <SelectTrigger className="bg-slate-50 focus:border-school-gold focus:ring-school-gold">
+                    <SelectValue placeholder="Pilih Wali Kelas" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {teachers.map((t) => (
+                      <SelectItem key={t._id} value={t._id}>
+                        {t.profile?.fullName || t.username}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <DialogFooter>
               <Button
                 type="submit"
                 disabled={submitting}
-                onClick={handleCreate}
+                onClick={editingClass ? handleUpdate : handleCreate}
                 className="bg-school-navy hover:bg-school-gold hover:text-school-navy w-full"
               >
                 {submitting && (
                   <SystemRestart className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                Simpan
+                {editingClass ? "Update" : "Simpan"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -438,6 +598,7 @@ const MasterClassPage = () => {
                       <Button
                         variant="ghost"
                         size="icon"
+                        onClick={() => handleEdit(cls)}
                         className="hover:bg-orange-50 text-orange-500"
                       >
                         <EditPencil className="h-4 w-4" />

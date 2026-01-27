@@ -62,7 +62,7 @@ const MasterSubjectPage = () => {
 
   const fetchSubjects = async () => {
     try {
-      const res = await api.get("/academic/subject");
+      const res = await api.get("/academic/subjects");
       setSubjects(res.data);
     } catch (error) {
       console.error("Gagal ambil mapel", error);

@@ -79,6 +79,7 @@ const JournalPage = () => {
   });
   const [file, setFile] = useState<File | null>(null);
   const [materials, setMaterials] = useState<any[]>([]); // Available materials
+  const [editingJournal, setEditingJournal] = useState<any>(null);
 
   useEffect(() => {
     fetchMasterData();
@@ -90,7 +91,7 @@ const JournalPage = () => {
     try {
       const [classesRes, subjectsRes, materialsRes] = await Promise.all([
         api.get("/academic/class"),
-        api.get("/academic/subject"),
+        api.get("/academic/subjects"),
         api.get("/learning-material"),
       ]);
       setClasses(classesRes.data);
@@ -166,6 +167,82 @@ const JournalPage = () => {
     }
   };
 
+  const handleEdit = (journal: any) => {
+    setEditingJournal(journal);
+    setFormData({
+      classId: journal.class?._id || "",
+      subjectId: journal.subject?._id || "",
+      date:
+        journal.date?.split("T")[0] || new Date().toISOString().split("T")[0],
+      startTime: journal.startTime || "07:00",
+      endTime: journal.endTime || "08:20",
+      topic: journal.topic || "",
+      method: journal.method || "Ceramah & Diskusi",
+      studentActivity: journal.studentActivity || "",
+      notes: journal.notes || "",
+      materialIds: journal.materials?.map((m: any) => m._id) || [],
+    });
+    // Scroll to form
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingJournal) return;
+    setSubmitting(true);
+
+    const submitData = new FormData();
+    Object.entries(formData).forEach(([key, value]) => {
+      if (key === "materialIds") {
+        (value as string[]).forEach((id: string) =>
+          submitData.append("materials[]", id),
+        );
+      } else {
+        submitData.append(key, value as string);
+      }
+    });
+    if (file) {
+      submitData.append("attachment", file);
+    }
+
+    try {
+      await api.put(`/journal/${editingJournal._id}`, submitData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      toast({ title: "Berhasil", description: "Jurnal berhasil diupdate!" });
+      setEditingJournal(null);
+      resetForm();
+      fetchMyJournals();
+      if (user?.role === "admin") fetchAllJournals();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Gagal",
+        description:
+          error?.response?.data?.message || "Gagal mengupdate jurnal.",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      classId: "",
+      subjectId: "",
+      date: new Date().toISOString().split("T")[0],
+      startTime: "07:00",
+      endTime: "08:20",
+      topic: "",
+      method: "Ceramah & Diskusi",
+      studentActivity: "",
+      notes: "",
+      materialIds: [],
+    });
+    setFile(null);
+    setEditingJournal(null);
+  };
+
   return (
     <div className="space-y-8">
       <div>
@@ -214,7 +291,10 @@ const JournalPage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form
+                onSubmit={editingJournal ? handleUpdate : handleSubmit}
+                className="space-y-6"
+              >
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label className="font-semibold text-school-navy">
@@ -413,7 +493,17 @@ const JournalPage = () => {
                   />
                 </div>
 
-                <div className="flex justify-end pt-4 border-t border-slate-100">
+                <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                  {editingJournal && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={resetForm}
+                      className="border-slate-300"
+                    >
+                      Batal Edit
+                    </Button>
+                  )}
                   <Button
                     type="submit"
                     disabled={submitting}
@@ -426,7 +516,8 @@ const JournalPage = () => {
                       </>
                     ) : (
                       <>
-                        <FloppyDisk className="mr-2 h-4 w-4" /> Simpan Jurnal
+                        <FloppyDisk className="mr-2 h-4 w-4" />
+                        {editingJournal ? "Update Jurnal" : "Simpan Jurnal"}
                       </>
                     )}
                   </Button>
@@ -445,7 +536,11 @@ const JournalPage = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <JournalTable journals={myJournals} loading={loading} />
+              <JournalTable
+                journals={myJournals}
+                loading={loading}
+                onEdit={handleEdit}
+              />
             </CardContent>
           </Card>
         </TabsContent>
@@ -482,10 +577,12 @@ const JournalTable = ({
   journals,
   loading,
   showTeacher = false,
+  onEdit,
 }: {
   journals: any[];
   loading: boolean;
   showTeacher?: boolean;
+  onEdit?: (journal: any) => void;
 }) => {
   return (
     <Table>
@@ -504,12 +601,15 @@ const JournalTable = ({
           </TableHead>
           <TableHead className="text-white font-bold">Lampiran</TableHead>
           <TableHead className="text-white font-bold">Catatan</TableHead>
+          {onEdit && (
+            <TableHead className="text-white font-bold">Aksi</TableHead>
+          )}
         </TableRow>
       </TableHeader>
       <TableBody>
         {loading ? (
           <TableRow>
-            <TableCell colSpan={7} className="text-center h-24">
+            <TableCell colSpan={onEdit ? 8 : 7} className="text-center h-24">
               <div className="flex flex-col items-center justify-center text-school-gold">
                 <SystemRestart className="h-6 w-6 animate-spin mb-2" />
                 <p className="text-sm text-slate-500">Memuat data jurnal...</p>
@@ -518,7 +618,10 @@ const JournalTable = ({
           </TableRow>
         ) : journals.length === 0 ? (
           <TableRow>
-            <TableCell colSpan={7} className="text-center h-24 text-slate-500">
+            <TableCell
+              colSpan={onEdit ? 8 : 7}
+              className="text-center h-24 text-slate-500"
+            >
               <div className="flex flex-col items-center justify-center">
                 <Book className="h-8 w-8 text-slate-200 mb-2" />
                 <p>Belum ada data jurnal yang tersimpan.</p>
@@ -587,6 +690,18 @@ const JournalTable = ({
               >
                 {j.notes || "-"}
               </TableCell>
+              {onEdit && (
+                <TableCell>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onEdit(j)}
+                    className="text-orange-500 hover:text-orange-700 hover:bg-orange-50"
+                  >
+                    Edit
+                  </Button>
+                </TableCell>
+              )}
             </TableRow>
           ))
         )}

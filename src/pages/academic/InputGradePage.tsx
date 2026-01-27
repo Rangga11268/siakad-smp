@@ -100,7 +100,7 @@ const InputGradePage = () => {
       try {
         const [classRes, subjectRes] = await Promise.all([
           api.get("/academic/class"),
-          api.get("/academic/subject"),
+          api.get("/academic/subjects"),
         ]);
         setClasses(classRes.data);
         setSubjects(subjectRes.data);

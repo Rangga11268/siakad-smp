@@ -29,6 +29,11 @@ const storage = multer.diskStorage({
 
 // Enhanced filter with MIME type validation
 const fileFilter = async (req, file, cb) => {
+  // Skip if no actual file
+  if (!file || !file.originalname) {
+    return cb(null, false);
+  }
+
   const allowedExtensions = /jpeg|jpg|png|pdf|doc|docx/;
   const allowedMimeTypes = [
     "image/jpeg",
@@ -36,6 +41,7 @@ const fileFilter = async (req, file, cb) => {
     "application/pdf",
     "application/msword",
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    "application/octet-stream", // Sometimes sent for unknown types
   ];
 
   const extname = allowedExtensions.test(
@@ -44,6 +50,9 @@ const fileFilter = async (req, file, cb) => {
   const mimetype = allowedMimeTypes.includes(file.mimetype);
 
   if (extname && mimetype) {
+    return cb(null, true);
+  } else if (extname) {
+    // Allow if extension is valid even if mimetype is different
     return cb(null, true);
   } else {
     cb(

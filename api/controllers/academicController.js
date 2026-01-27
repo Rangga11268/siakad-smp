@@ -122,6 +122,24 @@ exports.getClasses = async (req, res) => {
   }
 };
 
+// Update Kelas
+exports.updateClass = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedClass = await Class.findByIdAndUpdate(id, req.body, {
+      new: true,
+    }).populate("homeroomTeacher", "username profile.fullName");
+    if (!updatedClass) {
+      return res.status(404).json({ message: "Kelas tidak ditemukan" });
+    }
+    res.json(updatedClass);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal update kelas", error: error.message });
+  }
+};
+
 // Ambil Siswa berdasarkan Level (untuk P5)
 exports.getStudentsByLevel = async (req, res) => {
   try {

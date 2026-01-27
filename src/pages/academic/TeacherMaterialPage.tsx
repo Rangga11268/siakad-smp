@@ -72,7 +72,7 @@ const TeacherMaterialPage = () => {
 
   const fetchMasterData = async () => {
     try {
-      const res = await api.get("/academic/subject");
+      const res = await api.get("/academic/subjects");
       setSubjects(res.data);
     } catch (error) {
       console.error(error);

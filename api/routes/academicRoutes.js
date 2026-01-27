@@ -63,6 +63,12 @@ router.post(
   academicController.createClass,
 );
 router.get("/class", auth, academicController.getClasses);
+router.put(
+  "/class/:id",
+  auth,
+  checkRole(["admin"]),
+  academicController.updateClass,
+);
 
 // Class Members
 router.get(
