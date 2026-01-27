@@ -11,6 +11,19 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: "NISN sudah terdaftar." });
     }
 
+    // Handle Uploaded Files
+    if (req.files) {
+      if (req.files.docKK) {
+        data.docKK = `/uploads/ppdb/${req.files.docKK[0].filename}`;
+      }
+      if (req.files.docAkta) {
+        data.docAkta = `/uploads/ppdb/${req.files.docAkta[0].filename}`;
+      }
+      if (req.files.docRapor) {
+        data.docRapor = `/uploads/ppdb/${req.files.docRapor[0].filename}`;
+      }
+    }
+
     const newRegistrant = new ProspectiveStudent(data);
     await newRegistrant.save();
 
@@ -67,7 +80,7 @@ exports.updateStatus = async (req, res) => {
     const updated = await ProspectiveStudent.findByIdAndUpdate(
       id,
       { status, notes },
-      { new: true }
+      { new: true },
     );
 
     res.json(updated);

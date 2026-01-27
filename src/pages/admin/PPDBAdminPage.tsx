@@ -54,6 +54,8 @@ interface Registrant {
   averageGrade?: number;
   originSchool?: string;
   docKK?: string;
+  docAkta?: string;
+  docRapor?: string;
   createdAt: string;
   notes?: string;
 }
@@ -140,6 +142,12 @@ const PPDBAdminPage = () => {
           </Badge>
         );
     }
+  };
+
+  const getFileUrl = (path: string) => {
+    if (!path) return "#";
+    if (path.startsWith("http")) return path;
+    return `http://localhost:5000${path}`;
   };
 
   return (
@@ -369,7 +377,7 @@ const PPDBAdminPage = () => {
                       <span className="text-slate-500">Kartu Keluarga</span>
                       {selectedDetail.docKK ? (
                         <a
-                          href={`http://localhost:5000${selectedDetail.docKK}`}
+                          href={getFileUrl(selectedDetail.docKK)}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200 transition-colors font-medium"
@@ -382,11 +390,39 @@ const PPDBAdminPage = () => {
                         </span>
                       )}
                     </div>
-                    <div className="flex justify-between border-b border-slate-200 pb-1">
-                      <span className="text-slate-500">Rata-rata Rapor</span>
-                      <span className="font-bold text-school-navy">
-                        {selectedDetail.averageGrade || "-"}
-                      </span>
+                    <div className="flex justify-between items-center border-b border-slate-200 pb-1">
+                      <span className="text-slate-500">Akta Lahir</span>
+                      {selectedDetail.docAkta ? (
+                        <a
+                          href={getFileUrl(selectedDetail.docAkta)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200 transition-colors font-medium"
+                        >
+                          Lihat Dokumen
+                        </a>
+                      ) : (
+                        <span className="text-xs text-red-500 bg-red-50 px-2 py-1 rounded">
+                          Belum Upload
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex justify-between items-center border-b border-slate-200 pb-1">
+                      <span className="text-slate-500">Rapor</span>
+                      {selectedDetail.docRapor ? (
+                        <a
+                          href={getFileUrl(selectedDetail.docRapor)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded hover:bg-blue-200 transition-colors font-medium"
+                        >
+                          Lihat Dokumen
+                        </a>
+                      ) : (
+                        <span className="text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                          -
+                        </span>
+                      )}
                     </div>
                     <div className="flex justify-between border-b border-slate-200 pb-1">
                       <span className="text-slate-500">Status Saat Ini</span>

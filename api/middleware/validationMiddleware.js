@@ -173,22 +173,26 @@ const schemas = {
       .messages(m),
     birthDate: Joi.date().required().label("Tanggal Lahir").messages(m),
     address: Joi.string().max(500).required().label("Alamat").messages(m),
-    phone: Joi.string()
+    parentPhone: Joi.string()
       .pattern(/^[0-9+\-() ]+$/)
       .max(20)
       .required()
-      .label("No HP")
+      .label("No HP Orang Tua")
       .messages(m),
     parentName: Joi.string()
       .max(100)
       .required()
       .label("Nama Orang Tua")
       .messages(m),
-    previousSchool: Joi.string()
+    originSchool: Joi.string()
       .max(200)
-      .optional()
-      .allow("")
+      .required()
       .label("Asal Sekolah")
+      .messages(m),
+    registrationPath: Joi.string()
+      .valid("Zonasi", "Afirmasi", "Prestasi", "Pindah Tugas")
+      .required()
+      .label("Jalur Pendaftaran")
       .messages(m),
   }),
 

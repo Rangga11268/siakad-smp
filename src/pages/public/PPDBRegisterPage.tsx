@@ -37,6 +37,12 @@ const PPDBRegisterPage = () => {
     registrationPath: "Zonasi",
   });
 
+  const [files, setFiles] = useState<{ [key: string]: File | null }>({
+    docKK: null,
+    docAkta: null,
+    docRapor: null,
+  });
+
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -47,6 +53,12 @@ const PPDBRegisterPage = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFiles({ ...files, [e.target.name]: e.target.files[0] });
+    }
+  };
+
   const handleSelectChange = (name: string, value: string) => {
     setFormData({ ...formData, [name]: value });
   };
@@ -54,8 +66,20 @@ const PPDBRegisterPage = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+
+    const data = new FormData();
+    Object.keys(formData).forEach((key) => {
+      data.append(key, formData[key as keyof typeof formData]);
+    });
+
+    if (files.docKK) data.append("docKK", files.docKK);
+    if (files.docAkta) data.append("docAkta", files.docAkta);
+    if (files.docRapor) data.append("docRapor", files.docRapor);
+
     try {
-      await api.post("/ppdb/register", formData);
+      await api.post("/ppdb/register", data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       toast({
         title: "Pendaftaran Berhasil!",
         description:
@@ -64,10 +88,17 @@ const PPDBRegisterPage = () => {
       navigate("/"); // Redirect to landing or status page
     } catch (error: any) {
       console.error(error);
+      const errorMessage = error.response?.data?.errors
+        ? error.response.data.errors
+            .map((e: any) => `• ${e.message}`)
+            .join("\n")
+        : error.response?.data?.message ||
+          "Terjadi kesalahan saat mengirim data.";
+
       toast({
         variant: "destructive",
         title: "Pendaftaran Gagal",
-        description: error.response?.data?.message || "Terjadi kesalahan.",
+        description: <div className="whitespace-pre-wrap">{errorMessage}</div>,
       });
     } finally {
       setLoading(false);
@@ -76,6 +107,7 @@ const PPDBRegisterPage = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 pt-24 pb-12 px-4">
+      {/* ... (Header remains same) ... */}
       <div className="container mx-auto max-w-4xl">
         <div className="text-center mb-12">
           <h1 className="font-serif text-4xl md:text-5xl font-bold text-school-navy mb-4">
@@ -88,6 +120,7 @@ const PPDBRegisterPage = () => {
         </div>
 
         <Card className="shadow-2xl border-t-8 border-t-school-gold">
+          {/* ... (Card Header remains same) ... */}
           <CardHeader className="bg-school-navy text-white p-8">
             <CardTitle className="font-serif text-2xl md:text-3xl text-school-gold text-center">
               Formulir Pendaftaran Online
@@ -98,7 +131,10 @@ const PPDBRegisterPage = () => {
           </CardHeader>
           <CardContent className="p-8">
             <form onSubmit={handleSubmit} className="space-y-10">
-              {/* Data Pribadi */}
+              {/* Data Pribadi (Same) */}
+
+              {/* ... (Keep existing form fields until File Upload Section) ... */}
+
               <div className="space-y-6">
                 <div className="flex items-center gap-4 border-b border-slate-200 pb-2">
                   <div className="w-8 h-8 rounded-full bg-school-gold flex items-center justify-center font-bold text-school-navy">
@@ -110,6 +146,7 @@ const PPDBRegisterPage = () => {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* ... Same inputs ... */}
                   <div className="space-y-2">
                     <Label className="font-bold text-slate-700">
                       Nama Lengkap
@@ -299,30 +336,48 @@ const PPDBRegisterPage = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
                     <Label className="font-bold text-slate-700">
-                      Link Google Drive KK
+                      Upload Kartu Keluarga (KK)
                     </Label>
                     <Input
+                      type="file"
                       name="docKK"
-                      value={formData.docKK}
-                      onChange={handleChange}
-                      placeholder="https://..."
-                      className="border-slate-300 focus:border-school-gold focus:ring-school-gold bg-slate-50"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={handleFileChange}
+                      className="border-slate-300 focus:border-school-gold focus:ring-school-gold bg-slate-50 cursor-pointer"
                     />
                     <p className="text-xs text-slate-500">
-                      Pastikan link dapat diakses publik (Anyone with link).
+                      Format: PDF/JPG. Max 5MB.
                     </p>
                   </div>
                   <div className="space-y-2">
                     <Label className="font-bold text-slate-700">
-                      Link Google Drive Akta Lahir
+                      Upload Akta Kelahiran
                     </Label>
                     <Input
+                      type="file"
                       name="docAkta"
-                      value={formData.docAkta}
-                      onChange={handleChange}
-                      placeholder="https://..."
-                      className="border-slate-300 focus:border-school-gold focus:ring-school-gold bg-slate-50"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={handleFileChange}
+                      className="border-slate-300 focus:border-school-gold focus:ring-school-gold bg-slate-50 cursor-pointer"
                     />
+                    <p className="text-xs text-slate-500">
+                      Format: PDF/JPG. Max 5MB.
+                    </p>
+                  </div>
+                  <div className="space-y-2 md:col-span-2">
+                    <Label className="font-bold text-slate-700">
+                      Upload Rapor (Halaman Nilai Terakhir)
+                    </Label>
+                    <Input
+                      type="file"
+                      name="docRapor"
+                      accept=".pdf,.jpg,.jpeg,.png"
+                      onChange={handleFileChange}
+                      className="border-slate-300 focus:border-school-gold focus:ring-school-gold bg-slate-50 cursor-pointer"
+                    />
+                    <p className="text-xs text-slate-500">
+                      Opsional jika jalur Zonasi. Wajib untuk Prestasi.
+                    </p>
                   </div>
                 </div>
               </div>
