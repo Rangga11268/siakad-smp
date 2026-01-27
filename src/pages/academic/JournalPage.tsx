@@ -80,6 +80,7 @@ const JournalPage = () => {
   const [file, setFile] = useState<File | null>(null);
   const [materials, setMaterials] = useState<any[]>([]); // Available materials
   const [editingJournal, setEditingJournal] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState("entry");
 
   useEffect(() => {
     fetchMasterData();
@@ -182,7 +183,8 @@ const JournalPage = () => {
       notes: journal.notes || "",
       materialIds: journal.materials?.map((m: any) => m._id) || [],
     });
-    // Scroll to form
+    // Switch to entry tab and scroll to form
+    setActiveTab("entry");
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
@@ -255,7 +257,12 @@ const JournalPage = () => {
         </p>
       </div>
 
-      <Tabs defaultValue="entry" className="space-y-6">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        defaultValue="entry"
+        className="space-y-6"
+      >
         <TabsList className="bg-slate-100 p-1 rounded-lg w-full md:w-auto grid grid-cols-2 md:inline-flex md:grid-cols-none">
           <TabsTrigger
             value="entry"
@@ -562,6 +569,7 @@ const JournalPage = () => {
                   journals={allJournals}
                   loading={false}
                   showTeacher
+                  onEdit={handleEdit}
                 />
               </CardContent>
             </Card>
