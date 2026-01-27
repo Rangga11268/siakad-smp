@@ -183,9 +183,12 @@ const JournalPage = () => {
       notes: journal.notes || "",
       materialIds: journal.materials?.map((m: any) => m._id) || [],
     });
-    // Switch to entry tab and scroll to form
+    // Switch to entry tab
     setActiveTab("entry");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+
+    // Optional: scroll to top of main container if needed, but window.scrollTo can cause issues
+    const mainContainer = document.querySelector("main");
+    if (mainContainer) mainContainer.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleUpdate = async (e: React.FormEvent) => {
@@ -246,7 +249,7 @@ const JournalPage = () => {
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-20">
       <div>
         <h2 className="font-serif text-3xl font-bold tracking-tight text-school-navy">
           Jurnal Mengajar
@@ -286,8 +289,8 @@ const JournalPage = () => {
           )}
         </TabsList>
 
-        <TabsContent value="entry">
-          <Card className="border-t-4 border-t-school-gold shadow-lg border-none">
+        <TabsContent value="entry" className="h-fit">
+          <Card className="border-t-4 border-t-school-gold shadow-lg border-none h-fit">
             <CardHeader className="bg-white border-b border-slate-100">
               <CardTitle className="font-serif text-xl text-school-navy flex items-center gap-2">
                 <Presentation className="w-5 h-5 text-school-gold" /> Form
@@ -298,6 +301,38 @@ const JournalPage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="pt-6">
+              {editingJournal && (
+                <div className="mb-6 p-4 bg-orange-50 border border-orange-200 rounded-lg flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-orange-100 rounded-full">
+                      <SystemRestart className="w-5 h-5 text-orange-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-semibold text-orange-800">
+                        Mode Edit Jurnal
+                      </h4>
+                      <p className="text-sm text-orange-600">
+                        Anda sedang mengedit jurnal tanggal{" "}
+                        {new Date(editingJournal.date).toLocaleDateString(
+                          "id-ID",
+                          {
+                            dateStyle: "long",
+                          },
+                        )}
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={resetForm}
+                    className="text-orange-700 hover:bg-orange-100"
+                  >
+                    Batal
+                  </Button>
+                </div>
+              )}
+
               <form
                 onSubmit={editingJournal ? handleUpdate : handleSubmit}
                 className="space-y-6"
@@ -500,21 +535,27 @@ const JournalPage = () => {
                   />
                 </div>
 
-                <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
-                  {editingJournal && (
+                <div className="flex items-center justify-between pt-6 border-t border-slate-100">
+                  {editingJournal ? (
                     <Button
                       type="button"
-                      variant="outline"
+                      variant="ghost"
                       onClick={resetForm}
-                      className="border-slate-300"
+                      className="text-slate-500 hover:text-slate-700 hover:bg-slate-100"
                     >
                       Batal Edit
                     </Button>
+                  ) : (
+                    <div></div> // Spacer
                   )}
                   <Button
                     type="submit"
                     disabled={submitting}
-                    className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold shadow-md min-w-[150px]"
+                    className={`font-bold shadow-md min-w-[150px] ${
+                      editingJournal
+                        ? "bg-orange-600 hover:bg-orange-700 text-white"
+                        : "bg-school-navy hover:bg-school-gold hover:text-school-navy"
+                    }`}
                   >
                     {submitting ? (
                       <>
@@ -524,7 +565,7 @@ const JournalPage = () => {
                     ) : (
                       <>
                         <FloppyDisk className="mr-2 h-4 w-4" />
-                        {editingJournal ? "Update Jurnal" : "Simpan Jurnal"}
+                        {editingJournal ? "Update Perubahan" : "Simpan Jurnal"}
                       </>
                     )}
                   </Button>
