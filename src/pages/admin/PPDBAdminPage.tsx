@@ -56,6 +56,12 @@ interface Registrant {
   docKK?: string;
   docAkta?: string;
   docRapor?: string;
+  gender?: string;
+  birthPlace?: string;
+  birthDate?: string;
+  address?: string;
+  parentName?: string;
+  parentPhone?: string;
   createdAt: string;
   notes?: string;
 }
@@ -342,33 +348,84 @@ const PPDBAdminPage = () => {
           {selectedDetail && (
             <div className="space-y-6 py-4">
               {/* Info Cards */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
-                  <h4 className="font-bold text-school-navy mb-3 flex items-center gap-2">
-                    <UserBadgeCheck className="w-4 h-4" /> Data Diri
-                  </h4>
-                  <div className="space-y-2 text-sm">
-                    <div className="flex justify-between border-b border-slate-200 pb-1">
-                      <span className="text-slate-500">Nama Lengkap</span>
-                      <span className="font-medium text-right">
-                        {selectedDetail.fullname}
-                      </span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-4">
+                  {/* Data Diri */}
+                  <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                    <h4 className="font-bold text-school-navy mb-3 flex items-center gap-2">
+                      <UserBadgeCheck className="w-4 h-4" /> Data Diri
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between border-b border-slate-200 pb-1">
+                        <span className="text-slate-500">Nama Lengkap</span>
+                        <span className="font-medium text-right">
+                          {selectedDetail.fullname}
+                        </span>
+                      </div>
+                      <div className="flex justify-between border-b border-slate-200 pb-1">
+                        <span className="text-slate-500">NISN</span>
+                        <span className="font-medium text-right">
+                          {selectedDetail.nisn}
+                        </span>
+                      </div>
+                      <div className="flex justify-between border-b border-slate-200 pb-1">
+                        <span className="text-slate-500">Jenis Kelamin</span>
+                        <span className="font-medium text-right">
+                          {selectedDetail.gender === "L"
+                            ? "Laki-laki"
+                            : "Perempuan"}
+                        </span>
+                      </div>
+                      <div className="flex justify-between border-b border-slate-200 pb-1">
+                        <span className="text-slate-500">
+                          Tempat, Tgl Lahir
+                        </span>
+                        <span className="font-medium text-right">
+                          {selectedDetail.birthPlace},{" "}
+                          {new Date(
+                            selectedDetail.birthDate || "",
+                          ).toLocaleDateString("id-ID")}
+                        </span>
+                      </div>
+                      <div className="flex justify-between border-b border-slate-200 pb-1">
+                        <span className="text-slate-500">Asal Sekolah</span>
+                        <span className="font-medium text-right">
+                          {selectedDetail.originSchool}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex justify-between border-b border-slate-200 pb-1">
-                      <span className="text-slate-500">NISN</span>
-                      <span className="font-medium text-right">
-                        {selectedDetail.nisn}
-                      </span>
-                    </div>
-                    <div className="flex justify-between border-b border-slate-200 pb-1">
-                      <span className="text-slate-500">Asal Sekolah</span>
-                      <span className="font-medium text-right">
-                        {selectedDetail.originSchool}
-                      </span>
+                  </div>
+
+                  {/* Data Orang Tua */}
+                  <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
+                    <h4 className="font-bold text-school-navy mb-3 flex items-center gap-2">
+                      <UserBadgeCheck className="w-4 h-4" /> Data Orang Tua
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between border-b border-slate-200 pb-1">
+                        <span className="text-slate-500">Nama Orang Tua</span>
+                        <span className="font-medium text-right">
+                          {selectedDetail.parentName}
+                        </span>
+                      </div>
+                      <div className="flex justify-between border-b border-slate-200 pb-1">
+                        <span className="text-slate-500">No. HP / WA</span>
+                        <span className="font-medium text-right">
+                          {selectedDetail.parentPhone}
+                        </span>
+                      </div>
+                      <div className="flex flex-col border-b border-slate-200 pb-1">
+                        <span className="text-slate-500 mb-1">Alamat</span>
+                        <span className="font-medium text-sm text-slate-700">
+                          {selectedDetail.address}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
-                <div className="p-4 bg-slate-50 rounded-lg border border-slate-100">
+
+                {/* Dokumen */}
+                <div className="p-4 bg-slate-50 rounded-lg border border-slate-100 h-fit">
                   <h4 className="font-bold text-school-navy mb-3 flex items-center gap-2">
                     <Page className="w-4 h-4" /> Kelengkapan Dokumen
                   </h4>
