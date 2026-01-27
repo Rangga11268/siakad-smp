@@ -210,6 +210,7 @@ const MasterStudentPage = () => {
       }
 
       setIsOpen(false);
+      setSearch(""); // Reset filter agar data baru langsung terlihat
       fetchStudents();
     } catch (error: any) {
       console.error("Submit Error:", error.response?.data);

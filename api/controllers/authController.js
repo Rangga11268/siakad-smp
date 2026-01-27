@@ -116,3 +116,70 @@ exports.getMe = async (req, res) => {
       .json({ message: "Gagal ambil data user", error: error.message });
   }
 };
+
+// Update User (Admin)
+exports.updateUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { username, email, password, role, profile } = req.body;
+
+    const user = await User.findById(id);
+    if (!user) return res.status(404).json({ message: "User tidak ditemukan" });
+
+    // Update Basic Info
+    if (username) user.username = username;
+    if (email !== undefined) user.email = email; // Allow clearing email?
+    if (role) user.role = role;
+
+    // Password Update if provided
+    if (password && password.trim() !== "") {
+      user.password = await bcrypt.hash(password, 10);
+    }
+
+    // Profile Update (Merge)
+    if (profile) {
+      // Ensure profile object exists
+      if (!user.profile) user.profile = {};
+      user.profile = { ...user.profile, ...profile };
+    }
+
+    await user.save();
+
+    res.json({
+      message: "User berhasil diperbarui",
+      user: sanitizeUserResponse(user),
+    });
+  } catch (error) {
+    if (error.code === 11000) {
+      return res
+        .status(400)
+        .json({ message: "Username atau Email sudah digunakan" });
+    }
+    res
+      .status(500)
+      .json({ message: "Gagal update user", error: error.message });
+  }
+};
+
+// Delete User (Admin)
+exports.deleteUser = async (req, res) => {
+  try {
+    const { id } = req.params;
+    await User.findByIdAndDelete(id);
+    res.json({ message: "User berhasil dihapus" });
+  } catch (error) {
+    res.status(500).json({ message: "Gagal hapus user", error: error.message });
+  }
+};
+
+// Helper reuse
+const sanitizeUserResponse = (user) => {
+  return {
+    _id: user._id,
+    username: user.username,
+    email: user.email,
+    role: user.role,
+    profile: user.profile,
+    isActive: user.isActive,
+  };
+};

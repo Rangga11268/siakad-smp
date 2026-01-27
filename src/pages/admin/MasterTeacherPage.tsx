@@ -207,14 +207,32 @@ const MasterTeacherPage = () => {
       }
 
       setOpenDialog(false);
+      setSearchQuery(""); // Reset pencarian agar data baru terlihat
       resetForm();
       fetchTeachers();
     } catch (error: any) {
+      console.error("Submit Error:", error.response?.data);
+      const errorMessage =
+        error.response?.data?.message ||
+        "Terjadi kesalahan saat menyimpan data.";
+      const validationDetails = error.response?.data?.errors
+        ?.map((e: any) => `- ${e.message}`)
+        .join("\n");
+
       toast({
         variant: "destructive",
-        title: "Gagal",
-        description:
-          error.response?.data?.message || "Terjadi kesalahan saat menyimpan.",
+        title: "Gagal Validasi",
+        description: (
+          <div className="whitespace-pre-wrap">
+            {errorMessage}
+            {validationDetails && (
+              <>
+                <br />
+                {validationDetails}
+              </>
+            )}
+          </div>
+        ),
       });
     } finally {
       setSubmitting(false);

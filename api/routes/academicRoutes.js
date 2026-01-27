@@ -9,6 +9,7 @@ router.post(
   "/subject",
   auth,
   checkRole(["admin"]),
+  validate("createSubject"), // Add validation
   academicController.createSubject,
 );
 // Report
@@ -60,6 +61,7 @@ router.post(
   "/class",
   auth,
   checkRole(["admin"]),
+  validate("createClass"), // Add validation
   academicController.createClass,
 );
 router.get("/class", auth, academicController.getClasses);
@@ -67,6 +69,7 @@ router.put(
   "/class/:id",
   auth,
   checkRole(["admin"]),
+  validate("createClass"), // Validate updates too
   academicController.updateClass,
 );
 

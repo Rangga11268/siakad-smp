@@ -75,6 +75,7 @@ const libraryRoutes = require("./routes/libraryRoutes");
 
 // Routes
 app.use("/api/auth", authLimiter, authRoutes); // Apply rate limiter to auth routes
+app.use("/api/users", require("./routes/userRoutes")); // Mount User Routes
 app.use("/api/academic", academicRoutes);
 app.use("/api/p5", p5Routes);
 app.use("/api/bk", studentAffairsRoutes);

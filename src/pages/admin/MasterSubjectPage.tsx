@@ -93,18 +93,36 @@ const MasterSubjectPage = () => {
         level: parseInt(formData.level),
       });
       setOpenDialog(false);
+      setSearch(""); // Reset search agar data baru terlihat
       setFormData({ code: "", name: "", level: "7", kktpType: "interval" }); // Reset
       fetchSubjects(); // Refresh
       toast({
         title: "Berhasil!",
         description: "Mata pelajaran berhasil ditambahkan.",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Gagal simpan mapel", error);
+      const errorMessage =
+        error.response?.data?.message ||
+        "Terjadi kesalahan saat menyimpan mapel.";
+      const validationDetails = error.response?.data?.errors
+        ?.map((e: any) => `- ${e.message}`)
+        .join("\n");
+
       toast({
         variant: "destructive",
         title: "Gagal Simpan",
-        description: "Terjadi kesalahan saat menyimpan mapel.",
+        description: (
+          <div className="whitespace-pre-wrap">
+            {errorMessage}
+            {validationDetails && (
+              <>
+                <br />
+                {validationDetails}
+              </>
+            )}
+          </div>
+        ),
       });
     } finally {
       setSubmitting(false);
