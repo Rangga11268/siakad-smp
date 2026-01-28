@@ -65,8 +65,8 @@ const StudentReportPage = () => {
     console.log("User:", user);
     console.log("Selected Year:", selectedYear);
 
-    // Normalize: check both _id and id
-    const studentId = user?.id || user?.id;
+    // Normalize: check both _id and id (Use user.id as per interface, handled by AuthContext)
+    const studentId = user?.id;
 
     if (!studentId || !selectedYear) {
       console.error("Missing studentId or selectedYear");
