@@ -37,9 +37,12 @@ import {
   FloppyDisk,
   SystemRestart,
   CheckCircle,
+  Printer,
 } from "iconoir-react";
 import api from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 interface ProjectP5 {
   _id: string;
@@ -179,6 +182,78 @@ const P5AssessmentPage = () => {
     }
   };
 
+  // PDF REPORT GENERATOR
+  const handlePrintReport = (studentId: string) => {
+    const student = students.find((s) => s._id === studentId);
+    const studentScores = inputs[studentId] || {};
+
+    if (!student || !project) return;
+
+    const doc = new jsPDF();
+
+    // HEADER
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("RAPOR PROJEK PENGUATAN PROFIL PELAJAR PANCASILA", 105, 20, {
+      align: "center",
+    });
+
+    // INFO
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(
+      `Nama Siswa : ${student.profile?.fullName || student.username}`,
+      20,
+      40,
+    );
+    doc.text(`NISN       : ${student.profile?.nisn || "-"}`, 20, 45);
+    doc.text(`Kelas      : ${project.level} (Fase D)`, 20, 50);
+    doc.text(`Tahun Ajar : 2024/2025`, 20, 55);
+
+    doc.setFont("helvetica", "bold");
+    doc.text(`Judul Projek : ${project.title}`, 20, 65);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Tema         : ${project.theme}`, 20, 70);
+    // Description (split text if long)
+    const desc = doc.splitTextToSize(
+      `Deskripsi: ${project.theme} - ${project.title}. Projek ini bertujuan untuk menguatkan karakter profil pelajar pancasila melalui kegiatan berbasis projek.`,
+      170,
+    );
+    doc.text(desc, 20, 80);
+
+    // TABLE
+    const tableData = project.targets.map((t) => {
+      const score = studentScores[t._id];
+      const scoreText =
+        score === "BB"
+          ? "Belum Berkembang"
+          : score === "MB"
+            ? "Mulai Berkembang"
+            : score === "BSH"
+              ? "Berkembang Sesuai Harapan"
+              : score === "SB"
+                ? "Sangat Berkembang"
+                : "Belum Dinilai";
+      return [t.dimension, t.element, scoreText];
+    });
+
+    autoTable(doc, {
+      startY: 95,
+      head: [["Dimensi", "Elemen", "Capaian Akhir"]],
+      body: tableData,
+      theme: "grid",
+      headStyles: { fillColor: [22, 36, 71] }, // school-navy
+    });
+
+    // SIGNATURE
+    const finalY = (doc as any).lastAutoTable.finalY + 30;
+    doc.text("Bandung, ......................", 140, finalY);
+    doc.text("Fasilitator Projek,", 140, finalY + 10);
+    doc.text("( ................................. )", 140, finalY + 35);
+
+    doc.save(`Rapor_P5_${student.profile?.fullName?.replace(/\s+/g, "_")}.pdf`);
+  };
+
   // Logbook Handlers
   const openLogbookReview = async (student: Student) => {
     setSelectedStudent(student);
@@ -296,8 +371,8 @@ const P5AssessmentPage = () => {
                           </div>
                         </TableHead>
                       ))}
-                      <TableHead className="w-[80px] text-center sticky right-0 bg-school-navy text-white font-bold z-20 shadow-[-5px_0_10px_-5px_rgba(0,0,0,0.3)]">
-                        Simpan
+                      <TableHead className="w-[120px] text-center sticky right-0 bg-school-navy text-white font-bold z-20 shadow-[-5px_0_10px_-5px_rgba(0,0,0,0.3)]">
+                        Aksi
                       </TableHead>
                     </TableRow>
                   </TableHeader>
@@ -367,29 +442,40 @@ const P5AssessmentPage = () => {
                           </TableCell>
                         ))}
                         <TableCell className="text-center sticky right-0 bg-inherit z-10 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.05)] p-2">
-                          <Button
-                            size="icon"
-                            variant={
-                              savedStatus[student._id] ? "ghost" : "default"
-                            }
-                            className={`h-9 w-9 rounded-full transition-all duration-300 ${
-                              savedStatus[student._id]
-                                ? "text-emerald-600 bg-emerald-50 hover:bg-emerald-100"
-                                : "bg-school-navy text-white hover:bg-school-gold hover:text-school-navy shadow-md"
-                            }`}
-                            onClick={() => saveStudentAssessment(student._id)}
-                            title={
-                              savedStatus[student._id]
-                                ? "Disimpan"
-                                : "Simpan Nilai"
-                            }
-                          >
-                            {savedStatus[student._id] ? (
-                              <CheckCircle className="h-5 w-5" />
-                            ) : (
-                              <FloppyDisk className="h-4 w-4" />
-                            )}
-                          </Button>
+                          <div className="flex items-center justify-center gap-2">
+                            <Button
+                              size="icon"
+                              variant={
+                                savedStatus[student._id] ? "ghost" : "default"
+                              }
+                              className={`h-9 w-9 rounded-full transition-all duration-300 ${
+                                savedStatus[student._id]
+                                  ? "text-emerald-600 bg-emerald-50 hover:bg-emerald-100"
+                                  : "bg-school-navy text-white hover:bg-school-gold hover:text-school-navy shadow-md"
+                              }`}
+                              onClick={() => saveStudentAssessment(student._id)}
+                              title={
+                                savedStatus[student._id]
+                                  ? "Disimpan"
+                                  : "Simpan Nilai"
+                              }
+                            >
+                              {savedStatus[student._id] ? (
+                                <CheckCircle className="h-5 w-5" />
+                              ) : (
+                                <FloppyDisk className="h-4 w-4" />
+                              )}
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="outline"
+                              className="h-9 w-9 rounded-full border-school-navy text-school-navy hover:bg-school-navy hover:text-white"
+                              onClick={() => handlePrintReport(student._id)}
+                              title="Cetak Rapor PDF"
+                            >
+                              <Printer className="h-4 w-4" />
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}

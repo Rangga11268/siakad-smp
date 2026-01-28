@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import api from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
@@ -9,8 +13,8 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -20,32 +24,42 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/components/ui/use-toast";
 import {
   ArrowLeft,
-  Journal,
-  InfoCircle,
-  Star,
-  Plus,
   Calendar,
-  User,
   CheckCircle,
   Clock,
+  InfoCircle,
+  Journal,
+  Plus,
   Send,
+  Star,
+  User,
+  Book,
+  Printer,
 } from "iconoir-react";
-import api from "@/services/api";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
+
+interface ProjectP5 {
+  _id: string;
+  title: string;
+  theme: string;
+  description: string;
+  level: number;
+  targets: any[];
+  facilitators: any[];
+}
 
 const StudentP5DetailPage = () => {
   const { projectId } = useParams();
   const navigate = useNavigate();
-  const { toast } = useToast();
   const { user } = useAuth();
+  const { toast } = useToast();
 
-  const [project, setProject] = useState<any>(null);
-  const [logbooks, setLogbooks] = useState<any[]>([]);
+  const [project, setProject] = useState<ProjectP5 | null>(null);
   const [report, setReport] = useState<any>(null);
+  const [logbooks, setLogbooks] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Form State
@@ -58,7 +72,6 @@ const StudentP5DetailPage = () => {
     if (projectId && user) fetchData();
   }, [projectId, user]);
 
-  // Helper url
   const getFileUrl = (path: string) => {
     if (path.startsWith("http")) return path;
     return `http://localhost:5000${path}`;
@@ -119,12 +132,85 @@ const StudentP5DetailPage = () => {
       setIsLogbookOpen(false);
       setLogForm({ title: "", content: "" });
       setSelectedFile(null);
-      fetchData(); // Reload logs
+      fetchData();
     } catch (error) {
       toast({ variant: "destructive", title: "Gagal simpan jurnal" });
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handlePrintReport = () => {
+    if (!project || !user) return;
+
+    const doc = new jsPDF();
+
+    // HEADER
+    doc.setFontSize(14);
+    doc.setFont("helvetica", "bold");
+    doc.text("RAPOR PROJEK PENGUATAN PROFIL PELAJAR PANCASILA", 105, 20, {
+      align: "center",
+    });
+
+    // INFO
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    doc.text(
+      `Nama Siswa : ${(user as any).profile?.fullName || user.username}`,
+      20,
+      40,
+    );
+    doc.text(`NISN       : ${(user as any).profile?.nisn || "-"}`, 20, 45);
+    doc.text(`Kelas      : ${project.level} (Fase D)`, 20, 50);
+    doc.text(`Tahun Ajar : 2024/2025`, 20, 55);
+
+    doc.setFont("helvetica", "bold");
+    doc.text(`Judul Projek : ${project.title}`, 20, 65);
+    doc.setFont("helvetica", "normal");
+    doc.text(`Tema         : ${project.theme}`, 20, 70);
+
+    // Description
+    const desc = doc.splitTextToSize(
+      `Deskripsi: ${project.theme} - ${project.title}.`,
+      170,
+    );
+    doc.text(desc, 20, 80);
+
+    // TABLE
+    const tableData = project.targets.map((t: any) => {
+      const scoreItem = report?.scores?.find((s: any) => s.targetId === t._id);
+      let scoreText = "-";
+      if (scoreItem) {
+        const sc = scoreItem.score;
+        scoreText =
+          sc === "BB"
+            ? "Belum Berkembang"
+            : sc === "MB"
+              ? "Mulai Berkembang"
+              : sc === "BSH"
+                ? "Berkembang Sesuai Harapan"
+                : sc === "SB"
+                  ? "Sangat Berkembang"
+                  : "-";
+      }
+      return [t.dimension, t.element, scoreText];
+    });
+
+    autoTable(doc, {
+      startY: 95,
+      head: [["Dimensi", "Elemen", "Capaian Akhir"]],
+      body: tableData,
+      theme: "grid",
+      headStyles: { fillColor: [22, 36, 71] },
+    });
+
+    // SIGNATURE
+    const finalY = (doc as any).lastAutoTable.finalY + 30;
+    doc.text("Bandung, ......................", 140, finalY);
+    doc.text("Fasilitator Projek,", 140, finalY + 10);
+    doc.text("( ................................. )", 140, finalY + 35);
+
+    doc.save(`Rapor_P5_Saya.pdf`);
   };
 
   if (loading)
@@ -335,14 +421,16 @@ const StudentP5DetailPage = () => {
 
                       {log.feedback && (
                         <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100 flex gap-3 text-sm">
-                          <User className="w-5 h-5 text-school-gold shrink-0 mt-0.5" />
+                          <div className="min-w-6 pt-1">
+                            <InfoCircle className="text-school-gold" />
+                          </div>
                           <div>
                             <span className="font-bold text-school-navy block mb-1">
-                              Komentar Fasilitator:
+                              Feedback Fasilitator:
                             </span>
-                            <p className="text-slate-700 italic">
+                            <span className="text-slate-700 italic">
                               "{log.feedback}"
-                            </p>
+                            </span>
                           </div>
                         </div>
                       )}
@@ -354,121 +442,136 @@ const StudentP5DetailPage = () => {
           </div>
         </TabsContent>
 
-        {/* Tab: Info - Corrected Targets Render */}
+        {/* Tab: Info */}
         <TabsContent value="info">
           <Card>
             <CardHeader>
-              <CardTitle>Informasi Detail</CardTitle>
+              <CardTitle>Informasi Projek</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p className="font-semibold text-slate-500">Tema</p>
-                  <p className="font-medium">{project.theme}</p>
+                  <h4 className="font-bold text-school-navy mb-2">
+                    Target Dimensi
+                  </h4>
+                  <ul className="space-y-2">
+                    {project.targets.map((t: any, i: number) => (
+                      <li
+                        key={i}
+                        className="bg-slate-50 p-3 rounded text-sm border-l-4 border-school-gold"
+                      >
+                        <span className="font-bold block text-school-navy">
+                          {t.dimension}
+                        </span>
+                        <span className="text-slate-500">{t.element}</span>
+                      </li>
+                    ))}
+                  </ul>
                 </div>
                 <div>
-                  <p className="font-semibold text-slate-500">Fase / Kelas</p>
-                  <p className="font-medium">Fase D (SMP) / {project.level}</p>
-                </div>
-                <div>
-                  <p className="font-semibold text-slate-500">Periode</p>
-                  <p className="font-medium">
-                    {new Date(project.startDate).toLocaleDateString()} -{" "}
-                    {new Date(project.endDate).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
-              <div className="border-t pt-4">
-                <p className="font-semibold text-slate-500 mb-2">
-                  Dimensi Profil Pelajar Pancasila
-                </p>
-                <div className="flex flex-wrap gap-2">
-                  {/* Fix: Render unique dimensions from targets object array */}
-                  {Array.from(
-                    new Set(project.targets?.map((t: any) => t.dimension)),
-                  ).map((d: any) => (
-                    <Badge
-                      key={d}
-                      className="bg-slate-100 text-school-navy hover:bg-slate-200 border-none"
-                    >
-                      {d}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-              <div className="border-t pt-4">
-                <p className="font-semibold text-slate-500 mb-2">
-                  Tim Fasilitator
-                </p>
-                <div className="flex flex-wrap gap-4">
-                  {project.facilitators?.map((f: any) => (
-                    <div
-                      key={f._id}
-                      className="flex items-center gap-2 bg-slate-50 p-2 rounded border"
-                    >
-                      <User className="w-4 h-4 text-slate-400" />
-                      <span className="text-sm font-medium">
-                        {f.profile?.fullName || f.username}
-                      </span>
-                    </div>
-                  ))}
+                  <h4 className="font-bold text-school-navy mb-2">
+                    Tim Fasilitator
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {project.facilitators.map((f: any, i: number) => (
+                      <div
+                        key={i}
+                        className="flex items-center gap-2 bg-slate-50 px-4 py-2 rounded-full border"
+                      >
+                        <User className="w-4 h-4 text-slate-400" />
+                        <span className="font-medium text-sm">
+                          {f.username}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        {/* Tab: Reporting */}
+        {/* Tab: Report */}
         <TabsContent value="report">
           <Card>
             <CardHeader>
-              <CardTitle>Rapor & Evaluasi Akhir</CardTitle>
-              <CardDescription>
-                Hasil penilaian sumatif dari projek ini.
-              </CardDescription>
+              <div className="flex justify-between items-center">
+                <div>
+                  <CardTitle>Rapor Capaian Projek</CardTitle>
+                  <CardDescription>
+                    Evaluasi dimensi Profil Pelajar Pancasila.
+                  </CardDescription>
+                </div>
+                <Button
+                  onClick={handlePrintReport}
+                  className="bg-school-navy text-white hover:bg-school-gold hover:text-school-navy"
+                >
+                  <Printer className="mr-2 h-4 w-4" /> Cetak PDF
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
-              {!report || report.scores.length === 0 ? (
-                <div className="text-center py-8 text-slate-500 bg-slate-50 rounded">
-                  <Star className="w-12 h-12 mx-auto text-slate-300 mb-2" />
-                  <p>Belum ada penilaian akhir.</p>
-                </div>
-              ) : (
-                <div className="space-y-6">
-                  <div className="bg-green-50 border border-green-100 p-4 rounded-lg">
-                    <h4 className="font-bold text-green-800 mb-1">
-                      Catatan Proses
-                    </h4>
-                    <p className="text-green-900">{report.finalNotes || "-"}</p>
-                  </div>
-                  <div className="space-y-2">
-                    <h4 className="font-bold text-school-navy">
-                      Capaian Dimensi
-                    </h4>
-                    <div className="grid gap-2">
-                      {report.scores.map((s: any, idx: number) => (
-                        <div
-                          key={idx}
-                          className="flex justify-between items-center p-3 border rounded hover:bg-slate-50"
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-50 border-b">
+                    <tr>
+                      <th className="text-left p-3 font-bold text-school-navy">
+                        Dimensi
+                      </th>
+                      <th className="text-left p-3 font-bold text-school-navy">
+                        Elemen
+                      </th>
+                      <th className="text-center p-3 font-bold text-school-navy">
+                        Capaian Akhir
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {project.targets.map((t: any) => {
+                      const score = report?.scores?.find(
+                        (s: any) => s.targetId === t._id,
+                      )?.score;
+                      return (
+                        <tr
+                          key={t._id}
+                          className="border-b last:border-0 hover:bg-slate-50"
                         >
-                          <span className="font-medium">
-                            {s.dimension || `Dimensi ${idx + 1}`}
-                          </span>
-                          <Badge
-                            className={
-                              s.score === "SB"
-                                ? "bg-school-gold text-school-navy"
-                                : s.score === "BSH"
-                                  ? "bg-green-600"
-                                  : "bg-slate-400"
-                            }
-                          >
-                            {s.score}
-                          </Badge>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
+                          <td className="p-3 text-slate-700 font-medium">
+                            {t.dimension}
+                          </td>
+                          <td className="p-3 text-slate-500">
+                            {t.element} - {t.subElement}
+                          </td>
+                          <td className="p-3 text-center">
+                            {score ? (
+                              <Badge
+                                className={`
+                                             ${score === "BB" ? "bg-red-100 text-red-700 hover:bg-red-200" : ""}
+                                             ${score === "MB" ? "bg-orange-100 text-orange-700 hover:bg-orange-200" : ""}
+                                             ${score === "BSH" ? "bg-blue-100 text-blue-700 hover:bg-blue-200" : ""}
+                                             ${score === "SB" ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : ""}
+                                          `}
+                              >
+                                {score}
+                              </Badge>
+                            ) : (
+                              <span className="text-slate-300">-</span>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+
+              {report?.finalNotes && (
+                <div className="mt-6 bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                  <h4 className="font-bold text-school-navy mb-1 flex items-center gap-2">
+                    <InfoCircle className="w-4 h-4 text-school-gold" /> Catatan
+                    Fasilitator
+                  </h4>
+                  <p className="text-slate-700 italic">{report.finalNotes}</p>
                 </div>
               )}
             </CardContent>
