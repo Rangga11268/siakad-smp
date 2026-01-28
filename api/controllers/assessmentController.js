@@ -44,7 +44,15 @@ exports.getAssessments = async (req, res) => {
 
     // For students: show only their class assessments
     if (req.user.role === "student") {
-      // Future student logic
+      const User = require("../models/User");
+      const student = await User.findById(req.user.id);
+      if (student && student.profile.class) {
+        query.classes = student.profile.class;
+      } else {
+        // If student has no class, maybe show nothing or all?
+        // Safest: show nothing to avoid leak.
+        return res.json([]);
+      }
     }
 
     const assessments = await Assessment.find(query)
@@ -165,5 +173,49 @@ exports.getSubmissionsByAssessment = async (req, res) => {
     res
       .status(500)
       .json({ message: "Error loading submissions", error: error.message });
+  }
+};
+// Update Assessment
+exports.updateAssessment = async (req, res) => {
+  try {
+    const {
+      title,
+      description,
+      subject,
+      classes,
+      deadline,
+      attachments,
+      type,
+    } = req.body;
+    const assessment = await Assessment.findByIdAndUpdate(
+      req.params.id,
+      { title, description, subject, classes, deadline, attachments, type },
+      { new: true },
+    );
+    if (!assessment)
+      return res.status(404).json({ message: "Tugas tidak ditemukan" });
+    res.json(assessment);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal update tugas", error: error.message });
+  }
+};
+
+// Delete Assessment
+exports.deleteAssessment = async (req, res) => {
+  try {
+    const assessment = await Assessment.findByIdAndDelete(req.params.id);
+    if (!assessment)
+      return res.status(404).json({ message: "Tugas tidak ditemukan" });
+
+    // Optional: Delete related submissions?
+    await Submission.deleteMany({ assessment: req.params.id });
+
+    res.json({ message: "Tugas berhasil dihapus" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal hapus tugas", error: error.message });
   }
 };

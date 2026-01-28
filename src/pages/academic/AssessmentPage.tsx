@@ -5,6 +5,8 @@ import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import {
   Card,
   CardContent,
@@ -41,6 +43,8 @@ import {
   Clock,
   ArrowRight,
   Book,
+  Trash,
+  EditPencil,
 } from "iconoir-react";
 
 interface Assessment {
@@ -67,19 +71,35 @@ interface Submission {
   files?: string[];
 }
 
+interface ClassData {
+  _id: string;
+  name: string;
+  level: number;
+}
+
 const AssessmentPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [assessments, setAssessments] = useState<Assessment[]>([]);
+  const [availableClasses, setAvailableClasses] = useState<ClassData[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Create State
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
-  const [newForm, setNewForm] = useState({
+  // Create/Edit State
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [newForm, setNewForm] = useState<{
+    title: string;
+    description: string;
+    subject: string;
+    classes: string[];
+    deadline: string;
+    type: "assignment" | "material";
+  }>({
     title: "",
     description: "",
     subject: "",
-    classes: "", // comma separated
+    classes: [],
     deadline: "",
     type: "assignment",
   });
@@ -97,7 +117,17 @@ const AssessmentPage = () => {
 
   useEffect(() => {
     fetchAssessments();
+    fetchClasses();
   }, []);
+
+  const fetchClasses = async () => {
+    try {
+      const res = await api.get("/academic/class");
+      setAvailableClasses(res.data);
+    } catch (e) {
+      console.error("Failed to load classes");
+    }
+  };
 
   const fetchAssessments = async () => {
     try {
@@ -110,11 +140,47 @@ const AssessmentPage = () => {
     }
   };
 
-  const handleCreate = async () => {
+  const handleOpenCreate = () => {
+    setIsEditMode(false);
+    setEditingId(null);
+    setNewForm({
+      title: "",
+      description: "",
+      subject: "",
+      classes: [],
+      deadline: "",
+      type: "assignment",
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleOpenEdit = (item: Assessment) => {
+    setIsEditMode(true);
+    setEditingId(item._id);
+    setNewForm({
+      title: item.title,
+      description: item.description,
+      subject: item.subject,
+      classes: item.classes,
+      deadline: item.deadline ? item.deadline.split("T")[0] : "",
+      type: item.type as any,
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleSubmit = async () => {
     if (!newForm.title || !newForm.subject) {
       toast({ variant: "destructive", title: "Judul dan Mapel wajib diisi" });
       return;
     }
+    if (newForm.classes.length === 0) {
+      toast({
+        variant: "destructive",
+        title: "Pilih minimal satu kelas target",
+      });
+      return;
+    }
+
     try {
       let attachments: string[] = [];
       if (selectedTxFile) {
@@ -126,26 +192,38 @@ const AssessmentPage = () => {
         attachments.push(up.data.url);
       }
 
-      await api.post("/assessment", {
+      const payload = {
         ...newForm,
-        classes: newForm.classes.split(",").map((c) => c.trim()),
-        attachments,
-      });
+        // classes is already an array in newForm
+        attachments: attachments.length > 0 ? attachments : undefined,
+      };
 
-      toast({ title: "Tugas berhasil dibuat" });
-      setIsCreateOpen(false);
+      if (isEditMode && editingId) {
+        // Update
+        await api.put(`/assessment/${editingId}`, payload);
+        toast({ title: "Tugas berhasil diupdate" });
+      } else {
+        // Create
+        await api.post("/assessment", payload);
+        toast({ title: "Tugas berhasil dibuat" });
+      }
+
+      setIsDialogOpen(false);
       setNewForm({
         title: "",
         description: "",
         subject: "",
-        classes: "",
+        classes: [],
         deadline: "",
         type: "assignment",
       });
       setSelectedTxFile(null);
       fetchAssessments();
     } catch (e) {
-      toast({ variant: "destructive", title: "Gagal buat tugas" });
+      toast({
+        variant: "destructive",
+        title: isEditMode ? "Gagal update tugas" : "Gagal buat tugas",
+      });
     }
   };
 
@@ -177,6 +255,22 @@ const AssessmentPage = () => {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (
+      !confirm(
+        "Yakin ingin menghapus tugas ini? Data pengumpulan siswa juga akan terhapus.",
+      )
+    )
+      return;
+    try {
+      await api.delete(`/assessment/${id}`);
+      toast({ title: "Tugas dihapus" });
+      fetchAssessments();
+    } catch (e) {
+      toast({ variant: "destructive", title: "Gagal hapus tugas" });
+    }
+  };
+
   return (
     <div className="space-y-6 animate-in fade-in">
       <div className="flex justify-between items-center">
@@ -189,7 +283,7 @@ const AssessmentPage = () => {
           </p>
         </div>
         <Button
-          onClick={() => setIsCreateOpen(true)}
+          onClick={handleOpenCreate}
           className="bg-school-navy hover:bg-school-gold hover:text-school-navy"
         >
           <Plus className="mr-2 h-4 w-4" /> Buat Baru
@@ -248,13 +342,29 @@ const AssessmentPage = () => {
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className="border-t pt-4">
+              <CardFooter className="border-t pt-4 flex gap-2">
                 <Button
                   variant="outline"
-                  className="w-full"
+                  className="flex-1"
                   onClick={() => handleOpenGrading(item)}
                 >
-                  <Eye className="mr-2 h-4 w-4" /> Lihat Pengumpulan
+                  <Eye className="mr-2 h-4 w-4" /> Nilai
+                </Button>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                  onClick={() => handleOpenEdit(item)}
+                >
+                  <EditPencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="icon"
+                  className="bg-red-50 text-red-600 hover:bg-red-100 border-red-200"
+                  onClick={() => handleDelete(item._id)}
+                >
+                  <Trash className="h-4 w-4" />
                 </Button>
               </CardFooter>
             </Card>
@@ -262,11 +372,13 @@ const AssessmentPage = () => {
         )}
       </div>
 
-      {/* Create Dialog */}
-      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+      {/* Create/Edit Dialog */}
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle>Buat Tugas / Materi Baru</DialogTitle>
+            <DialogTitle>
+              {isEditMode ? "Edit Tugas / Materi" : "Buat Tugas / Materi Baru"}
+            </DialogTitle>
             <DialogDescription>Isi detail tugas akademik.</DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
@@ -293,18 +405,50 @@ const AssessmentPage = () => {
                 }
               />
             </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label className="text-right text-sm font-bold">
+            <div className="grid grid-cols-4 items-start gap-4">
+              <label className="text-right text-sm font-bold mt-2">
                 Target Kelas
               </label>
-              <Input
-                className="col-span-3"
-                placeholder="Contoh: 7A, 7B"
-                value={newForm.classes}
-                onChange={(e) =>
-                  setNewForm({ ...newForm, classes: e.target.value })
-                }
-              />
+              <div className="col-span-3 border p-4 rounded-md h-40 overflow-y-auto space-y-2 bg-slate-50">
+                {availableClasses.length === 0 ? (
+                  <p className="text-xs text-slate-500 italic">
+                    Belum ada data kelas.
+                  </p>
+                ) : (
+                  availableClasses.map((cls) => (
+                    <div key={cls._id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`cls-${cls._id}`}
+                        checked={newForm.classes.includes(cls.name)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setNewForm((prev) => ({
+                              ...prev,
+                              classes: [...prev.classes, cls.name],
+                            }));
+                          } else {
+                            setNewForm((prev) => ({
+                              ...prev,
+                              classes: prev.classes.filter(
+                                (c) => c !== cls.name,
+                              ),
+                            }));
+                          }
+                        }}
+                      />
+                      <Label
+                        htmlFor={`cls-${cls._id}`}
+                        className="cursor-pointer text-sm font-medium"
+                      >
+                        {cls.name}{" "}
+                        <span className="text-xs text-slate-500">
+                          (Kls {cls.level})
+                        </span>
+                      </Label>
+                    </div>
+                  ))
+                )}
+              </div>
             </div>
             <div className="grid grid-cols-4 items-center gap-4">
               <label className="text-right text-sm font-bold">
@@ -342,10 +486,10 @@ const AssessmentPage = () => {
           </div>
           <DialogFooter>
             <Button
-              onClick={handleCreate}
+              onClick={handleSubmit}
               className="bg-school-navy text-white"
             >
-              Simpan Tugas
+              {isEditMode ? "Update Tugas" : "Simpan Tugas"}
             </Button>
           </DialogFooter>
         </DialogContent>

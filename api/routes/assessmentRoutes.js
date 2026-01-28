@@ -21,6 +21,19 @@ router.post(
   auth,
   checkRole(["teacher", "admin"]),
   controller.createAssessment,
+  controller.createAssessment,
+);
+router.put(
+  "/:id",
+  auth,
+  checkRole(["teacher", "admin"]),
+  controller.updateAssessment,
+);
+router.delete(
+  "/:id",
+  auth,
+  checkRole(["teacher", "admin"]),
+  controller.deleteAssessment,
 );
 router.get(
   "/:id/submissions",
