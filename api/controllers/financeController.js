@@ -221,4 +221,63 @@ exports.confirmPayment = async (req, res) => {
   }
 };
 
+// Admin: Get Finance Chart Data (Last 6 Months Income)
+exports.getFinanceChartData = async (req, res) => {
+  try {
+    const sixMonthsAgo = new Date();
+    sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 5);
+    sixMonthsAgo.setDate(1); // Start of month
+
+    const data = await Bill.aggregate([
+      {
+        $match: {
+          status: "paid",
+          updatedAt: { $gte: sixMonthsAgo },
+        },
+      },
+      {
+        $group: {
+          _id: { $month: "$updatedAt" },
+          total: { $sum: "$amount" },
+        },
+      },
+    ]);
+
+    const monthNames = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "Mei",
+      "Jun",
+      "Jul",
+      "Agu",
+      "Sep",
+      "Okt",
+      "Nov",
+      "Des",
+    ];
+    const result = [];
+
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date();
+      d.setMonth(d.getMonth() - i);
+      const monthIndex = d.getMonth();
+
+      // Find in data (MongoDB month is 1-indexed)
+      const found = data.find((item) => item._id === monthIndex + 1);
+      result.push({
+        name: monthNames[monthIndex],
+        value: found ? found.total : 0,
+      });
+    }
+
+    res.json(result);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Error loading chart", error: error.message });
+  }
+};
+
 // Optional: Midtrans Notification Webhook logic here

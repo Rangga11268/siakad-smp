@@ -34,5 +34,11 @@ router.put(
   checkRole(["admin", "finance"]),
   controller.confirmPayment,
 );
+router.get(
+  "/chart",
+  auth,
+  checkRole(["admin"]),
+  controller.getFinanceChartData,
+);
 
 module.exports = router;
