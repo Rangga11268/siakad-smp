@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import api from "@/services/api";
+import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -15,23 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Search, Reports, SystemRestart, Printer } from "iconoir-react";
+import { SystemRestart, Printer, Search, Reports } from "iconoir-react";
 import { Label } from "@/components/ui/label";
-
-interface ClassData {
-  _id: string;
-  name: string;
-}
-
-interface Student {
-  _id: string;
-  username: string;
-  profile: {
-    fullName: string;
-    nisn: string;
-    class: string;
-  };
-}
 
 interface ReportItem {
   subject: {
@@ -44,77 +30,74 @@ interface ReportItem {
   description: string;
 }
 
-const ReportCardPage = () => {
-  const [classes, setClasses] = useState<ClassData[]>([]);
-  const [students, setStudents] = useState<Student[]>([]);
-  const [selectedClass, setSelectedClass] = useState("");
-  const [selectedStudent, setSelectedStudent] = useState("");
-
+const StudentReportPage = () => {
+  const { user } = useAuth();
   const [reportData, setReportData] = useState<any>(null);
   const [loading, setLoading] = useState(false);
-  const [loadingReport, setLoadingReport] = useState(false);
+  const [academicYears, setAcademicYears] = useState<any[]>([]);
 
-  // Active Year info (Mock or Fetch)
-  const activeYear = "2024/2025";
-  const activeSemester = "Ganjil";
+  // Filter State
+  const [selectedYear, setSelectedYear] = useState("");
+  const [selectedSemester, setSelectedSemester] = useState("Ganjil");
 
   useEffect(() => {
-    loadClasses();
+    fetchAcademicYears();
   }, []);
 
-  const loadClasses = async () => {
+  const fetchAcademicYears = async () => {
     try {
-      const res = await api.get("/academic/class");
-      setClasses(res.data);
+      const res = await api.get("/academic/years");
+      setAcademicYears(res.data);
+      // Auto select active
+      const active = res.data.find((y: any) => y.isActive);
+      if (active) {
+        setSelectedYear(active._id);
+      } else if (res.data.length > 0) {
+        setSelectedYear(res.data[0]._id);
+      }
     } catch (error) {
-      console.error("Error loading classes", error);
+      console.error("Error loading years", error);
     }
   };
 
-  const loadStudents = async (classId: string) => {
-    setSelectedClass(classId);
-    setSelectedStudent("");
-    setReportData(null);
+  const generateReport = async () => {
+    console.log("Generate Report Triggered");
+    console.log("User:", user);
+    console.log("Selected Year:", selectedYear);
+
+    // Normalize: check both _id and id
+    const studentId = user?.id || user?.id;
+
+    if (!studentId || !selectedYear) {
+      console.error("Missing studentId or selectedYear");
+      return;
+    }
+
     setLoading(true);
     try {
-      const clsName = classes.find((c) => c._id === classId)?.name;
-      const res = await api.get("/academic/students");
-      const filtered = res.data.filter(
-        (s: any) => s.profile?.class === clsName,
-      );
-      setStudents(filtered);
+      console.log("Fetching report for:", studentId);
+      const res = await api.get(`/academic/report/full`, {
+        params: {
+          studentId: studentId,
+          academicYear: selectedYear,
+          semester: selectedSemester,
+        },
+      });
+      console.log("Report Data:", res.data);
+      setReportData(res.data);
     } catch (error) {
-      console.error("Error loading students", error);
+      console.error("Gagal generate rapor", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const generateReport = async () => {
-    if (!selectedStudent) return;
-    setLoadingReport(true);
-    try {
-      const yearRes = await api.get("/academic/years");
-      const active = yearRes.data.find((y: any) => y.status === "active");
-      const aId = active ? active._id : "";
-
-      const res = await api.get(`/academic/report/full`, {
-        params: {
-          studentId: selectedStudent,
-          academicYear: aId,
-          semester: activeSemester,
-        },
-      });
-      setReportData(res.data);
-    } catch (error) {
-      console.error("Gagal generate rapor", error);
-    } finally {
-      setLoadingReport(false);
-    }
-  };
-
   const handlePrint = () => {
     window.print();
+  };
+  const getYearName = (id: string) => {
+    const y = academicYears.find((y) => y._id === id);
+    return y ? y.name : "-";
   };
 
   return (
@@ -122,10 +105,10 @@ const ReportCardPage = () => {
       <div className="flex justify-between items-center print:hidden">
         <div>
           <h2 className="font-serif text-3xl font-bold tracking-tight text-school-navy">
-            E-Rapor Akademik
+            E-Rapor Saya
           </h2>
           <p className="text-slate-500">
-            Cetak Laporan Hasil Belajar (Rapor) Kurikulum Merdeka.
+            Lihat dan cetak Laporan Hasil Belajar.
           </p>
         </div>
       </div>
@@ -133,52 +116,51 @@ const ReportCardPage = () => {
       <Card className="print:hidden border-t-4 border-t-school-gold shadow-md">
         <CardHeader>
           <CardTitle className="font-serif text-xl text-school-navy flex items-center gap-2">
-            <Reports className="w-5 h-5 text-school-gold" /> Filter Rapor
+            <Reports className="w-5 h-5 text-school-gold" /> Pilih Periode
           </CardTitle>
           <CardDescription>
-            Pilih Kelas dan Siswa untuk menampilkan preview rapor.
+            Pilih Tahun Ajaran dan Semester untuk melihat rapor.
           </CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4 md:grid-cols-3 items-end">
           <div className="space-y-2">
-            <Label className="font-semibold text-school-navy">Kelas</Label>
-            <Select onValueChange={loadStudents}>
+            <Label className="font-semibold text-school-navy">
+              Tahun Ajaran
+            </Label>
+            <Select onValueChange={setSelectedYear} value={selectedYear}>
               <SelectTrigger className="bg-slate-50 border-slate-300">
-                <SelectValue placeholder="Pilih Kelas" />
+                <SelectValue placeholder="Pilih Tahun" />
               </SelectTrigger>
               <SelectContent>
-                {classes.map((c) => (
-                  <SelectItem key={c._id} value={c._id}>
-                    {c.name}
+                {academicYears.map((y) => (
+                  <SelectItem key={y._id} value={y._id}>
+                    {y.name} {y.isActive && "(Aktif)"}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div className="space-y-2">
-            <Label className="font-semibold text-school-navy">Nama Siswa</Label>
+            <Label className="font-semibold text-school-navy">Semester</Label>
             <Select
-              onValueChange={setSelectedStudent}
-              disabled={!selectedClass}
+              value={selectedSemester}
+              onValueChange={setSelectedSemester}
             >
               <SelectTrigger className="bg-slate-50 border-slate-300">
-                <SelectValue placeholder="Pilih Siswa" />
+                <SelectValue placeholder="Pilih Semester" />
               </SelectTrigger>
               <SelectContent>
-                {students.map((s) => (
-                  <SelectItem key={s._id} value={s._id}>
-                    {s.profile?.fullName || s.username}
-                  </SelectItem>
-                ))}
+                <SelectItem value="Ganjil">Ganjil</SelectItem>
+                <SelectItem value="Genap">Genap</SelectItem>
               </SelectContent>
             </Select>
           </div>
           <Button
             onClick={generateReport}
-            disabled={!selectedStudent || loadingReport}
+            disabled={loading || !selectedYear}
             className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold shadow-md"
           >
-            {loadingReport ? (
+            {loading ? (
               <SystemRestart className="mr-2 h-4 w-4 animate-spin" />
             ) : (
               <Search className="mr-2 h-4 w-4" />
@@ -191,8 +173,6 @@ const ReportCardPage = () => {
       {/* REPORT PREVIEW CONTAINER */}
       {reportData && (
         <div className="bg-white p-6 md:p-12 shadow-2xl border rounded-lg min-h-[1000px] print:shadow-none print:border-none print:p-0 print:min-h-0 relative">
-          {/* WATERMARK / BACKGROUND DECORATION can go here if needed */}
-
           {/* Header Rapor (Kop Surat) */}
           <div className="flex items-center justify-between border-b-4 border-double border-school-navy pb-6 mb-8">
             <div className="flex items-center gap-6 w-full justify-center">
@@ -252,11 +232,11 @@ const ReportCardPage = () => {
             <div className="w-1/2 space-y-2 pl-12">
               <div className="flex">
                 <span className="w-40 font-semibold">Tahun Pelajaran</span>
-                <span>: {activeYear}</span>
+                <span>: {getYearName(selectedYear)}</span>
               </div>
               <div className="flex">
                 <span className="w-40 font-semibold">Semester</span>
-                <span>: {activeSemester}</span>
+                <span>: {selectedSemester}</span>
               </div>
             </div>
           </div>
@@ -450,4 +430,4 @@ const ReportCardPage = () => {
   );
 };
 
-export default ReportCardPage;
+export default StudentReportPage;

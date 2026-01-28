@@ -43,6 +43,7 @@ import SchedulePage from "@/pages/academic/SchedulePage";
 import StudentAttendancePage from "@/pages/student/StudentAttendancePage";
 import StudentGradePage from "@/pages/student/StudentGradePage";
 import StudentMaterialPage from "@/pages/student/StudentMaterialPage";
+import StudentReportPage from "@/pages/student/StudentReportPage";
 import TeacherMaterialPage from "@/pages/academic/TeacherMaterialPage";
 
 import FinanceDashboard from "@/pages/finance/FinanceDashboard";
@@ -142,6 +143,7 @@ function App() {
             />
             <Route path="student/uks" element={<StudentUksPage />} />
             <Route path="student/library" element={<StudentLibraryPage />} />
+            <Route path="student/report" element={<StudentReportPage />} />
           </Route>
 
           {/* <Route path="/" element={<Navigate to="/login" replace />} /> Note: Root is now LandingPage */}

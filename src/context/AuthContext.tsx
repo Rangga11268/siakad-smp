@@ -44,8 +44,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           // Note: api service typically reads localStorage token.
 
           const res = await api.get("/auth/me");
-          setUser(res.data);
-          localStorage.setItem("user", JSON.stringify(res.data)); // Sync local storage
+          // Normalize _id to id
+          const normalizedUser = {
+            ...res.data,
+            id: res.data._id || res.data.id,
+          };
+          setUser(normalizedUser);
+          localStorage.setItem("user", JSON.stringify(normalizedUser)); // Sync local storage
         } catch (error) {
           console.error("Session expired or invalid", error);
           logout();
@@ -62,11 +67,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const response = await api.post("/auth/login", credentials);
       const { token, user } = response.data;
 
+      const normalizedUser = { ...user, id: user._id || user.id };
       localStorage.setItem("token", token);
-      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem("user", JSON.stringify(normalizedUser));
 
       setToken(token);
-      setUser(user);
+      setUser(normalizedUser);
     } catch (error) {
       throw error;
     }
