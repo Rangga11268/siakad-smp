@@ -1,21 +1,28 @@
 import { useState, useEffect } from "react";
+import api from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
   CardDescription,
+  CardFooter,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -25,80 +32,76 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Plus, Page, Trash, Bookmark, BookStack } from "iconoir-react";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import api from "@/services/api";
-import { useToast } from "@/components/ui/use-toast";
-import { Badge } from "@/components/ui/badge";
+  Plus,
+  Folder,
+  Calendar,
+  User,
+  Eye,
+  CheckCircle,
+  Clock,
+  ArrowRight,
+  Book,
+} from "iconoir-react";
+
+interface Assessment {
+  _id: string;
+  title: string;
+  description: string;
+  subject: string;
+  classes: string[];
+  deadline: string;
+  type: "assignment" | "material";
+  teacher: { username: string; profile?: { fullName: string } };
+  createdAt: string;
+  attachments: string[];
+}
+
+interface Submission {
+  _id: string;
+  student: { _id: string; username: string; profile?: { fullName: string } };
+  status: "submitted" | "graded" | "late";
+  grade?: number;
+  feedback?: string;
+  submittedAt: string;
+  text?: string;
+  files?: string[];
+}
 
 const AssessmentPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-
-  const [classes, setClasses] = useState<any[]>([]);
-  const [subjects, setSubjects] = useState<any[]>([]);
-  const [assessments, setAssessments] = useState<any[]>([]);
-  const [activeAcademicYear, setActiveAcademicYear] = useState("");
-
-  const [selectedClass, setSelectedClass] = useState("all");
-  const [selectedSubject, setSelectedSubject] = useState("all");
-
+  const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [loading, setLoading] = useState(true);
-  const [newDialogOpen, setNewDialogOpen] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
 
-  // New Assessment Form
-  const [availableTPs, setAvailableTPs] = useState<any[]>([]);
-  const [form, setForm] = useState({
+  // Create State
+  const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [newForm, setNewForm] = useState({
     title: "",
-    type: "formative",
-    classId: "",
-    subjectId: "",
-    selectedTPs: [] as string[],
+    description: "",
+    subject: "",
+    classes: "", // comma separated
+    deadline: "",
+    type: "assignment",
   });
+  const [selectedTxFile, setSelectedTxFile] = useState<File | null>(null);
 
-  useEffect(() => {
-    fetchFilters();
-  }, []);
+  // Grading State
+  const [selectedAssessment, setSelectedAssessment] =
+    useState<Assessment | null>(null);
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
+  const [gradingId, setGradingId] = useState<string | null>(null); // Submission ID being graded
+  const [gradeInput, setGradeInput] = useState<{
+    grade: number;
+    feedback: string;
+  }>({ grade: 0, feedback: "" });
 
   useEffect(() => {
     fetchAssessments();
-  }, [selectedClass, selectedSubject]);
-
-  const fetchFilters = async () => {
-    try {
-      const [cls, subj, yrs] = await Promise.all([
-        api.get("/academic/class"),
-        api.get("/academic/subjects"),
-        api.get("/academic/years"),
-      ]);
-      setClasses(cls.data);
-      setSubjects(subj.data);
-      const active = yrs.data.find((y: any) => y.status === "active");
-      if (active) setActiveAcademicYear(active._id);
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, []);
 
   const fetchAssessments = async () => {
-    setLoading(true);
     try {
-      let q = "";
-      if (selectedClass !== "all") q += `&classId=${selectedClass}`;
-      if (selectedSubject !== "all") q += `&subjectId=${selectedSubject}`;
-      const res = await api.get(`/academic/assessment?${q}`);
+      const res = await api.get("/assessment");
       setAssessments(res.data);
     } catch (e) {
       console.error(e);
@@ -107,282 +110,383 @@ const AssessmentPage = () => {
     }
   };
 
-  const fetchTPs = async (clsId: string, subjId: string) => {
-    if (!clsId || !subjId) return;
+  const handleCreate = async () => {
+    if (!newForm.title || !newForm.subject) {
+      toast({ variant: "destructive", title: "Judul dan Mapel wajib diisi" });
+      return;
+    }
     try {
-      const cls = classes.find((c) => c._id === clsId);
-      const level = cls ? cls.level : "7"; // Fallback
-      const res = await api.get(
-        `/academic/tp?subjectId=${subjId}&level=${level}`,
-      );
-      setAvailableTPs(res.data);
+      let attachments: string[] = [];
+      if (selectedTxFile) {
+        const fd = new FormData();
+        fd.append("file", selectedTxFile);
+        const up = await api.post("/upload", fd, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        attachments.push(up.data.url);
+      }
+
+      await api.post("/assessment", {
+        ...newForm,
+        classes: newForm.classes.split(",").map((c) => c.trim()),
+        attachments,
+      });
+
+      toast({ title: "Tugas berhasil dibuat" });
+      setIsCreateOpen(false);
+      setNewForm({
+        title: "",
+        description: "",
+        subject: "",
+        classes: "",
+        deadline: "",
+        type: "assignment",
+      });
+      setSelectedTxFile(null);
+      fetchAssessments();
     } catch (e) {
-      console.error(e);
+      toast({ variant: "destructive", title: "Gagal buat tugas" });
     }
   };
 
-  const handleCreate = async () => {
-    if (!form.classId || !form.subjectId || !form.title) {
-      toast({ variant: "destructive", title: "Mohon lengkapi data" });
-      return;
-    }
-    setSubmitting(true);
+  const handleOpenGrading = async (assessment: Assessment) => {
+    setSelectedAssessment(assessment);
     try {
-      await api.post("/academic/assessment", {
-        title: form.title,
-        type: form.type,
-        subject: form.subjectId,
-        class: form.classId,
-        teacher: (user as any)?._id || (user as any)?.id,
-        academicYear: activeAcademicYear,
-        semester: "Ganjil", // Hardcoded for now
-        learningGoals: form.selectedTPs,
-      });
-      toast({ title: "Berhasil", description: "Asesmen dibuat!" });
-      setNewDialogOpen(false);
-      setForm({ ...form, title: "", selectedTPs: [] }); // Reset partially
-      fetchAssessments();
+      const res = await api.get(`/assessment/${assessment._id}/submissions`);
+      setSubmissions(res.data);
     } catch (e) {
-      toast({ variant: "destructive", title: "Gagal membuat asesmen" });
-    } finally {
-      setSubmitting(false);
+      toast({ variant: "destructive", title: "Gagal load pengumpulan" });
+    }
+  };
+
+  const handleGrade = async (submissionId: string) => {
+    try {
+      await api.put(`/assessment/submission/${submissionId}`, {
+        grade: gradeInput.grade,
+        feedback: gradeInput.feedback,
+      });
+      toast({ title: "Nilai disimpan" });
+      setGradingId(null);
+      // Refresh submissions
+      const res = await api.get(
+        `/assessment/${selectedAssessment?._id}/submissions`,
+      );
+      setSubmissions(res.data);
+    } catch (e) {
+      toast({ variant: "destructive", title: "Gagal simpan nilai" });
     }
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <div className="space-y-6 animate-in fade-in">
+      <div className="flex justify-between items-center">
         <div>
-          <h2 className="font-serif text-3xl font-bold text-school-navy">
-            Bank Asesmen
+          <h2 className="text-3xl font-serif font-bold text-school-navy">
+            Manajemen Tugas & Materi
           </h2>
-          <p className="text-slate-500">Kelola tugas dan ulangan harian.</p>
+          <p className="text-slate-500">
+            Kelola tugas kelas, tenggat waktu, dan penilaian.
+          </p>
         </div>
-        <Dialog open={newDialogOpen} onOpenChange={setNewDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-school-navy hover:bg-school-gold font-bold">
-              <Plus className="mr-2 h-4 w-4" /> Buat Asesmen Baru
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>Buat Asesmen Baru</DialogTitle>
-              <DialogDescription>
-                Isi detail asesmen di bawah ini.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Kelas</Label>
-                  <Select
-                    value={form.classId}
-                    onValueChange={(v) => {
-                      setForm({ ...form, classId: v });
-                      fetchTPs(v, form.subjectId);
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih Kelas" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {classes.map((c) => (
-                        <SelectItem key={c._id} value={c._id}>
-                          {c.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Mata Pelajaran</Label>
-                  <Select
-                    value={form.subjectId}
-                    onValueChange={(v) => {
-                      setForm({ ...form, subjectId: v });
-                      fetchTPs(form.classId, v);
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Pilih Mapel" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {subjects.map((s) => (
-                        <SelectItem key={s._id} value={s._id}>
-                          {s.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
+        <Button
+          onClick={() => setIsCreateOpen(true)}
+          className="bg-school-navy hover:bg-school-gold hover:text-school-navy"
+        >
+          <Plus className="mr-2 h-4 w-4" /> Buat Baru
+        </Button>
+      </div>
 
-              <div className="space-y-2">
-                <Label>Judul</Label>
-                <Input
-                  placeholder="Contoh: PH 1 - Aljabar"
-                  value={form.title}
-                  onChange={(e) => setForm({ ...form, title: e.target.value })}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Tipe</Label>
-                <Select
-                  value={form.type}
-                  onValueChange={(v) => setForm({ ...form, type: v })}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {loading ? (
+          <p>Loading...</p>
+        ) : assessments.length === 0 ? (
+          <div className="col-span-full p-12 text-center border-2 border-dashed rounded-lg text-slate-400">
+            Belum ada tugas dibuat.
+          </div>
+        ) : (
+          assessments.map((item) => (
+            <Card
+              key={item._id}
+              className="hover:shadow-lg transition-all border-l-4 border-l-school-navy"
+            >
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <Badge
+                    variant={
+                      item.type === "assignment" ? "default" : "secondary"
+                    }
+                    className={
+                      item.type === "assignment"
+                        ? "bg-school-navy"
+                        : "bg-slate-200 text-slate-700"
+                    }
+                  >
+                    {item.type === "assignment" ? "Tugas" : "Materi"}
+                  </Badge>
+                  <span className="text-xs text-slate-400 flex items-center gap-1">
+                    <Calendar className="w-3 h-3" />{" "}
+                    {item.deadline
+                      ? new Date(item.deadline).toLocaleDateString()
+                      : "No deadline"}
+                  </span>
+                </div>
+                <CardTitle className="mt-2 line-clamp-1" title={item.title}>
+                  {item.title}
+                </CardTitle>
+                <CardDescription className="line-clamp-2">
+                  {item.description}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="text-sm space-y-2">
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <Book className="w-4 h-4" /> {item.subject}
+                  </div>
+                  <div className="flex items-center gap-2 text-slate-600">
+                    <Folder className="w-4 h-4" /> Kelas:{" "}
+                    {item.classes.join(", ")}
+                  </div>
+                </div>
+              </CardContent>
+              <CardFooter className="border-t pt-4">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => handleOpenGrading(item)}
                 >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="formative">Formatif</SelectItem>
-                    <SelectItem value="summative">Sumatif</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                  <Eye className="mr-2 h-4 w-4" /> Lihat Pengumpulan
+                </Button>
+              </CardFooter>
+            </Card>
+          ))
+        )}
+      </div>
 
-              <div className="space-y-2">
-                <Label>Lingkup TP (Opsional)</Label>
-                <div className="border rounded p-3 h-32 overflow-y-auto">
-                  {availableTPs.length === 0 ? (
-                    <p className="text-xs text-slate-400">
-                      Pilih kelas & mapel untuk tampilkan TP
-                    </p>
-                  ) : (
-                    availableTPs.map((tp) => (
-                      <div
-                        key={tp._id}
-                        className="flex items-center gap-2 mb-2"
-                      >
-                        <Checkbox
-                          checked={form.selectedTPs.includes(tp._id)}
-                          onCheckedChange={(checked) => {
-                            if (checked)
-                              setForm({
-                                ...form,
-                                selectedTPs: [...form.selectedTPs, tp._id],
-                              });
-                            else
-                              setForm({
-                                ...form,
-                                selectedTPs: form.selectedTPs.filter(
-                                  (id) => id !== tp._id,
-                                ),
-                              });
-                          }}
-                        />
-                        <span className="text-sm font-medium">{tp.code}</span>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
+      {/* Create Dialog */}
+      <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Buat Tugas / Materi Baru</DialogTitle>
+            <DialogDescription>Isi detail tugas akademik.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label className="text-right text-sm font-bold">Judul</label>
+              <Input
+                className="col-span-3"
+                value={newForm.title}
+                onChange={(e) =>
+                  setNewForm({ ...newForm, title: e.target.value })
+                }
+              />
             </div>
-            <DialogFooter>
-              <Button onClick={handleCreate} disabled={submitting}>
-                Simpan
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label className="text-right text-sm font-bold">
+                Mata Pelajaran
+              </label>
+              <Input
+                className="col-span-3"
+                placeholder="Contoh: Matematika"
+                value={newForm.subject}
+                onChange={(e) =>
+                  setNewForm({ ...newForm, subject: e.target.value })
+                }
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label className="text-right text-sm font-bold">
+                Target Kelas
+              </label>
+              <Input
+                className="col-span-3"
+                placeholder="Contoh: 7A, 7B"
+                value={newForm.classes}
+                onChange={(e) =>
+                  setNewForm({ ...newForm, classes: e.target.value })
+                }
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label className="text-right text-sm font-bold">
+                Tenggat Waktu
+              </label>
+              <Input
+                type="date"
+                className="col-span-3"
+                value={newForm.deadline}
+                onChange={(e) =>
+                  setNewForm({ ...newForm, deadline: e.target.value })
+                }
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label className="text-right text-sm font-bold">Deskripsi</label>
+              <Textarea
+                className="col-span-3"
+                value={newForm.description}
+                onChange={(e) =>
+                  setNewForm({ ...newForm, description: e.target.value })
+                }
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label className="text-right text-sm font-bold">Lampiran</label>
+              <Input
+                type="file"
+                className="col-span-3"
+                onChange={(e) =>
+                  setSelectedTxFile(e.target.files ? e.target.files[0] : null)
+                }
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              onClick={handleCreate}
+              className="bg-school-navy text-white"
+            >
+              Simpan Tugas
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
-      {/* Filter Bar */}
-      <div className="flex gap-4 bg-white p-4 rounded-lg shadow-sm border border-slate-100">
-        <div className="w-[200px]">
-          <Select value={selectedClass} onValueChange={setSelectedClass}>
-            <SelectTrigger>
-              <SelectValue placeholder="Filter Kelas" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Semua Kelas</SelectItem>
-              {classes.map((c) => (
-                <SelectItem key={c._id} value={c._id}>
-                  {c.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="w-[200px]">
-          <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-            <SelectTrigger>
-              <SelectValue placeholder="Filter Mapel" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Semua Mapel</SelectItem>
-              {subjects.map((s) => (
-                <SelectItem key={s._id} value={s._id}>
-                  {s.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
+      {/* Grading Dialog */}
+      <Dialog
+        open={!!selectedAssessment}
+        onOpenChange={(o) => !o && setSelectedAssessment(null)}
+      >
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Grading: {selectedAssessment?.title}</DialogTitle>
+            <DialogDescription>Daftar pengumpulan siswa.</DialogDescription>
+          </DialogHeader>
 
-      <Card>
-        <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Judul</TableHead>
-                <TableHead>Mapel</TableHead>
-                <TableHead>Kelas</TableHead>
-                <TableHead>Tipe</TableHead>
-                <TableHead>TP</TableHead>
-                <TableHead className="text-right">Aksi</TableHead>
+                <TableHead>Nama Siswa</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Waktu</TableHead>
+                <TableHead>Jawaban</TableHead>
+                <TableHead>Nilai</TableHead>
+                <TableHead>Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {assessments.length === 0 ? (
+              {submissions.length === 0 ? (
                 <TableRow>
                   <TableCell
                     colSpan={6}
-                    className="text-center py-8 text-slate-500"
+                    className="text-center italic text-slate-500"
                   >
-                    Belum ada data asesmen.
+                    Belum ada pengumpulan.
                   </TableCell>
                 </TableRow>
               ) : (
-                assessments.map((a) => (
-                  <TableRow key={a._id}>
-                    <TableCell className="font-bold text-school-navy">
-                      {a.title}
-                    </TableCell>
-                    <TableCell>{a.subject?.name}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline">{a.class?.name}</Badge>
+                submissions.map((sub) => (
+                  <TableRow key={sub._id}>
+                    <TableCell className="font-bold">
+                      {sub.student.profile?.fullName || sub.student.username}
                     </TableCell>
                     <TableCell>
                       <Badge
-                        className={
-                          a.type === "summative"
-                            ? "bg-orange-500"
-                            : "bg-blue-500"
+                        variant={
+                          sub.status === "late"
+                            ? "destructive"
+                            : sub.status === "graded"
+                              ? "default"
+                              : "secondary"
                         }
                       >
-                        {a.type === "summative" ? "Sumatif" : "Formatif"}
+                        {sub.status === "late"
+                          ? "Terlambat"
+                          : sub.status === "graded"
+                            ? "Dinilai"
+                            : "Diserahkan"}
                       </Badge>
                     </TableCell>
-                    <TableCell>{a.learningGoals?.length || 0} TP</TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        className="text-red-500"
-                      >
-                        <Trash className="w-4 h-4" />
-                      </Button>
+                    <TableCell className="text-xs">
+                      {new Date(sub.submittedAt).toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      {sub.text && (
+                        <p className="text-xs italic bg-slate-50 p-1 mb-1 border truncated max-w-[200px]">
+                          {sub.text}
+                        </p>
+                      )}
+                      {sub.files?.map((f, i) => (
+                        <a
+                          key={i}
+                          href={`http://localhost:5000${f}`}
+                          target="_blank"
+                          className="text-xs text-blue-600 underline block"
+                        >
+                          File {i + 1}
+                        </a>
+                      ))}
+                    </TableCell>
+                    <TableCell>
+                      {gradingId === sub._id ? (
+                        <Input
+                          type="number"
+                          value={gradeInput.grade}
+                          onChange={(e) =>
+                            setGradeInput({
+                              ...gradeInput,
+                              grade: Number(e.target.value),
+                            })
+                          }
+                          className="w-16 h-8"
+                        />
+                      ) : (
+                        <span className="font-bold text-lg">
+                          {sub.grade ?? "-"}
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {gradingId === sub._id ? (
+                        <div className="flex gap-1">
+                          <Button
+                            size="sm"
+                            onClick={() => handleGrade(sub._id)}
+                            className="h-8 bg-green-600 hover:bg-green-700 block"
+                          >
+                            Simpan
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => setGradingId(null)}
+                            className="h-8 text-red-500"
+                          >
+                            Batal
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setGradingId(sub._id);
+                            setGradeInput({
+                              grade: sub.grade || 0,
+                              feedback: sub.feedback || "",
+                            });
+                          }}
+                        >
+                          Nilai
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))
               )}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
