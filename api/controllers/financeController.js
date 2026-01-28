@@ -1,235 +1,85 @@
-const Billing = require("../models/Billing");
+const Bill = require("../models/Bill");
+const midtransClient = require("midtrans-client");
+
+// Config Midtrans
+const snap = new midtransClient.Snap({
+  isProduction: false,
+  serverKey: "Mid-server-q1kUecRxL9JDtnYIbxzPOHhZ",
+  clientKey: "Mid-client-aAUNIuf1fCSll2qz",
+});
+
 const User = require("../models/User");
 
-// Buat Tagihan Massal (Contoh: SPP Bulanan)
-// Buat Tagihan Massal (Contoh: SPP Bulanan)
-exports.generateMonthlyBilling = async (req, res) => {
+// Admin: Create Bill (Bulk or Single)
+exports.createBill = async (req, res) => {
   try {
-    const { title, amount, dueDate, type, targetClass } = req.body;
+    // targetType: 'student' | 'class' | 'level'
+    // targetValue: studentId | '7A' | '7'
+    const { targetType, targetValue, title, amount, dueDate } = req.body;
 
-    let query = { role: "student", isActive: true };
-    if (targetClass) {
-      query["profile.class"] = targetClass;
-    }
+    let students = [];
 
-    // Ambil siswa sesuai filter
-    const students = await User.find(query);
-
-    if (!students.length)
-      return res
-        .status(400)
-        .json({ message: "Tidak ada siswa yang sesuai kriteria" });
-
-    const billings = [];
-    let skipped = 0;
-
-    for (const student of students) {
-      // Cek duplikasi menggunakan title asli (tanpa username)
-      const exists = await Billing.findOne({
-        student: student._id,
-        title: title, // Use original title for proper duplicate check
-        status: { $ne: "cancelled" },
+    if (targetType === "student") {
+      students = await User.find({ _id: targetValue, role: "student" });
+    } else if (targetType === "class") {
+      students = await User.find({
+        "profile.class": targetValue,
+        role: "student",
       });
-
-      if (!exists) {
-        billings.push({
-          student: student._id,
-          title: title, // Store original title
-          amount,
-          type: type || "SPP",
-          dueDate,
-          status: "unpaid",
-        });
-      } else {
-        skipped++;
-      }
+    } else if (targetType === "level") {
+      // Regex starts with level (e.g. "7" matches "7A", "7B")
+      students = await User.find({
+        "profile.class": { $regex: `^${targetValue}`, $options: "i" },
+        role: "student",
+      });
+    } else {
+      return res.status(400).json({ message: "Invalid target type" });
     }
 
-    if (billings.length > 0) {
-      await Billing.insertMany(billings);
+    if (students.length === 0) {
+      return res
+        .status(404)
+        .json({ message: "Tidak ada siswa ditemukan untuk target ini" });
     }
+
+    const bills = students.map((s) => ({
+      student: s._id,
+      title,
+      amount,
+      dueDate,
+      status: "pending",
+      paymentType: "manual", // default
+    }));
+
+    await Bill.insertMany(bills);
 
     res.status(201).json({
-      message: `Berhasil membuat ${billings.length} tagihan. ${skipped} dilewati (duplikat).`,
-      generated: billings.length,
-      skipped,
+      message: `Berhasil buat ${bills.length} tagihan`,
+      count: bills.length,
     });
   } catch (error) {
     res
       .status(500)
-      .json({ message: "Gagal generate tagihan", error: error.message });
+      .json({ message: "Gagal buat tagihan", error: error.message });
   }
 };
 
-// Chart Data (Income/Outcome) - Dashboard
-exports.getFinanceChart = async (req, res) => {
+// Get Bills
+exports.getBills = async (req, res) => {
   try {
-    // Aggregate paid billings by month for the current year
-    const currentYear = new Date().getFullYear();
-    const startOfYear = new Date(currentYear, 0, 1);
-    const endOfYear = new Date(currentYear, 11, 31);
+    let query = {};
+    if (req.user.role === "student") {
+      query.student = req.user.id;
+    } else {
+      // Admin filters
+      if (req.query.student) query.student = req.query.student;
+      if (req.query.status) query.status = req.query.status;
+    }
 
-    const incomeStats = await Billing.aggregate([
-      {
-        $match: {
-          status: "paid",
-          paidDate: { $gte: startOfYear, $lte: endOfYear },
-        },
-      },
-      {
-        $group: {
-          _id: { $month: "$paidDate" },
-          total: { $sum: "$amount" },
-        },
-      },
-      {
-        $sort: { _id: 1 },
-      },
-    ]);
-
-    // Format for Chart.js (Labels: Jan-Dec, Data: Income, Expense assumed 0 for now or random for demo if needed)
-    // Since we don't have an Expense model, we'll just return Income vs "Target" or similar.
-    // Or just Income.
-
-    const labels = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    const data = new Array(12).fill(0);
-
-    incomeStats.forEach((stat) => {
-      data[stat._id - 1] = stat.total;
-    });
-
-    res.json({
-      labels,
-      datasets: [
-        {
-          label: "Pemasukan (SPP & Lainnya)",
-          data,
-          borderColor: "rgb(75, 192, 192)",
-          backgroundColor: "rgba(75, 192, 192, 0.5)",
-        },
-      ],
-    });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Gagal ambil data grafik", error: error.message });
-  }
-};
-
-// Bayar Tagihan (Manual oleh Admin Keuangan)
-exports.payBilling = async (req, res) => {
-  try {
-    const { billingId } = req.body;
-
-    const billing = await Billing.findByIdAndUpdate(
-      billingId,
-      {
-        status: "paid",
-        paidDate: new Date(),
-        paymentMethod: "Manual",
-      },
-      { new: true },
-    );
-
-    res.json(billing);
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Gagal update pembayaran", error: error.message });
-  }
-};
-
-// Chart Data (Income/Outcome) - Dashboard
-exports.getFinanceChart = async (req, res) => {
-  try {
-    // Aggregate paid billings by month for the current year
-    const currentYear = new Date().getFullYear();
-    const startOfYear = new Date(currentYear, 0, 1);
-    const endOfYear = new Date(currentYear, 11, 31);
-
-    const incomeStats = await Billing.aggregate([
-      {
-        $match: {
-          status: "paid",
-          paidDate: { $gte: startOfYear, $lte: endOfYear },
-        },
-      },
-      {
-        $group: {
-          _id: { $month: "$paidDate" },
-          total: { $sum: "$amount" },
-        },
-      },
-      {
-        $sort: { _id: 1 },
-      },
-    ]);
-
-    // Format for Chart.js (Labels: Jan-Dec, Data: Income, Expense assumed 0 for now or random for demo if needed)
-    // Since we don't have an Expense model, we'll just return Income vs "Target" or similar.
-    // Or just Income.
-
-    const labels = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    const data = new Array(12).fill(0);
-
-    incomeStats.forEach((stat) => {
-      data[stat._id - 1] = stat.total;
-    });
-
-    res.json({
-      labels,
-      datasets: [
-        {
-          label: "Pemasukan (SPP & Lainnya)",
-          data,
-          borderColor: "rgb(75, 192, 192)",
-          backgroundColor: "rgba(75, 192, 192, 0.5)",
-        },
-      ],
-    });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Gagal ambil data grafik", error: error.message });
-  }
-};
-
-// Cek Tagihan Siswa (Untuk Ortu)
-exports.getMyBillings = async (req, res) => {
-  try {
-    // req.user dari middleware auth
-    // Jika role parent, cari tagihan anak-anaknya (Logic kompleks skip dulu, assume student login)
-    // Jika role student:
-    const billings = await Billing.find({ student: req.user.id }).sort({
-      dueDate: 1,
-    });
-    res.json(billings);
+    const bills = await Bill.find(query)
+      .populate("student", "username profile")
+      .sort({ createdAt: -1 });
+    res.json(bills);
   } catch (error) {
     res
       .status(500)
@@ -237,291 +87,138 @@ exports.getMyBillings = async (req, res) => {
   }
 };
 
-// Chart Data (Income/Outcome) - Dashboard
-exports.getFinanceChart = async (req, res) => {
+// Student: Create Midtrans Transaction
+exports.createMidtransTransaction = async (req, res) => {
   try {
-    // Aggregate paid billings by month for the current year
-    const currentYear = new Date().getFullYear();
-    const startOfYear = new Date(currentYear, 0, 1);
-    const endOfYear = new Date(currentYear, 11, 31);
+    const { billId } = req.body;
+    const bill = await Bill.findById(billId).populate("student");
+    if (!bill)
+      return res.status(404).json({ message: "Tagihan tidak ditemukan" });
 
-    const incomeStats = await Billing.aggregate([
-      {
-        $match: {
-          status: "paid",
-          paidDate: { $gte: startOfYear, $lte: endOfYear },
-        },
+    // Generate Order ID if not exists or create new for retry?
+    // Reuse existing order ID if pending, else generate new
+    let orderId = bill.midtransOrderId;
+    if (!orderId) {
+      orderId = `BILL-${bill._id}-${Date.now()}`;
+    }
+
+    const parameter = {
+      transaction_details: {
+        order_id: orderId,
+        gross_amount: bill.amount,
       },
-      {
-        $group: {
-          _id: { $month: "$paidDate" },
-          total: { $sum: "$amount" },
-        },
+      credit_card: { secure: true },
+      customer_details: {
+        first_name: bill.student.profile?.fullName || bill.student.username,
+        email: "student@siakad.com", // Dummy or real
       },
-      {
-        $sort: { _id: 1 },
-      },
-    ]);
+    };
 
-    // Format for Chart.js (Labels: Jan-Dec, Data: Income, Expense assumed 0 for now or random for demo if needed)
-    // Since we don't have an Expense model, we'll just return Income vs "Target" or similar.
-    // Or just Income.
+    const transaction = await snap.createTransaction(parameter);
 
-    const labels = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    const data = new Array(12).fill(0);
+    // Update Bill
+    bill.midtransOrderId = orderId;
+    bill.midtransToken = transaction.token;
+    bill.paymentType = "online";
+    await bill.save();
 
-    incomeStats.forEach((stat) => {
-      data[stat._id - 1] = stat.total;
-    });
+    res.json({ token: transaction.token, orderId });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal init pembayaran", error: error.message });
+  }
+};
 
+// Check Midtrans Status (Manual Trigger for Localhost)
+exports.checkMidtransStatus = async (req, res) => {
+  try {
+    const { billId } = req.params;
+    const bill = await Bill.findById(billId);
+    if (!bill || !bill.midtransOrderId)
+      return res.status(404).json({ message: "Bill/Order not found" });
+
+    // Call Midtrans Status API
+    const statusResponse = await snap.transaction.status(bill.midtransOrderId);
+    const transactionStatus = statusResponse.transaction_status;
+    const fraudStatus = statusResponse.fraud_status;
+
+    let newStatus = bill.status;
+
+    if (transactionStatus == "capture") {
+      if (fraudStatus == "challenge") {
+        // potential fraud
+      } else if (fraudStatus == "accept") {
+        newStatus = "paid";
+      }
+    } else if (transactionStatus == "settlement") {
+      newStatus = "paid";
+    } else if (
+      transactionStatus == "cancel" ||
+      transactionStatus == "deny" ||
+      transactionStatus == "expire"
+    ) {
+      newStatus = "failed";
+    } else if (transactionStatus == "pending") {
+      newStatus = "pending";
+    }
+
+    bill.status = newStatus;
+    if (newStatus === "paid" && !bill.paidAt) bill.paidAt = new Date();
+    bill.midtransStatus = transactionStatus;
+
+    await bill.save();
     res.json({
-      labels,
-      datasets: [
-        {
-          label: "Pemasukan (SPP & Lainnya)",
-          data,
-          borderColor: "rgb(75, 192, 192)",
-          backgroundColor: "rgba(75, 192, 192, 0.5)",
-        },
-      ],
+      message: "Status updated",
+      status: newStatus,
+      data: statusResponse,
     });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Gagal ambil data grafik", error: error.message });
+  } catch (e) {
+    res.status(500).json({ message: "Check Failed", error: e.message });
   }
 };
 
-// Ambil Semua Tagihan (Admin)
-exports.getAllBillings = async (req, res) => {
+// Student: Upload Manual Evidence
+exports.uploadManualEvidence = async (req, res) => {
   try {
-    const { status, type, studentId } = req.query;
-    let query = {};
-    if (status) query.status = status;
-    if (type) query.type = type;
-    if (studentId) query.student = studentId;
-
-    const billings = await Billing.find(query)
-      .populate(
-        "student",
-        "username profile.fullName profile.nisn profile.class",
-      )
-      .sort({ createdAt: -1 });
-
-    res.json(billings);
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Gagal ambil semua tagihan", error: error.message });
-  }
-};
-
-// Chart Data (Income/Outcome) - Dashboard
-exports.getFinanceChart = async (req, res) => {
-  try {
-    // Aggregate paid billings by month for the current year
-    const currentYear = new Date().getFullYear();
-    const startOfYear = new Date(currentYear, 0, 1);
-    const endOfYear = new Date(currentYear, 11, 31);
-
-    const incomeStats = await Billing.aggregate([
+    const { billId, evidenceUrl } = req.body;
+    const bill = await Bill.findByIdAndUpdate(
+      billId,
       {
-        $match: {
-          status: "paid",
-          paidDate: { $gte: startOfYear, $lte: endOfYear },
-        },
+        evidence: evidenceUrl,
+        status: "waiting_verification",
+        paymentType: "manual",
       },
-      {
-        $group: {
-          _id: { $month: "$paidDate" },
-          total: { $sum: "$amount" },
-        },
-      },
-      {
-        $sort: { _id: 1 },
-      },
-    ]);
-
-    // Format for Chart.js (Labels: Jan-Dec, Data: Income, Expense assumed 0 for now or random for demo if needed)
-    // Since we don't have an Expense model, we'll just return Income vs "Target" or similar.
-    // Or just Income.
-
-    const labels = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    const data = new Array(12).fill(0);
-
-    incomeStats.forEach((stat) => {
-      data[stat._id - 1] = stat.total;
-    });
-
-    res.json({
-      labels,
-      datasets: [
-        {
-          label: "Pemasukan (SPP & Lainnya)",
-          data,
-          borderColor: "rgb(75, 192, 192)",
-          backgroundColor: "rgba(75, 192, 192, 0.5)",
-        },
-      ],
-    });
-  } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Gagal ambil data grafik", error: error.message });
-  }
-};
-
-// Laporan Piutang (Aging Report)
-exports.getAgingReport = async (req, res) => {
-  try {
-    const today = new Date();
-
-    // Find all unpaid bills
-    const unpaidBills = await Billing.find({ status: "unpaid" }).populate(
-      "student",
-      "profile.fullName profile.class profile.phone",
+      { new: true },
     );
 
-    // Group by Student
-    const studentDebt = {};
-
-    unpaidBills.forEach((bill) => {
-      const studentId = bill.student._id.toString();
-      if (!studentDebt[studentId]) {
-        studentDebt[studentId] = {
-          student: bill.student,
-          totalDebt: 0,
-          breakdown: {
-            current: 0, // < 30 days
-            medium: 0, // 30-60 days
-            bad: 0, // > 60 days
-          },
-          bills: [],
-        };
-      }
-
-      const diffTime = Math.abs(today - new Date(bill.dueDate));
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      const isOverdue = today > bill.dueDate;
-
-      studentDebt[studentId].totalDebt += bill.amount;
-      studentDebt[studentId].bills.push(bill);
-
-      if (!isOverdue) {
-        studentDebt[studentId].breakdown.current += bill.amount;
-      } else if (diffDays <= 30) {
-        studentDebt[studentId].breakdown.current += bill.amount;
-      } else if (diffDays <= 60) {
-        studentDebt[studentId].breakdown.medium += bill.amount;
-      } else {
-        studentDebt[studentId].breakdown.bad += bill.amount;
-      }
-    });
-
-    // Convert to Array
-    const report = Object.values(studentDebt).sort(
-      (a, b) => b.totalDebt - a.totalDebt,
-    );
-
-    res.json(report);
-  } catch (error) {
-    res.status(500).json({
-      message: "Gagal generate laporan piutang",
-      error: error.message,
-    });
-  }
-};
-
-// Chart Data (Income/Outcome) - Dashboard
-exports.getFinanceChart = async (req, res) => {
-  try {
-    // Aggregate paid billings by month for the current year
-    const currentYear = new Date().getFullYear();
-    const startOfYear = new Date(currentYear, 0, 1);
-    const endOfYear = new Date(currentYear, 11, 31);
-
-    const incomeStats = await Billing.aggregate([
-      {
-        $match: {
-          status: "paid",
-          paidDate: { $gte: startOfYear, $lte: endOfYear },
-        },
-      },
-      {
-        $group: {
-          _id: { $month: "$paidDate" },
-          total: { $sum: "$amount" },
-        },
-      },
-      {
-        $sort: { _id: 1 },
-      },
-    ]);
-
-    // Format for Chart.js (Labels: Jan-Dec, Data: Income, Expense assumed 0 for now or random for demo if needed)
-    // Since we don't have an Expense model, we'll just return Income vs "Target" or similar.
-    // Or just Income.
-
-    const labels = [
-      "Jan",
-      "Feb",
-      "Mar",
-      "Apr",
-      "May",
-      "Jun",
-      "Jul",
-      "Aug",
-      "Sep",
-      "Oct",
-      "Nov",
-      "Dec",
-    ];
-    const data = new Array(12).fill(0);
-
-    incomeStats.forEach((stat) => {
-      data[stat._id - 1] = stat.total;
-    });
-
-    res.json({
-      labels,
-      datasets: [
-        {
-          label: "Pemasukan (SPP & Lainnya)",
-          data,
-          borderColor: "rgb(75, 192, 192)",
-          backgroundColor: "rgba(75, 192, 192, 0.5)",
-        },
-      ],
-    });
+    res.json(bill);
   } catch (error) {
     res
       .status(500)
-      .json({ message: "Gagal ambil data grafik", error: error.message });
+      .json({ message: "Gagal upload bukti", error: error.message });
   }
 };
+
+// Admin: Confirm Payment
+exports.confirmPayment = async (req, res) => {
+  try {
+    const { billId, action } = req.body; // action: "approve" | "reject"
+    const bill = await Bill.findById(billId);
+
+    if (action === "approve") {
+      bill.status = "paid";
+      bill.paidAt = new Date();
+    } else if (action === "reject") {
+      bill.status = "failed"; // or pending again?
+      // bill.evidence = null; // Maybe keep evidence but status failed
+    }
+
+    await bill.save();
+    res.json(bill);
+  } catch (error) {
+    res.status(500).json({ message: "Gagal konfirmasi", error: error.message });
+  }
+};
+
+// Optional: Midtrans Notification Webhook logic here

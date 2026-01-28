@@ -1,37 +1,38 @@
 const express = require("express");
 const router = express.Router();
-const financeController = require("../controllers/financeController");
 const { auth, checkRole } = require("../middleware/authMiddleware");
+const controller = require("../controllers/financeController");
 
-// Admin Keuangan
+// Public/Shared
+router.get("/", auth, controller.getBills);
+
+// Student
 router.post(
-  "/generate",
+  "/midtrans/token",
   auth,
-  checkRole(["admin"]),
-  financeController.generateMonthlyBilling,
-);
-router.post("/pay", auth, checkRole(["admin"]), financeController.payBilling);
-router.get(
-  "/all",
-  auth,
-  checkRole(["admin"]),
-  financeController.getAllBillings,
+  checkRole(["student", "parent"]),
+  controller.createMidtransTransaction,
 );
 router.get(
-  "/aging-report",
+  "/midtrans/status/:billId",
   auth,
-  checkRole(["admin"]),
-  financeController.getAgingReport,
+  checkRole(["student", "parent"]),
+  controller.checkMidtransStatus,
+);
+router.post(
+  "/manual",
+  auth,
+  checkRole(["student", "parent"]),
+  controller.uploadManualEvidence,
 );
 
-router.get(
-  "/chart",
+// Admin
+router.post("/", auth, checkRole(["admin", "finance"]), controller.createBill);
+router.put(
+  "/confirm",
   auth,
-  checkRole(["admin"]),
-  financeController.getFinanceChart,
+  checkRole(["admin", "finance"]),
+  controller.confirmPayment,
 );
-
-// Siswa/Ortu
-router.get("/my-billings", auth, financeController.getMyBillings);
 
 module.exports = router;
