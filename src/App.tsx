@@ -20,6 +20,7 @@ import AssessmentPage from "@/pages/academic/AssessmentPage";
 import StudentAssignmentPage from "@/pages/student/StudentAssignmentPage";
 import StudentBillPage from "@/pages/student/StudentBillPage";
 import StudentP5Page from "@/pages/student/StudentP5Page";
+import StudentP5DetailPage from "@/pages/student/StudentP5DetailPage";
 import StudentUksPage from "@/pages/student/StudentUksPage";
 import StudentLibraryPage from "@/pages/student/StudentLibraryPage";
 import P5Dashboard from "@/pages/p5/P5Dashboard";
@@ -135,6 +136,10 @@ function App() {
             />
             <Route path="student/materials" element={<StudentMaterialPage />} />
             <Route path="student/p5" element={<StudentP5Page />} />
+            <Route
+              path="student/p5/:projectId"
+              element={<StudentP5DetailPage />}
+            />
             <Route path="student/uks" element={<StudentUksPage />} />
             <Route path="student/library" element={<StudentLibraryPage />} />
           </Route>

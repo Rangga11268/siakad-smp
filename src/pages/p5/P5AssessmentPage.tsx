@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Card,
   CardContent,
@@ -23,6 +24,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import {
   ArrowLeft,
   FloppyDisk,
@@ -58,11 +67,18 @@ const P5AssessmentPage = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Assessment State
   const [inputs, setInputs] = useState<Record<string, Record<string, string>>>(
     {},
   );
-
   const [savedStatus, setSavedStatus] = useState<Record<string, boolean>>({});
+
+  // Logbook Review State
+  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [studentLogs, setStudentLogs] = useState<any[]>([]);
+  const [feedbackInput, setFeedbackInput] = useState<Record<string, string>>(
+    {},
+  );
 
   const { toast } = useToast();
 
@@ -84,6 +100,7 @@ const P5AssessmentPage = () => {
         );
         setStudents(studentRes.data);
 
+        // Load existing assessments
         const assessRes = await api.get(`/p5/assess/${projectId}`);
         const existingAssessments = assessRes.data;
 
@@ -108,6 +125,7 @@ const P5AssessmentPage = () => {
     }
   };
 
+  // Assessment Handlers
   const handleScoreChange = (
     studentId: string,
     targetId: string,
@@ -161,6 +179,33 @@ const P5AssessmentPage = () => {
     }
   };
 
+  // Logbook Handlers
+  const openLogbookReview = async (student: Student) => {
+    setSelectedStudent(student);
+    try {
+      const res = await api.get(
+        `/p5/logbook/${projectId}?studentId=${student._id}`,
+      );
+      setStudentLogs(res.data);
+    } catch (e) {
+      toast({ variant: "destructive", title: "Gagal load logbook" });
+    }
+  };
+
+  const handleSendFeedback = async (logId: string) => {
+    const fb = feedbackInput[logId];
+    if (!fb) return;
+    try {
+      await api.patch(`/p5/logbook/${logId}/feedback`, { feedback: fb });
+      toast({ title: "Feedback terkirim" });
+      setStudentLogs((prev) =>
+        prev.map((log) => (log._id === logId ? { ...log, feedback: fb } : log)),
+      );
+    } catch (e) {
+      toast({ variant: "destructive", title: "Gagal kirim feedback" });
+    }
+  };
+
   if (loading)
     return (
       <div className="flex h-screen items-center justify-center">
@@ -170,7 +215,7 @@ const P5AssessmentPage = () => {
   if (!project) return <div>Project tidak ditemukan</div>;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       <div className="flex flex-col md:flex-row items-center justify-between gap-4">
         <div className="flex items-center gap-4">
           <Button
@@ -183,7 +228,7 @@ const P5AssessmentPage = () => {
           </Button>
           <div>
             <h2 className="font-serif text-3xl font-bold tracking-tight text-school-navy">
-              {project?.title}
+              Assessment: {project?.title}
             </h2>
             <div className="flex items-center gap-2 mt-1">
               <span className="px-2 py-0.5 rounded bg-blue-50 text-blue-700 text-xs font-bold border border-blue-100 uppercase tracking-wider">
@@ -197,142 +242,284 @@ const P5AssessmentPage = () => {
         </div>
       </div>
 
-      <Card className="border-t-4 border-t-school-gold shadow-lg border-none overflow-hidden bg-white">
-        <CardHeader className="bg-white border-b border-slate-100 pb-6">
-          <CardTitle className="font-serif text-xl text-school-navy flex items-center gap-2">
-            <CheckCircle className="w-5 h-5 text-school-gold" />
-            Input Penilaian Projek
-          </CardTitle>
-          <CardDescription className="text-slate-500">
-            Masukan predikat (BB, MB, BSH, SB) untuk setiap dimensi profil
-            pelajar Pancasila.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader className="bg-school-navy">
-                <TableRow className="hover:bg-school-navy border-none">
-                  <TableHead className="w-[200px] sticky left-0 bg-school-navy text-white font-bold z-20 border-r border-blue-900">
-                    Nama Siswa
-                  </TableHead>
-                  {project?.targets.map((target, idx) => (
-                    <TableHead
-                      key={target._id || idx}
-                      className="min-w-[180px] bg-school-navy text-white border-r border-blue-900 last:border-0"
-                    >
-                      <div className="flex flex-col h-full justify-center py-2 gap-1">
-                        <div className="text-[10px] uppercase tracking-wider opacity-70 font-semibold text-blue-200">
-                          {target.dimension}
-                        </div>
-                        <div
-                          className="font-bold text-xs leading-tight line-clamp-2"
-                          title={`${target.element} - ${target.subElement}`}
+      <Tabs defaultValue="assessment" className="space-y-6">
+        <TabsList className="bg-white p-1 rounded-lg border shadow-sm w-full md:w-auto grid grid-cols-2 md:inline-flex">
+          <TabsTrigger
+            value="assessment"
+            className="data-[state=active]:bg-school-navy data-[state=active]:text-white"
+          >
+            Input Penilaian (Rapor)
+          </TabsTrigger>
+          <TabsTrigger
+            value="logbook"
+            className="data-[state=active]:bg-school-navy data-[state=active]:text-white"
+          >
+            Monitoring Jurnal (Logbook)
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="assessment">
+          <Card className="border-t-4 border-t-school-gold shadow-lg border-none overflow-hidden bg-white">
+            <CardHeader className="bg-white border-b border-slate-100 pb-6">
+              <CardTitle className="font-serif text-xl text-school-navy flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-school-gold" />
+                Input Penilaian Projek
+              </CardTitle>
+              <CardDescription className="text-slate-500">
+                Masukan predikat (BB, MB, BSH, SB) untuk setiap dimensi profil
+                pelajar Pancasila.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader className="bg-school-navy">
+                    <TableRow className="hover:bg-school-navy border-none">
+                      <TableHead className="w-[200px] sticky left-0 bg-school-navy text-white font-bold z-20 border-r border-blue-900">
+                        Nama Siswa
+                      </TableHead>
+                      {project?.targets.map((target, idx) => (
+                        <TableHead
+                          key={target._id || idx}
+                          className="min-w-[180px] bg-school-navy text-white border-r border-blue-900 last:border-0"
                         >
-                          {target.element}
-                        </div>
-                        <div className="text-[10px] font-normal italic text-blue-100 opacity-80 truncate">
-                          ({target.subElement})
-                        </div>
-                      </div>
-                    </TableHead>
-                  ))}
-                  <TableHead className="w-[80px] text-center sticky right-0 bg-school-navy text-white font-bold z-20 shadow-[-5px_0_10px_-5px_rgba(0,0,0,0.3)]">
-                    Simpan
-                  </TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {students.map((student, idx) => (
-                  <TableRow
-                    key={student._id}
-                    className={`hover:bg-blue-50/50 transition-colors ${idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"}`}
-                  >
-                    <TableCell className="font-medium sticky left-0 bg-inherit z-10 border-r border-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
-                      <div className="flex flex-col">
-                        <span className="text-school-navy font-bold text-sm">
-                          {student.profile?.fullName || student.username}
-                        </span>
-                        <span className="text-xs text-slate-400 font-mono">
-                          {student.profile?.nisn || "No NISN"}
-                        </span>
-                      </div>
-                    </TableCell>
-                    {project?.targets.map((target, idx) => (
-                      <TableCell
-                        key={target._id || idx}
-                        className="border-r border-slate-100 last:border-0 p-2"
+                          <div className="flex flex-col h-full justify-center py-2 gap-1">
+                            <div className="text-[10px] uppercase tracking-wider opacity-70 font-semibold text-blue-200">
+                              {target.dimension}
+                            </div>
+                            <div
+                              className="font-bold text-xs leading-tight line-clamp-2"
+                              title={`${target.element} - ${target.subElement}`}
+                            >
+                              {target.element}
+                            </div>
+                          </div>
+                        </TableHead>
+                      ))}
+                      <TableHead className="w-[80px] text-center sticky right-0 bg-school-navy text-white font-bold z-20 shadow-[-5px_0_10px_-5px_rgba(0,0,0,0.3)]">
+                        Simpan
+                      </TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {students.map((student, idx) => (
+                      <TableRow
+                        key={student._id}
+                        className={`hover:bg-blue-50/50 transition-colors ${idx % 2 === 0 ? "bg-white" : "bg-slate-50/50"}`}
                       >
-                        <Select
-                          value={inputs[student._id]?.[target._id] || ""}
-                          onValueChange={(val) =>
-                            handleScoreChange(student._id, target._id, val)
-                          }
-                        >
-                          <SelectTrigger
-                            className={`h-9 border-slate-200 focus:ring-school-gold ${
-                              inputs[student._id]?.[target._id]
-                                ? "bg-white font-bold text-school-navy"
-                                : "bg-slate-50 text-slate-400"
-                            }`}
+                        <TableCell className="font-medium sticky left-0 bg-inherit z-10 border-r border-slate-100 shadow-[2px_0_5px_-2px_rgba(0,0,0,0.05)]">
+                          <div className="flex flex-col">
+                            <span className="text-school-navy font-bold text-sm">
+                              {student.profile?.fullName || student.username}
+                            </span>
+                            <span className="text-xs text-slate-400 font-mono">
+                              {student.profile?.nisn || "No NISN"}
+                            </span>
+                          </div>
+                        </TableCell>
+                        {project?.targets.map((target, idx) => (
+                          <TableCell
+                            key={target._id || idx}
+                            className="border-r border-slate-100 last:border-0 p-2"
                           >
-                            <SelectValue placeholder="-" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="BB">
-                              <span className="font-bold text-red-600">BB</span>{" "}
-                              - Belum Berkembang
-                            </SelectItem>
-                            <SelectItem value="MB">
-                              <span className="font-bold text-orange-600">
-                                MB
-                              </span>{" "}
-                              - Mulai Berkembang
-                            </SelectItem>
-                            <SelectItem value="BSH">
-                              <span className="font-bold text-blue-600">
-                                BSH
-                              </span>{" "}
-                              - Berkembang Sesuai Harapan
-                            </SelectItem>
-                            <SelectItem value="SB">
-                              <span className="font-bold text-green-600">
-                                SB
-                              </span>{" "}
-                              - Sangat Berkembang
-                            </SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </TableCell>
+                            <Select
+                              value={inputs[student._id]?.[target._id] || ""}
+                              onValueChange={(val) =>
+                                handleScoreChange(student._id, target._id, val)
+                              }
+                            >
+                              <SelectTrigger
+                                className={`h-9 border-slate-200 focus:ring-school-gold ${
+                                  inputs[student._id]?.[target._id]
+                                    ? "bg-white font-bold text-school-navy"
+                                    : "bg-slate-50 text-slate-400"
+                                }`}
+                              >
+                                <SelectValue placeholder="-" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="BB">
+                                  <span className="font-bold text-red-600">
+                                    BB
+                                  </span>{" "}
+                                  - Belum Berkembang
+                                </SelectItem>
+                                <SelectItem value="MB">
+                                  <span className="font-bold text-orange-600">
+                                    MB
+                                  </span>{" "}
+                                  - Mulai Berkembang
+                                </SelectItem>
+                                <SelectItem value="BSH">
+                                  <span className="font-bold text-blue-600">
+                                    BSH
+                                  </span>{" "}
+                                  - Berkembang Sesuai Harapan
+                                </SelectItem>
+                                <SelectItem value="SB">
+                                  <span className="font-bold text-green-600">
+                                    SB
+                                  </span>{" "}
+                                  - Sangat Berkembang
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                        ))}
+                        <TableCell className="text-center sticky right-0 bg-inherit z-10 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.05)] p-2">
+                          <Button
+                            size="icon"
+                            variant={
+                              savedStatus[student._id] ? "ghost" : "default"
+                            }
+                            className={`h-9 w-9 rounded-full transition-all duration-300 ${
+                              savedStatus[student._id]
+                                ? "text-emerald-600 bg-emerald-50 hover:bg-emerald-100"
+                                : "bg-school-navy text-white hover:bg-school-gold hover:text-school-navy shadow-md"
+                            }`}
+                            onClick={() => saveStudentAssessment(student._id)}
+                            title={
+                              savedStatus[student._id]
+                                ? "Disimpan"
+                                : "Simpan Nilai"
+                            }
+                          >
+                            {savedStatus[student._id] ? (
+                              <CheckCircle className="h-5 w-5" />
+                            ) : (
+                              <FloppyDisk className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </TableCell>
+                      </TableRow>
                     ))}
-                    <TableCell className="text-center sticky right-0 bg-inherit z-10 shadow-[-2px_0_5px_-2px_rgba(0,0,0,0.05)] p-2">
-                      <Button
-                        size="icon"
-                        variant={savedStatus[student._id] ? "ghost" : "default"}
-                        className={`h-9 w-9 rounded-full transition-all duration-300 ${
-                          savedStatus[student._id]
-                            ? "text-emerald-600 bg-emerald-50 hover:bg-emerald-100"
-                            : "bg-school-navy text-white hover:bg-school-gold hover:text-school-navy shadow-md"
-                        }`}
-                        onClick={() => saveStudentAssessment(student._id)}
-                        title={
-                          savedStatus[student._id] ? "Disimpan" : "Simpan Nilai"
-                        }
-                      >
-                        {savedStatus[student._id] ? (
-                          <CheckCircle className="h-5 w-5" />
-                        ) : (
-                          <FloppyDisk className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </TableCell>
-                  </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="logbook">
+          <Card>
+            <CardHeader>
+              <CardTitle>Monitoring Jurnal Siswa</CardTitle>
+              <CardDescription>
+                Cek progres mingguan dan berikan umpan balik.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {students.map((student) => (
+                  <div
+                    key={student._id}
+                    className="border rounded-lg p-4 hover:bg-slate-50 cursor-pointer transition-all hover:border-school-navy"
+                    onClick={() => openLogbookReview(student)}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center font-bold text-slate-600">
+                        {student.profile?.fullName?.charAt(0) ||
+                          student.username.charAt(0)}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-school-navy">
+                          {student.profile?.fullName}
+                        </h4>
+                        <p className="text-xs text-slate-500">
+                          {student.profile?.nisn}
+                        </p>
+                        <p className="text-xs text-blue-600 mt-1 font-medium">
+                          Klik untuk review
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Logbook Review Dialog */}
+      <Dialog
+        open={!!selectedStudent}
+        onOpenChange={(open) => !open && setSelectedStudent(null)}
+      >
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              Review Jurnal: {selectedStudent?.profile?.fullName}
+            </DialogTitle>
+            <DialogDescription>Catatan proses siswa.</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-6 py-4">
+            {studentLogs.length === 0 ? (
+              <p className="text-center text-slate-500 italic bg-slate-50 p-8 rounded">
+                Siswa belum mengisi jurnal.
+              </p>
+            ) : (
+              studentLogs.map((log) => (
+                <div
+                  key={log._id}
+                  className="border-l-4 border-school-navy pl-4 py-2 space-y-3"
+                >
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-bold text-lg">{log.title}</h4>
+                    <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded">
+                      {new Date(log.createdAt).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <p className="text-slate-700 bg-slate-50 p-4 rounded text-sm whitespace-pre-wrap border shadow-sm leading-relaxed">
+                    {log.content}
+                  </p>
+
+                  {log.media && log.media.length > 0 && (
+                    <div className="flex flex-wrap gap-2 mt-2">
+                      {log.media.map((m: any, idx: number) => (
+                        <a
+                          key={idx}
+                          href={`http://localhost:5000${m}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs bg-blue-50 px-3 py-1 rounded text-blue-600 hover:text-blue-800 flex items-center gap-1 border border-blue-100"
+                        >
+                          📄 Lihat Lampiran
+                        </a>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="pt-2">
+                    <label className="text-xs font-bold text-school-gold uppercase tracking-wide mb-1 block">
+                      Feedback Fasilitator
+                    </label>
+                    <div className="flex gap-2 items-start">
+                      <Textarea
+                        placeholder="Berikan umpan balik yang membangun..."
+                        className="min-h-[80px] text-sm flex-1"
+                        defaultValue={log.feedback}
+                        onChange={(e) =>
+                          setFeedbackInput({
+                            ...feedbackInput,
+                            [log._id]: e.target.value,
+                          })
+                        }
+                      />
+                      <Button
+                        className="h-[80px] bg-school-navy hover:bg-school-gold hover:text-school-navy"
+                        onClick={() => handleSendFeedback(log._id)}
+                      >
+                        <FloppyDisk className="w-4 h-4 mr-2" /> Kirim
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
-        </CardContent>
-      </Card>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -8,7 +8,15 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Calendar, User, SystemRestart } from "iconoir-react";
+import {
+  Plus,
+  Calendar,
+  User,
+  SystemRestart,
+  Edit,
+  Trash,
+  MoreVert,
+} from "iconoir-react";
 import api from "@/services/api";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
@@ -21,6 +29,12 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import {
@@ -51,13 +65,17 @@ const P5Dashboard = () => {
   const [openDialog, setOpenDialog] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  // Edit State
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentProjectId, setCurrentProjectId] = useState<string | null>(null);
+
   // Form
   const [formData, setFormData] = useState({
     title: "",
     theme: "",
     description: "",
     level: "7",
-    academicYear: "671234567890abcdef123456",
+    academicYear: "2024/2025",
   });
 
   const { toast } = useToast();
@@ -81,7 +99,48 @@ const P5Dashboard = () => {
     }
   };
 
-  const handleCreate = async () => {
+  const handleOpenCreate = () => {
+    setIsEditing(false);
+    setFormData({
+      title: "",
+      theme: "",
+      description: "",
+      level: "7",
+      academicYear: "2024/2025",
+    });
+    setOpenDialog(true);
+  };
+
+  const handleOpenEdit = (project: ProjectP5) => {
+    setIsEditing(true);
+    setCurrentProjectId(project._id);
+    setFormData({
+      title: project.title,
+      theme: project.theme,
+      description: project.description,
+      level: project.level.toString(),
+      academicYear: "2024/2025",
+    });
+    setOpenDialog(true);
+  };
+
+  const handleDelete = async (projectId: string) => {
+    if (
+      !window.confirm(
+        "Yakin ingin menghapus projek ini? Data tidak bisa dikembalikan.",
+      )
+    )
+      return;
+    try {
+      await api.delete(`/p5/${projectId}`);
+      setProjects((prev) => prev.filter((p) => p._id !== projectId));
+      toast({ title: "Projek Dihapus" });
+    } catch (e) {
+      toast({ variant: "destructive", title: "Gagal hapus projek" });
+    }
+  };
+
+  const handleSubmit = async () => {
     if (!formData.title || !formData.theme) {
       toast({
         variant: "destructive",
@@ -93,38 +152,45 @@ const P5Dashboard = () => {
 
     setSubmitting(true);
     try {
-      const defaultTargets = [
-        {
-          dimension: "Beriman, Bertakwa",
-          element: "Akhlak Pribadi",
-          subElement: "Integritas",
-        },
-        {
-          dimension: "Gotong Royong",
-          element: "Kolaborasi",
-          subElement: "Kerjasama",
-        },
-      ];
-
-      await api.post("/p5", {
-        ...formData,
-        level: parseInt(formData.level),
-        targets: defaultTargets,
-        academicYear: "2024/2025",
-      });
+      if (isEditing && currentProjectId) {
+        // Update
+        const res = await api.put(`/p5/${currentProjectId}`, {
+          ...formData,
+          level: parseInt(formData.level),
+        });
+        setProjects((prev) =>
+          prev.map((p) => (p._id === currentProjectId ? res.data : p)),
+        );
+        toast({ title: "Berhasil Diupdate" });
+      } else {
+        // Create
+        const defaultTargets = [
+          {
+            dimension: "Beriman, Bertakwa",
+            element: "Akhlak Pribadi",
+            subElement: "Integritas",
+          },
+          {
+            dimension: "Gotong Royong",
+            element: "Kolaborasi",
+            subElement: "Kerjasama",
+          },
+        ];
+        const res = await api.post("/p5", {
+          ...formData,
+          level: parseInt(formData.level),
+          targets: defaultTargets,
+        });
+        setProjects((prev) => [...prev, res.data]);
+        toast({ title: "Berhasil Dibuat" });
+      }
       setOpenDialog(false);
-      setFormData({ ...formData, title: "", theme: "", description: "" });
-      fetchProjects();
-      toast({
-        title: "Berhasil!",
-        description: "Projek P5 berhasil dibuat.",
-      });
     } catch (error) {
-      console.error("Gagal buat project", error);
+      console.error("Gagal save project", error);
       toast({
         variant: "destructive",
-        title: "Gagal Membuat Projek",
-        description: "Terjadi kesalahan sistem. Cek koneksi server.",
+        title: "Gagal Menyimpan",
+        description: "Terjadi kesalahan sistem.",
       });
     } finally {
       setSubmitting(false);
@@ -146,17 +212,22 @@ const P5Dashboard = () => {
         {user?.role !== "student" && (
           <Dialog open={openDialog} onOpenChange={setOpenDialog}>
             <DialogTrigger asChild>
-              <Button className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold shadow-md transition-all">
+              <Button
+                onClick={handleOpenCreate}
+                className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold shadow-md transition-all"
+              >
                 <Plus className="mr-2 h-4 w-4" /> Buat Projek Baru
               </Button>
             </DialogTrigger>
             <DialogContent className="sm:max-w-[600px]">
               <DialogHeader>
                 <DialogTitle className="font-serif text-2xl text-school-navy">
-                  Buat Projek P5 Baru
+                  {isEditing ? "Edit Projek P5" : "Buat Projek P5 Baru"}
                 </DialogTitle>
                 <DialogDescription>
-                  Tentukan tema dan deskripsi projek untuk tahun ajaran ini.
+                  {isEditing
+                    ? "Perbarui informasi projek."
+                    : "Tentukan tema dan deskripsi projek."}
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-6 py-4">
@@ -268,13 +339,13 @@ const P5Dashboard = () => {
                 <Button
                   type="submit"
                   disabled={submitting}
-                  onClick={handleCreate}
+                  onClick={handleSubmit}
                   className="bg-school-navy hover:bg-school-gold hover:text-school-navy w-full font-bold"
                 >
                   {submitting && (
                     <SystemRestart className="mr-2 h-4 w-4 animate-spin" />
-                  )}{" "}
-                  Simpan Projek
+                  )}
+                  {isEditing ? "Simpan Perubahan" : "Simpan Projek"}
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -304,40 +375,65 @@ const P5Dashboard = () => {
           {projects.map((project) => (
             <Card
               key={project._id}
-              className="hover:shadow-xl transition-all duration-300 cursor-pointer border-none shadow-md overflow-hidden group border-t-4 border-t-school-gold bg-white"
-              onClick={() => navigate(`/dashboard/p5/${project._id}`)}
+              className="hover:shadow-xl transition-all duration-300 border-none shadow-md overflow-hidden group border-t-4 border-t-school-gold bg-white relative flex flex-col justify-between"
             >
-              <CardHeader className="pb-3 bg-gradient-to-br from-white to-slate-50">
-                <div className="flex justify-between items-start mb-2">
-                  <Badge
+              <div
+                className="cursor-pointer"
+                onClick={() => navigate(`/dashboard/p5/${project._id}`)}
+              >
+                <CardHeader className="pb-3 bg-gradient-to-br from-white to-slate-50">
+                  <div className="flex justify-between items-start mb-2 pr-2">
+                    <Badge
+                      variant="outline"
+                      className="text-xs font-bold border-school-navy text-school-navy"
+                    >
+                      {project.theme}
+                    </Badge>
+                    <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-emerald-200">
+                      Aktif
+                    </Badge>
+                  </div>
+                  <CardTitle className="text-xl font-bold text-school-navy group-hover:text-school-gold transition-colors line-clamp-2 leading-tight">
+                    {project.title}
+                  </CardTitle>
+                  <CardDescription className="line-clamp-2 mt-2 text-sm text-slate-500">
+                    {project.description}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="pt-4 border-t border-slate-100">
+                  <div className="flex items-center justify-between text-sm text-slate-500">
+                    <div className="flex items-center bg-slate-100 px-2 py-1 rounded">
+                      <Calendar className="mr-1.5 h-3.5 w-3.5 text-school-navy" />
+                      <span className="font-medium">Kelas {project.level}</span>
+                    </div>
+                    <div className="flex items-center">
+                      <User className="mr-1.5 h-3.5 w-3.5 text-school-gold" />
+                      <span>Tim Fasilitator</span>
+                    </div>
+                  </div>
+                </CardContent>
+              </div>
+
+              {user?.role !== "student" && (
+                <div className="bg-slate-50 p-2 border-t flex justify-end gap-2">
+                  <Button
                     variant="outline"
-                    className="text-xs font-bold border-school-navy text-school-navy"
+                    size="sm"
+                    onClick={() => handleOpenEdit(project)}
+                    className="border-school-navy text-school-navy hover:bg-school-navy hover:text-white h-8 text-xs"
                   >
-                    {project.theme}
-                  </Badge>
-                  <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-emerald-200">
-                    Aktif
-                  </Badge>
+                    <Edit className="w-3 h-3 mr-1" /> Edit
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDelete(project._id)}
+                    className="text-red-500 hover:bg-red-50 hover:text-red-600 h-8 text-xs"
+                  >
+                    <Trash className="w-3 h-3 mr-1" /> Hapus
+                  </Button>
                 </div>
-                <CardTitle className="text-xl font-bold text-school-navy group-hover:text-school-gold transition-colors line-clamp-2 leading-tight">
-                  {project.title}
-                </CardTitle>
-                <CardDescription className="line-clamp-2 mt-2 text-sm text-slate-500">
-                  {project.description}
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="pt-4 border-t border-slate-100">
-                <div className="flex items-center justify-between text-sm text-slate-500">
-                  <div className="flex items-center bg-slate-100 px-2 py-1 rounded">
-                    <Calendar className="mr-1.5 h-3.5 w-3.5 text-school-navy" />
-                    <span className="font-medium">Kelas {project.level}</span>
-                  </div>
-                  <div className="flex items-center">
-                    <User className="mr-1.5 h-3.5 w-3.5 text-school-gold" />
-                    <span>Tim Fasilitator</span>
-                  </div>
-                </div>
-              </CardContent>
+              )}
             </Card>
           ))}
         </div>

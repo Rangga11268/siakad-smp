@@ -89,6 +89,7 @@ app.use("/api/attendance", require("./routes/attendanceRoutes"));
 app.use("/api/journal", require("./routes/journalRoutes"));
 app.use("/api/schedule", require("./routes/scheduleRoutes"));
 app.use("/api/news", require("./routes/newsRoutes"));
+app.use("/api/upload", require("./routes/uploadRoutes")); // Upload Route
 app.use("/api/learning-material", require("./routes/learningMaterialRoutes"));
 app.get("/", (req, res) => {
   res.send({ message: "Welcome to SIAKAD SMP API" });

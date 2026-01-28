@@ -60,6 +60,38 @@ exports.getProjects = async (req, res) => {
   }
 };
 
+// Update Projek
+exports.updateProject = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const updated = await ProjectP5.findByIdAndUpdate(projectId, req.body, {
+      new: true,
+    });
+    if (!updated)
+      return res.status(404).json({ message: "Projek tidak ditemukan" });
+    res.json(updated);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal update projek", error: error.message });
+  }
+};
+
+// Hapus Projek
+exports.deleteProject = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const deleted = await ProjectP5.findByIdAndDelete(projectId);
+    if (!deleted)
+      return res.status(404).json({ message: "Projek tidak ditemukan" });
+    res.json({ message: "Projek berhasil dihapus" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal hapus projek", error: error.message });
+  }
+};
+
 // Penilaian P5
 const ProjectAssessment = require("../models/ProjectAssessment");
 
@@ -131,5 +163,71 @@ exports.getP5ReportData = async (req, res) => {
     res
       .status(500)
       .json({ message: "Gagal ambil data rapor P5", error: error.message });
+  }
+};
+
+// Logbook P5
+const ProjectLogbook = require("../models/ProjectLogbook");
+
+exports.createLogbook = async (req, res) => {
+  try {
+    const { project, title, content, media } = req.body;
+    const newLog = new ProjectLogbook({
+      project,
+      student: req.user.id,
+      title,
+      content,
+      media,
+    });
+    await newLog.save();
+    res.status(201).json(newLog);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal simpan logbook", error: error.message });
+  }
+};
+
+exports.getLogbooks = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { studentId } = req.query;
+
+    let filter = { project: projectId };
+
+    if (req.user.role === "student") {
+      filter.student = req.user.id;
+    } else if (studentId) {
+      filter.student = studentId;
+    }
+
+    const logs = await ProjectLogbook.find(filter).sort({ createdAt: -1 });
+    res.json(logs);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal ambil logbook", error: error.message });
+  }
+};
+
+exports.giveFeedback = async (req, res) => {
+  try {
+    const { logId } = req.params;
+    const { feedback } = req.body;
+
+    const log = await ProjectLogbook.findByIdAndUpdate(
+      logId,
+      { feedback, status: "reviewed" },
+      { new: true },
+    );
+
+    if (!log)
+      return res.status(404).json({ message: "Logbook tidak ditemukan" });
+
+    res.json(log);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal beri feedback", error: error.message });
   }
 };
