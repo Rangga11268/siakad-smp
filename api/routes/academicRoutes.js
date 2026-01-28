@@ -115,6 +115,7 @@ router.post(
   checkRole(["teacher", "admin"]),
   academicController.createAssessment,
 );
+router.get("/assessment", auth, academicController.getAssessments);
 
 // Grade Management
 router.post(

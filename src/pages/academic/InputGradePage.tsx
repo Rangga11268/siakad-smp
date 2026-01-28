@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "@/context/AuthContext"; // Import Auth
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -32,7 +33,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { FloppyDisk, SystemRestart, Plus, Page, Bookmark } from "iconoir-react";
+import { FloppyDisk, SystemRestart, BookStack, Page } from "iconoir-react";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import api from "@/services/api";
@@ -41,6 +42,7 @@ import { useToast } from "@/components/ui/use-toast";
 interface ClassData {
   _id: string;
   name: string;
+  level: number; // Changed to number to match Model
 }
 
 interface SubjectData {
@@ -70,6 +72,8 @@ interface Student {
 }
 
 const InputGradePage = () => {
+  const { user } = useAuth(); // Get user
+  const [activeAcademicYear, setActiveAcademicYear] = useState("");
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
   const [selectedAssessment, setSelectedAssessment] = useState("");
@@ -80,14 +84,13 @@ const InputGradePage = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [grades, setGrades] = useState<Record<string, number>>({});
 
-  // Data for New Assessment
-  const [availableTPs, setAvailableTPs] = useState<LearningGoal[]>([]);
-  const [newAssessmentOpen, setNewAssessmentOpen] = useState(false);
-  const [newAssessmentForm, setNewAssessmentForm] = useState({
-    title: "",
-    type: "formative",
-    selectedTPs: [] as string[],
-  });
+  // Data for New Assessment Removed
+  // const [availableTPs, setAvailableTPs] = useState<LearningGoal[]>([]); removed if only used for create logic?
+  // Wait, fetchTPs is used? Line 124. Used for filtering? No, mainly for creating assessment.
+  // Unless input grade displays TP? No, table just shows Score.
+  // So availableTPs can be removed too?
+  // Cek line 399: availableTPs rendered in Dialog.
+  // Yes, remove availableTPs and create form states.
 
   const [loadingOptions, setLoadingOptions] = useState(true);
   const [loadingGrades, setLoadingGrades] = useState(false);
@@ -98,12 +101,19 @@ const InputGradePage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [classRes, subjectRes] = await Promise.all([
+        const [classRes, subjectRes, yearRes] = await Promise.all([
           api.get("/academic/class"),
           api.get("/academic/subjects"),
+          api.get("/academic/years"), // Fetch years
         ]);
         setClasses(classRes.data);
         setSubjects(subjectRes.data);
+
+        // Set Active Year
+        const active = yearRes.data.find((y: any) => y.status === "active");
+        if (active) setActiveAcademicYear(active._id);
+        else if (yearRes.data.length > 0)
+          setActiveAcademicYear(yearRes.data[0]._id); // Fallback
       } catch (error) {
         console.error("Gagal load filter", error);
       } finally {
@@ -113,55 +123,25 @@ const InputGradePage = () => {
     fetchData();
   }, []);
 
-  // Fetch Assessments & TPs
+  // Fetch Assessments
   useEffect(() => {
     if (selectedClass && selectedSubject) {
-      fetchTPs();
-      setAssessments([]);
+      fetchAssessments();
     }
   }, [selectedClass, selectedSubject]);
 
-  const fetchTPs = async () => {
+  const fetchAssessments = async () => {
     try {
       const res = await api.get(
-        `/academic/tp?subjectId=${selectedSubject}&level=7`, // Hardcoded level 7 for demo, effectively dynamic based on class
+        `/academic/assessment?classId=${selectedClass}&subjectId=${selectedSubject}`,
       );
-      setAvailableTPs(res.data);
+      setAssessments(res.data);
     } catch (error) {
-      console.error("Failed load TP", error);
+      console.error("Failed load assessments");
     }
   };
 
-  const handleCreateAssessment = async () => {
-    setSubmitting(true);
-    try {
-      const res = await api.post("/academic/assessment", {
-        title: newAssessmentForm.title,
-        type: newAssessmentForm.type,
-        subject: selectedSubject,
-        class: selectedClass,
-        teacher: "676bd6ef259300302c09ef7c", // Use dynamic user ID in real implementation
-        academicYear: "676bd6ef259300302c09ef7a", // Use dynamic year ID
-        semester: "Ganjil",
-        learningGoals: newAssessmentForm.selectedTPs,
-      });
-
-      setAssessments([...assessments, res.data]);
-      setSelectedAssessment(res.data._id);
-      setNewAssessmentOpen(false);
-      toast({ title: "Berhasil", description: "Asesmen baru dibuat." });
-      loadStudents();
-    } catch (error) {
-      console.error(error); // debug
-      toast({
-        variant: "destructive",
-        title: "Gagal",
-        description: "Gagal membuat asesmen.",
-      });
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  // handleCreateAssessment removed
 
   const loadStudents = async () => {
     setLoadingGrades(true);
@@ -204,17 +184,7 @@ const InputGradePage = () => {
     }
   };
 
-  const toggleTP = (tpId: string) => {
-    setNewAssessmentForm((prev) => {
-      const exists = prev.selectedTPs.includes(tpId);
-      if (exists)
-        return {
-          ...prev,
-          selectedTPs: prev.selectedTPs.filter((id) => id !== tpId),
-        };
-      return { ...prev, selectedTPs: [...prev.selectedTPs, tpId] };
-    });
-  };
+  // toggleTP removed
 
   if (loadingOptions) {
     return (
@@ -312,141 +282,16 @@ const InputGradePage = () => {
             </Select>
           </div>
 
-          <Dialog open={newAssessmentOpen} onOpenChange={setNewAssessmentOpen}>
-            <DialogTrigger asChild>
-              <Button
-                className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold shadow-md transition-all"
-                disabled={!selectedClass || !selectedSubject}
-              >
-                <Plus className="mr-2 h-4 w-4" /> Buat Asesmen Baru
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
-              <DialogHeader>
-                <DialogTitle className="font-serif text-2xl text-school-navy">
-                  Buat Asesmen Baru
-                </DialogTitle>
-                <DialogDescription>
-                  Tentukan judul, jenis, dan lingkup materi (TP) yang dinilai.
-                </DialogDescription>
-              </DialogHeader>
-              <div className="grid gap-6 py-4">
-                <div className="bg-blue-50 p-3 rounded border border-blue-100 text-sm text-blue-800">
-                  <p>
-                    Mapel:{" "}
-                    <strong>
-                      {subjects.find((s) => s._id === selectedSubject)?.name}
-                    </strong>
-                  </p>
-                  <p>
-                    Kelas:{" "}
-                    <strong>
-                      {classes.find((c) => c._id === selectedClass)?.name}
-                    </strong>
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="font-semibold text-school-navy">
-                      Judul Asesmen
-                    </Label>
-                    <Input
-                      placeholder="Contoh: UH Bab 1 - Aljabar"
-                      value={newAssessmentForm.title}
-                      onChange={(e) =>
-                        setNewAssessmentForm({
-                          ...newAssessmentForm,
-                          title: e.target.value,
-                        })
-                      }
-                      className="bg-slate-50"
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="font-semibold text-school-navy">
-                      Jenis Penilaian
-                    </Label>
-                    <Select
-                      value={newAssessmentForm.type}
-                      onValueChange={(v) =>
-                        setNewAssessmentForm({ ...newAssessmentForm, type: v })
-                      }
-                    >
-                      <SelectTrigger className="bg-slate-50">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="formative">
-                          Formatif (Proses)
-                        </SelectItem>
-                        <SelectItem value="summative">
-                          Sumatif (Akhir)
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="font-semibold text-school-navy">
-                    Lingkup Tujuan Pembelajaran (TP)
-                  </Label>
-                  <p className="text-xs text-muted-foreground mb-2">
-                    Pilih TP yang menjadi dasar penilaian ini untuk analisis
-                    rapor.
-                  </p>
-                  <div className="border rounded-md p-3 h-[200px] overflow-y-auto space-y-2 bg-white">
-                    {availableTPs.length === 0 ? (
-                      <div className="flex flex-col items-center justify-center h-full text-slate-400">
-                        <Bookmark className="w-8 h-8 mb-2 opacity-50" />
-                        <p>Belum ada data TP untuk mapel ini.</p>
-                      </div>
-                    ) : (
-                      availableTPs.map((tp) => (
-                        <div
-                          key={tp._id}
-                          className="flex items-start space-x-3 p-2 hover:bg-slate-50 rounded transition-colors"
-                        >
-                          <Checkbox
-                            id={tp._id}
-                            checked={newAssessmentForm.selectedTPs.includes(
-                              tp._id,
-                            )}
-                            onCheckedChange={() => toggleTP(tp._id)}
-                            className="mt-1 data-[state=checked]:bg-school-navy data-[state=checked]:border-school-navy"
-                          />
-                          <label
-                            htmlFor={tp._id}
-                            className="text-sm leading-snug cursor-pointer select-none"
-                          >
-                            <span className="font-bold text-school-navy block mb-0.5">
-                              {tp.code}
-                            </span>
-                            <span className="text-slate-600">
-                              {tp.description}
-                            </span>
-                          </label>
-                        </div>
-                      ))
-                    )}
-                  </div>
-                </div>
-              </div>
-              <DialogFooter>
-                <Button
-                  onClick={handleCreateAssessment}
-                  disabled={submitting}
-                  className="bg-school-navy hover:bg-school-gold hover:text-school-navy w-full font-bold"
-                >
-                  {submitting && (
-                    <SystemRestart className="mr-2 h-4 w-4 animate-spin" />
-                  )}
-                  Simpan & Lanjut Input Nilai
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <Button
+            className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold shadow-md transition-all sm:w-auto w-full"
+            disabled={false} // Enabled
+            onClick={() =>
+              (window.location.href = "/dashboard/academic/assessment")
+            }
+          >
+            <BookStack className="mr-2 h-4 w-4" /> Kelola / Tambah Asesmen
+          </Button>
+          {/* Dialog Removed */}
         </CardContent>
       </Card>
 

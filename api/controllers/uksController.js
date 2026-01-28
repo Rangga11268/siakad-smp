@@ -46,12 +46,16 @@ exports.getHealthRecords = async (req, res) => {
   try {
     // Bisa filter by studentId via query
     const { studentId } = req.query;
-    const filter = studentId ? { student: studentId } : {};
+    let filter = studentId ? { student: studentId } : {};
+
+    if (req.user.role === "student") {
+      filter = { student: req.user.id };
+    }
 
     const records = await HealthRecord.find(filter)
       .populate(
         "student",
-        "username profile.fullName profile.level profile.class"
+        "username profile.fullName profile.level profile.class",
       )
       .sort({ date: -1 });
     res.json(records);

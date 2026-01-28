@@ -10,6 +10,7 @@ interface User {
     avatar?: string;
     nisn?: string;
     nip?: string;
+    class?: string;
   };
 }
 
@@ -26,7 +27,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(
-    localStorage.getItem("token")
+    localStorage.getItem("token"),
   );
   const [isLoading, setIsLoading] = useState(true);
 

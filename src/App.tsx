@@ -16,6 +16,12 @@ import MasterStudentPage from "@/pages/admin/MasterStudentPage";
 import MasterTeacherPage from "@/pages/admin/MasterTeacherPage";
 import MasterNewsPage from "./pages/admin/MasterNewsPage";
 import InputGradePage from "@/pages/academic/InputGradePage";
+import AssessmentPage from "@/pages/academic/AssessmentPage";
+import StudentAssignmentPage from "@/pages/student/StudentAssignmentPage";
+import StudentBillPage from "@/pages/student/StudentBillPage";
+import StudentP5Page from "@/pages/student/StudentP5Page";
+import StudentUksPage from "@/pages/student/StudentUksPage";
+import StudentLibraryPage from "@/pages/student/StudentLibraryPage";
 import P5Dashboard from "@/pages/p5/P5Dashboard";
 import P5AssessmentPage from "@/pages/p5/P5AssessmentPage";
 import P5ReportPage from "@/pages/p5/P5ReportPage";
@@ -115,13 +121,22 @@ function App() {
             <Route path="content/news" element={<MasterNewsPage />} />{" "}
             {/* News Management */}
             {/* Teacher Routes */}
+            <Route path="academic/assessment" element={<AssessmentPage />} />
             <Route path="academic/grades" element={<InputGradePage />} />
             <Route
               path="academic/materials"
               element={<TeacherMaterialPage />}
             />
             {/* Student Routes */}
+            <Route path="student/bills" element={<StudentBillPage />} />
+            <Route
+              path="student/assignments"
+              element={<StudentAssignmentPage />}
+            />
             <Route path="student/materials" element={<StudentMaterialPage />} />
+            <Route path="student/p5" element={<StudentP5Page />} />
+            <Route path="student/uks" element={<StudentUksPage />} />
+            <Route path="student/library" element={<StudentLibraryPage />} />
           </Route>
 
           {/* <Route path="/" element={<Navigate to="/login" replace />} /> Note: Root is now LandingPage */}

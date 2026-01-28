@@ -401,6 +401,26 @@ exports.createAssessment = async (req, res) => {
   }
 };
 
+exports.getAssessments = async (req, res) => {
+  try {
+    const { classId, subjectId } = req.query;
+    let query = {};
+    if (classId) query.class = classId;
+    if (subjectId) query.subject = subjectId;
+
+    const assessments = await Assessment.find(query)
+      .populate("subject", "name")
+      .populate("class", "name")
+      .sort({ createdAt: -1 });
+
+    res.json(assessments);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal ambil asesmen", error: error.message });
+  }
+};
+
 // Input Nilai Siswa
 exports.inputGrades = async (req, res) => {
   try {

@@ -117,10 +117,22 @@ const Sidebar = () => {
           roles: ["admin", "teacher"],
         },
         {
+          title: "Daftar Tugas",
+          icon: BookStack,
+          path: "/dashboard/student/assignments",
+          roles: ["student"],
+        },
+        {
           title: "Nilai Saya",
           icon: ReportColumns,
           path: "/dashboard/student/grades",
           roles: ["student"],
+        },
+        {
+          title: "Bank Asesmen",
+          icon: BookStack,
+          path: "/dashboard/academic/assessment",
+          roles: ["teacher", "admin"],
         },
         {
           title: "Input Nilai",
@@ -154,7 +166,7 @@ const Sidebar = () => {
         {
           title: "Projek P5",
           icon: Community,
-          path: "/dashboard/p5",
+          path: role === "student" ? "/dashboard/student/p5" : "/dashboard/p5",
           roles: ["admin", "teacher", "student"],
         },
         {
@@ -177,13 +189,17 @@ const Sidebar = () => {
         {
           title: "UKS & Kesehatan",
           icon: HeartArrowDown,
-          path: "/dashboard/uks",
+          path:
+            role === "student" ? "/dashboard/student/uks" : "/dashboard/uks",
           roles: ["admin", "teacher", "parent", "student"],
         },
         {
           title: "Perpustakaan",
           icon: BookStack,
-          path: "/dashboard/library",
+          path:
+            role === "student"
+              ? "/dashboard/student/library"
+              : "/dashboard/library",
           roles: ["admin", "teacher", "student"],
         },
         {
@@ -206,7 +222,10 @@ const Sidebar = () => {
         {
           title: "Keuangan & SPP",
           icon: Wallet,
-          path: "/dashboard/finance",
+          path:
+            role === "student"
+              ? "/dashboard/student/bills"
+              : "/dashboard/finance",
           roles: ["admin", "student", "parent"],
         },
       ],
