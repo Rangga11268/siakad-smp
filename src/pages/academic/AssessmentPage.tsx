@@ -276,7 +276,7 @@ const AssessmentPage = () => {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-3xl font-serif font-bold text-school-navy">
-            Manajemen Tugas & Materi
+            Manajemen Tugas
           </h2>
           <p className="text-slate-500">
             Kelola tugas kelas, tenggat waktu, dan penilaian.
@@ -305,18 +305,7 @@ const AssessmentPage = () => {
             >
               <CardHeader>
                 <div className="flex justify-between items-start">
-                  <Badge
-                    variant={
-                      item.type === "assignment" ? "default" : "secondary"
-                    }
-                    className={
-                      item.type === "assignment"
-                        ? "bg-school-navy"
-                        : "bg-slate-200 text-slate-700"
-                    }
-                  >
-                    {item.type === "assignment" ? "Tugas" : "Materi"}
-                  </Badge>
+                  <Badge className="bg-school-navy">Tugas</Badge>
                   <span className="text-xs text-slate-400 flex items-center gap-1">
                     <Calendar className="w-3 h-3" />{" "}
                     {item.deadline
@@ -377,7 +366,7 @@ const AssessmentPage = () => {
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle>
-              {isEditMode ? "Edit Tugas / Materi" : "Buat Tugas / Materi Baru"}
+              {isEditMode ? "Edit Tugas" : "Buat Tugas Baru"}
             </DialogTitle>
             <DialogDescription>Isi detail tugas akademik.</DialogDescription>
           </DialogHeader>
