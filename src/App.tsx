@@ -49,7 +49,9 @@ import TeacherMaterialPage from "@/pages/academic/TeacherMaterialPage";
 import FinanceDashboard from "@/pages/finance/FinanceDashboard";
 import AssetDashboard from "@/pages/assets/AssetDashboard";
 import LandingPage from "@/pages/public/LandingPage";
+import PrintReportPage from "@/pages/common/PrintReportPage";
 import { Toaster } from "@/components/ui/toaster";
+import ProtectedRoute from "./components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 function App() {
@@ -57,6 +59,16 @@ function App() {
     <>
       <ErrorBoundary>
         <Routes>
+          {/* Standalone Print Route */}
+          <Route
+            path="/print/report"
+            element={
+              <ProtectedRoute allowedRoles={["admin", "teacher", "student"]}>
+                <PrintReportPage />
+              </ProtectedRoute>
+            }
+          />
+
           {/* Public Routes with Layout */}
           <Route element={<PublicLayout />}>
             <Route path="/" element={<LandingPage />} />
