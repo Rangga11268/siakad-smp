@@ -102,6 +102,7 @@ const AssessmentPage = () => {
     classes: string[];
     deadline: string;
     type: "assignment" | "material" | "exam" | "quiz" | "project";
+    learningGoals: string[];
   }>({
     title: "",
     description: "",
@@ -109,7 +110,9 @@ const AssessmentPage = () => {
     classes: [],
     deadline: "",
     type: "assignment",
+    learningGoals: [],
   });
+  const [availableTPs, setAvailableTPs] = useState<any[]>([]);
   const [selectedTxFile, setSelectedTxFile] = useState<File | null>(null);
 
   // Grading State
@@ -129,6 +132,34 @@ const AssessmentPage = () => {
     fetchClasses();
     fetchSubjects();
   }, []);
+
+  useEffect(() => {
+    if (newForm.subject && newForm.classes.length > 0) {
+      fetchAvailableTPs();
+    } else {
+      setAvailableTPs([]);
+    }
+  }, [newForm.subject, newForm.classes]);
+
+  const fetchAvailableTPs = async () => {
+    try {
+      // Find level from first selected class
+      const firstClass = availableClasses.find((c) =>
+        newForm.classes.includes(c.name),
+      );
+      if (!firstClass) return;
+
+      const res = await api.get("/academic/tp", {
+        params: {
+          subjectId: newForm.subject,
+          level: firstClass.level,
+        },
+      });
+      setAvailableTPs(res.data);
+    } catch (e) {
+      console.error("Gagal load TP");
+    }
+  };
 
   const fetchSubjects = async () => {
     try {
@@ -169,6 +200,7 @@ const AssessmentPage = () => {
       classes: [],
       deadline: "",
       type: "assignment",
+      learningGoals: [],
     });
     setIsDialogOpen(true);
   };
@@ -184,6 +216,10 @@ const AssessmentPage = () => {
       classes: item.classes,
       deadline: item.deadline ? item.deadline.split("T")[0] : "",
       type: item.type as any,
+      learningGoals:
+        (item as any).learningGoals?.map((tg: any) =>
+          typeof tg === "object" ? tg._id : tg,
+        ) || [],
     });
     setIsDialogOpen(true);
   };
@@ -236,6 +272,7 @@ const AssessmentPage = () => {
         classes: [],
         deadline: "",
         type: "assignment",
+        learningGoals: [],
       });
       setSelectedTxFile(null);
       fetchAssessments();
@@ -515,6 +552,54 @@ const AssessmentPage = () => {
                 )}
               </div>
             </div>
+            <div className="grid grid-cols-4 items-start gap-4">
+              <label className="text-right text-sm font-bold mt-2">
+                Tujuan Pembelajaran (TP)
+              </label>
+              <div className="col-span-3 border p-4 rounded-md h-40 overflow-y-auto space-y-2 bg-slate-50">
+                {availableTPs.length === 0 ? (
+                  <p className="text-xs text-slate-500 italic">
+                    {!newForm.subject || newForm.classes.length === 0
+                      ? "Pilih Mapel & Kelas dulu untuk melihat TP."
+                      : "Belum ada data TP untuk Mapel & Level ini."}
+                  </p>
+                ) : (
+                  availableTPs.map((tp) => (
+                    <div key={tp._id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`tp-${tp._id}`}
+                        checked={newForm.learningGoals.includes(tp._id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setNewForm((prev) => ({
+                              ...prev,
+                              learningGoals: [...prev.learningGoals, tp._id],
+                            }));
+                          } else {
+                            setNewForm((prev) => ({
+                              ...prev,
+                              learningGoals: prev.learningGoals.filter(
+                                (id) => id !== tp._id,
+                              ),
+                            }));
+                          }
+                        }}
+                      />
+                      <Label
+                        htmlFor={`tp-${tp._id}`}
+                        className="cursor-pointer text-sm font-medium leading-tight"
+                      >
+                        <span className="font-bold text-xs text-school-navy block">
+                          {tp.code}
+                        </span>
+                        {tp.description}
+                      </Label>
+                    </div>
+                  ))
+                )}
+              </div>
+            </div>
+
             <div className="grid grid-cols-4 items-center gap-4">
               <label className="text-right text-sm font-bold">
                 Tenggat Waktu

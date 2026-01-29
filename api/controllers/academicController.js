@@ -477,12 +477,12 @@ exports.getClassGrades = async (req, res) => {
 // Generate Rapor (Auto Description)
 exports.generateReport = async (req, res) => {
   try {
-    const { studentId, subjectId, academicYear } = req.body;
+    const { studentId, subjectId, academicYear, semester } = req.body;
 
     // Ambil semua nilai siswa untuk mapel ini
     const grades = await Grade.find({ student: studentId }).populate({
       path: "assessment",
-      match: { subject: subjectId, academicYear },
+      match: { subject: subjectId, academicYear, semester },
       populate: { path: "learningGoals" }, // Load TP untuk analisis
     });
 
@@ -492,18 +492,25 @@ exports.generateReport = async (req, res) => {
     let tpScores = {};
 
     grades.forEach((grade) => {
-      if (!grade.assessment || !grade.assessment.learningGoals) return;
+      if (
+        !grade.assessment ||
+        !grade.assessment.learningGoals ||
+        !Array.isArray(grade.assessment.learningGoals)
+      )
+        return;
 
       grade.assessment.learningGoals.forEach((tp) => {
-        if (!tpScores[tp._id]) {
-          tpScores[tp._id] = {
-            description: tp.description,
+        if (!tp) return;
+        const tpId = tp._id || tp;
+        if (!tpScores[tpId]) {
+          tpScores[tpId] = {
+            description: tp.description || "Kompetensi",
             total: 0,
             count: 0,
           };
         }
-        tpScores[tp._id].total += grade.score;
-        tpScores[tp._id].count += 1;
+        tpScores[tpId].total += grade.score;
+        tpScores[tpId].count += 1;
       });
     });
 
@@ -585,12 +592,23 @@ exports.generateFullReport = async (req, res) => {
         totalScore += g.score;
         countScore++;
 
-        g.assessment.learningGoals.forEach((tp) => {
-          if (!tpScores[tp._id])
-            tpScores[tp._id] = { desc: tp.description, total: 0, count: 0 };
-          tpScores[tp._id].total += g.score;
-          tpScores[tp._id].count++;
-        });
+        if (
+          g.assessment.learningGoals &&
+          Array.isArray(g.assessment.learningGoals)
+        ) {
+          g.assessment.learningGoals.forEach((tp) => {
+            if (!tp) return; // Skip if null
+            const tpId = tp._id || tp;
+            if (!tpScores[tpId])
+              tpScores[tpId] = {
+                desc: tp.description || "Kompetensi",
+                total: 0,
+                count: 0,
+              };
+            tpScores[tpId].total += g.score;
+            tpScores[tpId].count++;
+          });
+        }
       });
 
       const finalScore = Math.round(totalScore / countScore);

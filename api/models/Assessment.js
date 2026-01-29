@@ -24,6 +24,9 @@ const AssessmentSchema = new mongoose.Schema(
       required: true,
     },
     semester: { type: String, enum: ["Ganjil", "Genap"], required: true },
+    learningGoals: [
+      { type: mongoose.Schema.Types.ObjectId, ref: "LearningGoal" },
+    ],
   },
   { timestamps: true },
 );
