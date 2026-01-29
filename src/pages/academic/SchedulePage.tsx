@@ -38,6 +38,7 @@ import {
 import { Label } from "@/components/ui/label";
 import api from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/context/AuthContext";
 
 interface Schedule {
   _id: string;
@@ -52,6 +53,7 @@ interface Schedule {
 }
 
 const SchedulePage = () => {
+  const { user } = useAuth();
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [classes, setClasses] = useState<any[]>([]);
   const [subjects, setSubjects] = useState<any[]>([]);
@@ -161,128 +163,130 @@ const SchedulePage = () => {
           </p>
         </div>
 
-        <Dialog open={open} onOpenChange={setOpen}>
-          <DialogTrigger asChild>
-            <Button
-              disabled={!selectedClass}
-              className="bg-school-navy hover:bg-school-gold hover:text-school-navy transition-colors font-bold shadow-md"
-              onClick={() =>
-                setFormData((prev) => ({ ...prev, day: selectedDay }))
-              }
-            >
-              <Plus className="mr-2 h-4 w-4" /> Tambah Jadwal
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle className="font-serif text-2xl text-school-navy">
-                Tambah Jadwal
-              </DialogTitle>
-              <DialogDescription>
-                Tambahkan slot pelajaran baru untuk kelas yang dipilih.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-6 py-4">
-              <div className="space-y-2">
-                <Label className="font-semibold text-school-navy">Hari</Label>
-                <Select
-                  value={formData.day}
-                  onValueChange={(v) => setFormData({ ...formData, day: v })}
-                >
-                  <SelectTrigger className="bg-slate-50 border-slate-200">
-                    <SelectValue placeholder="Pilih Hari" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {days.map((d) => (
-                      <SelectItem key={d} value={d}>
-                        {d}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="font-semibold text-school-navy">
-                    Jam Mulai
-                  </Label>
-                  <Input
-                    type="time"
-                    value={formData.startTime}
-                    onChange={(e) =>
-                      setFormData({ ...formData, startTime: e.target.value })
-                    }
-                    className="bg-slate-50 border-slate-200"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label className="font-semibold text-school-navy">
-                    Jam Selesai
-                  </Label>
-                  <Input
-                    type="time"
-                    value={formData.endTime}
-                    onChange={(e) =>
-                      setFormData({ ...formData, endTime: e.target.value })
-                    }
-                    className="bg-slate-50 border-slate-200"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label className="font-semibold text-school-navy">
-                  Mata Pelajaran
-                </Label>
-                <Select
-                  onValueChange={(v) =>
-                    setFormData({ ...formData, subject: v })
-                  }
-                >
-                  <SelectTrigger className="bg-slate-50 border-slate-200">
-                    <SelectValue placeholder="Pilih Mapel" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {subjects.map((s) => (
-                      <SelectItem key={s._id} value={s._id}>
-                        {s.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label className="font-semibold text-school-navy">
-                  Guru Pengajar
-                </Label>
-                <Select
-                  onValueChange={(v) =>
-                    setFormData({ ...formData, teacher: v })
-                  }
-                >
-                  <SelectTrigger className="bg-slate-50 border-slate-200">
-                    <SelectValue placeholder="Pilih Guru" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {teachers.map((t) => (
-                      <SelectItem key={t._id} value={t._id}>
-                        {t.profile?.fullName || t.username}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            <DialogFooter>
+        {(user as any)?.role === "admin" && (
+          <Dialog open={open} onOpenChange={setOpen}>
+            <DialogTrigger asChild>
               <Button
-                onClick={handleSubmit}
-                className="bg-school-navy hover:bg-school-gold hover:text-school-navy w-full"
+                disabled={!selectedClass}
+                className="bg-school-navy hover:bg-school-gold hover:text-school-navy transition-colors font-bold shadow-md"
+                onClick={() =>
+                  setFormData((prev) => ({ ...prev, day: selectedDay }))
+                }
               >
-                Simpan Jadwal
+                <Plus className="mr-2 h-4 w-4" /> Tambah Jadwal
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[500px]">
+              <DialogHeader>
+                <DialogTitle className="font-serif text-2xl text-school-navy">
+                  Tambah Jadwal
+                </DialogTitle>
+                <DialogDescription>
+                  Tambahkan slot pelajaran baru untuk kelas yang dipilih.
+                </DialogDescription>
+              </DialogHeader>
+              <div className="grid gap-6 py-4">
+                <div className="space-y-2">
+                  <Label className="font-semibold text-school-navy">Hari</Label>
+                  <Select
+                    value={formData.day}
+                    onValueChange={(v) => setFormData({ ...formData, day: v })}
+                  >
+                    <SelectTrigger className="bg-slate-50 border-slate-200">
+                      <SelectValue placeholder="Pilih Hari" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {days.map((d) => (
+                        <SelectItem key={d} value={d}>
+                          {d}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="font-semibold text-school-navy">
+                      Jam Mulai
+                    </Label>
+                    <Input
+                      type="time"
+                      value={formData.startTime}
+                      onChange={(e) =>
+                        setFormData({ ...formData, startTime: e.target.value })
+                      }
+                      className="bg-slate-50 border-slate-200"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="font-semibold text-school-navy">
+                      Jam Selesai
+                    </Label>
+                    <Input
+                      type="time"
+                      value={formData.endTime}
+                      onChange={(e) =>
+                        setFormData({ ...formData, endTime: e.target.value })
+                      }
+                      className="bg-slate-50 border-slate-200"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-semibold text-school-navy">
+                    Mata Pelajaran
+                  </Label>
+                  <Select
+                    onValueChange={(v) =>
+                      setFormData({ ...formData, subject: v })
+                    }
+                  >
+                    <SelectTrigger className="bg-slate-50 border-slate-200">
+                      <SelectValue placeholder="Pilih Mapel" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {subjects.map((s) => (
+                        <SelectItem key={s._id} value={s._id}>
+                          {s.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label className="font-semibold text-school-navy">
+                    Guru Pengajar
+                  </Label>
+                  <Select
+                    onValueChange={(v) =>
+                      setFormData({ ...formData, teacher: v })
+                    }
+                  >
+                    <SelectTrigger className="bg-slate-50 border-slate-200">
+                      <SelectValue placeholder="Pilih Guru" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {teachers.map((t) => (
+                        <SelectItem key={t._id} value={t._id}>
+                          {t.profile?.fullName || t.username}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button
+                  onClick={handleSubmit}
+                  className="bg-school-navy hover:bg-school-gold hover:text-school-navy w-full"
+                >
+                  Simpan Jadwal
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        )}
       </div>
 
       <Card className="border-none shadow-md bg-white">
@@ -398,14 +402,16 @@ const SchedulePage = () => {
                       </div>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => handleDelete(s._id)}
-                        className="text-slate-400 hover:text-red-600 hover:bg-red-50"
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
+                      {(user as any)?.role === "admin" && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(s._id)}
+                          className="text-slate-400 hover:text-red-600 hover:bg-red-50"
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      )}
                     </TableCell>
                   </TableRow>
                 ))

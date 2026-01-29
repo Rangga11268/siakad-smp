@@ -40,26 +40,68 @@ const AttendancePage = () => {
   const [attendanceData, setAttendanceData] = useState<any>({});
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [dayName, setDayName] = useState("");
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchClasses();
-  }, []);
+    fetchClasses(date);
+    setStudents([]);
+    setSelectedClass("");
+  }, [date]);
 
   useEffect(() => {
     if (selectedClass && date) {
       fetchData();
-    } else {
-      setStudents([]);
     }
-  }, [selectedClass, date]);
+  }, [selectedClass]); // Removed date from here to avoid double fetch
 
-  const fetchClasses = async () => {
+  const getDayName = (dateStr: string) => {
+    const days = [
+      "Minggu",
+      "Senin",
+      "Selasa",
+      "Rabu",
+      "Kamis",
+      "Jumat",
+      "Sabtu",
+    ];
+    return days[new Date(dateStr).getDay()];
+  };
+
+  const fetchClasses = async (currentDate: string) => {
     try {
-      const res = await api.get("/academic/class");
-      setClasses(res.data);
+      const dayName = getDayName(currentDate);
+
+      // 1. Get all classes
+      const classRes = await api.get("/academic/class");
+      const allClasses = classRes.data;
+
+      // 2. Get schedules for this day
+      const scheduleRes = await api.get("/schedule", {
+        params: { day: dayName },
+      });
+      const activeSchedules = scheduleRes.data;
+
+      // 3. Extract unique class IDs that have a schedule
+      const activeClassIds = new Set(
+        activeSchedules.map((s: any) =>
+          typeof s.class === "object" ? s.class._id : s.class,
+        ),
+      );
+
+      // 4. Filter classes
+      const filteredClasses = allClasses.filter((c: any) =>
+        activeClassIds.has(c._id),
+      );
+
+      setClasses(filteredClasses);
     } catch (error) {
       console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Gagal Load Kelas",
+        description: "Gagal memfilter kelas berdasarkan jadwal.",
+      });
     }
   };
 
@@ -204,9 +246,19 @@ const AttendancePage = () => {
           <div className="flex flex-col md:flex-row gap-6 items-end">
             <div className="w-full md:w-1/3 space-y-2">
               <Label className="font-bold text-school-navy">Pilih Kelas</Label>
-              <Select value={selectedClass} onValueChange={setSelectedClass}>
+              <Select
+                value={selectedClass}
+                onValueChange={setSelectedClass}
+                disabled={classes.length === 0}
+              >
                 <SelectTrigger className="border-slate-300 focus:ring-school-gold bg-slate-50 h-10">
-                  <SelectValue placeholder="-- Pilih Kelas --" />
+                  <SelectValue
+                    placeholder={
+                      classes.length === 0
+                        ? `Tidak ada jadwal (${dayName})`
+                        : "-- Pilih Kelas --"
+                    }
+                  />
                 </SelectTrigger>
                 <SelectContent>
                   {classes.map((cls) => (
