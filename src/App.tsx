@@ -23,6 +23,7 @@ import StudentP5Page from "@/pages/student/StudentP5Page";
 import StudentP5DetailPage from "@/pages/student/StudentP5DetailPage";
 import StudentUksPage from "@/pages/student/StudentUksPage";
 import StudentLibraryPage from "@/pages/student/StudentLibraryPage";
+import StudentLearningPage from "@/pages/student/StudentLearningPage";
 import P5Dashboard from "@/pages/p5/P5Dashboard";
 import P5AssessmentPage from "@/pages/p5/P5AssessmentPage";
 import P5ReportPage from "@/pages/p5/P5ReportPage";
@@ -141,7 +142,8 @@ function App() {
               path="academic/materials"
               element={<TeacherMaterialPage />}
             />
-            {/* Student Routes */}
+            {/* Student Hub */}
+            <Route path="student/hub" element={<StudentLearningPage />} />
             <Route path="student/bills" element={<StudentBillPage />} />
             <Route
               path="student/assignments"

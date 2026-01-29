@@ -72,7 +72,7 @@ const Sidebar = () => {
           title: "Absensi Pelajaran",
           icon: Calendar,
           path: "/dashboard/student/attendance",
-          roles: ["student"],
+          roles: [], // Removed student role
         },
         {
           title: "Data Siswa",
@@ -120,6 +120,12 @@ const Sidebar = () => {
           title: "Daftar Tugas",
           icon: BookStack,
           path: "/dashboard/student/assignments",
+          roles: [], // Removed student role
+        },
+        {
+          title: "Ruang Belajar",
+          icon: Book,
+          path: "/dashboard/student/hub",
           roles: ["student"],
         },
         {
@@ -150,7 +156,7 @@ const Sidebar = () => {
           title: "Bahan Ajar",
           icon: Book,
           path: "/dashboard/student/materials",
-          roles: ["student"],
+          roles: [], // Removed student role
         },
         {
           title: "E-Rapor Siswa",
