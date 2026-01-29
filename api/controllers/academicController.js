@@ -798,12 +798,22 @@ exports.getMyGrades = async (req, res) => {
           examCount: 0,
           totalScore: 0,
           totalCount: 0,
+          details: [], // For individual grades list
         };
       }
 
       // Aggregate Total (Overall)
       grouped[subjName].totalScore += g.score;
       grouped[subjName].totalCount += 1;
+
+      // Add to details
+      grouped[subjName].details.push({
+        title: g.assessment.title,
+        type: type,
+        score: g.score,
+        date: g.assessment.createdAt,
+        tpCodes: g.assessment.learningGoals?.map((tp) => tp.code) || [],
+      });
 
       // Aggregate by Category
       if (type === "exam") {
@@ -826,12 +836,13 @@ exports.getMyGrades = async (req, res) => {
           : 0,
       examAvg:
         item.examCount > 0 ? Math.round(item.examTotal / item.examCount) : 0,
+      details: item.details,
     }));
 
     res.json(result);
   } catch (error) {
     res
       .status(500)
-      .json({ message: "Gagal ambil niali saya", error: error.message });
+      .json({ message: "Gagal mengambil nilai", error: error.message });
   }
 };

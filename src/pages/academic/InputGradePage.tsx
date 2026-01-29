@@ -25,18 +25,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { FloppyDisk, SystemRestart, BookStack, Page } from "iconoir-react";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { FloppyDisk, SystemRestart, BookStack, Page } from "iconoir-react";
 import api from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -58,12 +49,6 @@ interface Assessment {
   learningGoals?: { code: string; description: string }[];
 }
 
-interface LearningGoal {
-  _id: string;
-  code: string;
-  description: string;
-}
-
 interface Student {
   _id: string;
   profile: {
@@ -73,9 +58,7 @@ interface Student {
 }
 
 const InputGradePage = () => {
-  const { user } = useAuth(); // Get user
   const navigate = useNavigate();
-  const [activeAcademicYear, setActiveAcademicYear] = useState("");
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
   const [selectedAssessment, setSelectedAssessment] = useState("");
@@ -111,11 +94,7 @@ const InputGradePage = () => {
         setClasses(classRes.data);
         setSubjects(subjectRes.data);
 
-        // Set Active Year
-        const active = yearRes.data.find((y: any) => y.status === "active");
-        if (active) setActiveAcademicYear(active._id);
-        else if (yearRes.data.length > 0)
-          setActiveAcademicYear(yearRes.data[0]._id); // Fallback
+        // Set Active Year Removed since unused in this page
       } catch (error) {
         console.error("Gagal load filter", error);
       } finally {
@@ -145,17 +124,29 @@ const InputGradePage = () => {
 
   // handleCreateAssessment removed
 
-  const loadStudents = async () => {
+  const loadStudents = async (assessmentId: string) => {
     setLoadingGrades(true);
     try {
+      // 1. Get students in class
       const allStudents = await api.get("/academic/students");
       const clsName = classes.find((c) => c._id === selectedClass)?.name;
       const filtered = allStudents.data.filter(
         (s: any) => s.profile?.class === clsName,
       );
       setStudents(filtered);
+
+      // 2. Fetch existing grades for this assessment
+      const gradeRes = await api.get(`/academic/grades/${assessmentId}`);
+      const existingGrades: Record<string, number> = {};
+      gradeRes.data.forEach((g: any) => {
+        if (g.student && g.student._id) {
+          existingGrades[g.student._id] = g.score;
+        }
+      });
+      setGrades(existingGrades);
     } catch (error) {
       console.error(error);
+      toast({ variant: "destructive", title: "Gagal load data nilai" });
     } finally {
       setLoadingGrades(false);
     }
@@ -259,7 +250,7 @@ const InputGradePage = () => {
             <Select
               onValueChange={(v) => {
                 setSelectedAssessment(v);
-                loadStudents();
+                loadStudents(v);
               }}
               disabled={
                 !selectedClass || !selectedSubject || assessments.length === 0
@@ -304,6 +295,38 @@ const InputGradePage = () => {
           {/* Dialog Removed */}
         </CardContent>
       </Card>
+
+      {selectedAssessment && (
+        <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-r-md animate-in fade-in zoom-in-95">
+          <div className="flex justify-between items-start">
+            <div>
+              <h4 className="font-bold text-blue-800">
+                Detail Asesmen:{" "}
+                {assessments.find((a) => a._id === selectedAssessment)?.title}
+              </h4>
+              <p className="text-sm text-blue-600 mt-1">
+                {assessments.find((a) => a._id === selectedAssessment)?.type ===
+                "exam"
+                  ? "Tipe: Ulangan"
+                  : "Tipe: Tugas/Lainnya"}
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2 justify-end max-w-md">
+              {(
+                assessments.find((a) => a._id === selectedAssessment) as any
+              )?.learningGoals?.map((tp: any, i: number) => (
+                <Badge
+                  key={i}
+                  variant="secondary"
+                  className="bg-blue-100 text-blue-700 hover:bg-blue-100 text-[10px]"
+                >
+                  {tp.code}: {tp.description}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {selectedAssessment && (
         <Card className="animate-in fade-in slide-in-from-bottom-4 duration-500 border-t-4 border-t-school-gold shadow-lg border-none">

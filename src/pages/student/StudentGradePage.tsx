@@ -15,8 +15,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import api from "@/services/api";
-import { Book } from "iconoir-react";
+import { Book, Eye, Calendar } from "iconoir-react";
+import { Button } from "@/components/ui/button";
 
 const StudentGradePage = () => {
   const [grades, setGrades] = useState<any[]>([]);
@@ -24,6 +33,7 @@ const StudentGradePage = () => {
   const [academicYears, setAcademicYears] = useState<any[]>([]);
   const [selectedYear, setSelectedYear] = useState("");
   const [selectedSemester, setSelectedSemester] = useState("Ganjil");
+  const [activeSubject, setActiveSubject] = useState<any>(null);
 
   useEffect(() => {
     fetchAcademicYears();
@@ -169,6 +179,95 @@ const StudentGradePage = () => {
                     </p>
                   </div>
                 </div>
+
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      className="w-full mt-4 text-xs text-slate-500 hover:text-school-navy flex items-center justify-center gap-1 border border-dashed border-slate-200"
+                      onClick={() => setActiveSubject(g)}
+                    >
+                      <Eye className="w-3 h-3" /> Lihat Detail Nilai
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle className="font-serif text-xl border-b pb-2">
+                        Rincian Nilai: {activeSubject?.subject}
+                      </DialogTitle>
+                    </DialogHeader>
+                    <div className="mt-4 space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+                      {activeSubject?.details?.length > 0 ? (
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead className="text-xs">
+                                Nama Asesmen
+                              </TableHead>
+                              <TableHead className="text-xs text-center w-[80px]">
+                                Nilai
+                              </TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {activeSubject.details.map(
+                              (detail: any, dIdx: number) => (
+                                <TableRow key={dIdx}>
+                                  <TableCell className="py-3">
+                                    <div className="flex flex-col">
+                                      <span className="font-semibold text-sm">
+                                        {detail.title}
+                                      </span>
+                                      {detail.tpCodes?.length > 0 && (
+                                        <div className="flex flex-wrap gap-1 mt-1">
+                                          {detail.tpCodes.map(
+                                            (code: string, cidx: number) => (
+                                              <span
+                                                key={cidx}
+                                                className="bg-slate-100 text-[8px] px-1 rounded text-slate-500 font-mono"
+                                              >
+                                                {code}
+                                              </span>
+                                            ),
+                                          )}
+                                        </div>
+                                      )}
+                                      <div className="flex items-center gap-2 mt-1">
+                                        <Badge
+                                          variant="outline"
+                                          className="text-[9px] px-1 py-0 h-4 capitalize"
+                                        >
+                                          {detail.type === "exam"
+                                            ? "Ulangan"
+                                            : detail.type === "assignment"
+                                              ? "Tugas"
+                                              : detail.type}
+                                        </Badge>
+                                        <span className="text-[9px] text-slate-400 flex items-center gap-1">
+                                          <Calendar className="w-2 h-2" />
+                                          {new Date(
+                                            detail.date,
+                                          ).toLocaleDateString()}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="text-center font-bold text-lg text-school-navy">
+                                    {detail.score}
+                                  </TableCell>
+                                </TableRow>
+                              ),
+                            )}
+                          </TableBody>
+                        </Table>
+                      ) : (
+                        <p className="text-center py-4 text-slate-500 italic">
+                          Belum ada detail nilai.
+                        </p>
+                      )}
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </CardContent>
             </Card>
           ))
