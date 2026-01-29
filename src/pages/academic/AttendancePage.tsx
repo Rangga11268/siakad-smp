@@ -243,31 +243,66 @@ const AttendancePage = () => {
 
       {selectedClass && (
         <Card className="border-t-4 border-t-school-gold shadow-lg border-none overflow-hidden">
-          <CardHeader className="bg-white border-b border-slate-100 flex flex-row justify-between items-center py-4">
+          <CardHeader className="bg-white border-b border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 py-4">
             <div>
               <CardTitle className="font-serif text-xl text-school-navy flex items-center gap-2">
                 <Group className="w-5 h-5 text-school-gold" />
                 Daftar Kehadiran Siswa
               </CardTitle>
-              <p className="text-xs text-slate-400 mt-1">
-                Pastikan data kelas dan tanggal sudah benar sebelum menyimpan.
-              </p>
+              <div className="flex flex-wrap gap-4 mt-2">
+                {statuses.map((s) => {
+                  const count = Object.values(attendanceData).filter(
+                    (v: any) => v.status === s.id,
+                  ).length;
+                  return (
+                    <div
+                      key={s.id}
+                      className={cn(
+                        "flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border",
+                        s.activeClass,
+                      )}
+                    >
+                      <s.icon className="w-3.5 h-3.5" />
+                      {s.label}: {count}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-            <div>
+            <div className="flex gap-2 w-full md:w-auto">
               <Button
-                size="lg"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const newData = { ...attendanceData };
+                  students.forEach((s) => {
+                    if (!newData[s._id]?.status) {
+                      newData[s._id] = { ...newData[s._id], status: "Alpha" };
+                    }
+                  });
+                  setAttendanceData(newData);
+                  toast({
+                    title: "Auto-Alpha Berhasil",
+                    description: "Siswa tanpa keterangan kini ditandai Alpha.",
+                  });
+                }}
+                className="border-red-200 text-red-600 hover:bg-red-50 font-bold"
+              >
+                <XmarkCircle className="mr-2 h-4 w-4" /> Set All Alpha
+              </Button>
+              <Button
+                size="sm"
                 onClick={handleSave}
                 disabled={submitting || students.length === 0}
                 className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold shadow-md transition-all"
               >
                 {submitting ? (
                   <>
-                    <SystemRestart className="mr-2 h-4 w-4 animate-spin" />{" "}
-                    Menyimpan...
+                    <SystemRestart className="mr-2 h-4 w-4 animate-spin" />
                   </>
                 ) : (
                   <>
-                    <FloppyDisk className="mr-2 h-4 w-4" /> Simpan Perubahan
+                    <FloppyDisk className="mr-2 h-4 w-4" /> Simpan
                   </>
                 )}
               </Button>

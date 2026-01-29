@@ -8,7 +8,7 @@ router.post(
   "/",
   auth,
   checkRole(["admin", "teacher"]),
-  attendanceController.recordBatchAttendance
+  attendanceController.recordBatchAttendance,
 );
 
 // Get Daily Attendance (Untuk Form Input)
@@ -16,7 +16,7 @@ router.get(
   "/daily",
   auth,
   checkRole(["admin", "teacher"]),
-  attendanceController.getDailyAttendance
+  attendanceController.getDailyAttendance,
 );
 
 // Get Stat (Siswa bisa lihat sendiri, Guru/Admin lihat semua)
@@ -27,7 +27,7 @@ router.post(
   "/self",
   auth,
   checkRole(["student"]),
-  attendanceController.recordSelfAttendance
+  attendanceController.recordSelfAttendance,
 );
 
 // Absen Mapel
@@ -35,7 +35,15 @@ router.post(
   "/subject",
   auth,
   // checkRole(["student", "teacher"]), // Both can trigger
-  attendanceController.recordSubjectAttendance
+  attendanceController.recordSubjectAttendance,
+);
+
+// Monitoring per Jadwal
+router.get(
+  "/schedule",
+  auth,
+  checkRole(["admin", "teacher"]),
+  attendanceController.getAttendanceBySchedule,
 );
 
 module.exports = router;

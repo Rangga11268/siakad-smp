@@ -186,13 +186,63 @@ exports.recordSubjectAttendance = async (req, res) => {
     const studentId = req.user.id;
     const { scheduleId, status, note, date } = req.body;
 
-    const today = date ? new Date(date) : new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const schedule = await Schedule.findById(scheduleId);
+    const schedule = await Schedule.findById(scheduleId).populate("subject");
     if (!schedule) {
       return res.status(404).json({ message: "Jadwal tidak ditemukan" });
     }
+
+    const today = date ? new Date(date) : new Date();
+    const dayNames = [
+      "Minggu",
+      "Senin",
+      "Selasa",
+      "Rabu",
+      "Kamis",
+      "Jumat",
+      "Sabtu",
+    ];
+    const todayName = dayNames[today.getDay()];
+
+    // 1. Validasi Hari
+    if (schedule.day !== todayName && !date) {
+      return res
+        .status(400)
+        .json({
+          message: `Jadwal ini untuk hari ${schedule.day}, bukan hari ini.`,
+        });
+    }
+
+    // 2. Validasi Waktu (Hanya untuk Siswa)
+    if (req.user.role === "student") {
+      const now = new Date();
+      const [startHour, startMin] = schedule.startTime.split(":").map(Number);
+      const [endHour, endMin] = schedule.endTime.split(":").map(Number);
+
+      const startTime = new Date(now);
+      startTime.setHours(startHour, startMin, 0, 0);
+      // Toleransi 15 menit sebelum mulai
+      startTime.setMinutes(startTime.getMinutes() - 15);
+
+      const endTime = new Date(now);
+      endTime.setHours(endHour, endMin, 0, 0);
+
+      if (now < startTime) {
+        return res
+          .status(400)
+          .json({
+            message: "Belum waktunya absen. Silahkan tunggu jadwal dimulai.",
+          });
+      }
+      if (now > endTime) {
+        return res
+          .status(400)
+          .json({
+            message: "Waktu absen untuk mata pelajaran ini sudah berakhir.",
+          });
+      }
+    }
+
+    today.setHours(0, 0, 0, 0);
 
     // Cek Duplikasi per Mapel & Hari
     const existing = await Attendance.findOne({
@@ -210,7 +260,7 @@ exports.recordSubjectAttendance = async (req, res) => {
     const newAttendance = new Attendance({
       student: studentId,
       class: schedule.class,
-      subject: schedule.subject,
+      subject: schedule.subject._id,
       schedule: schedule._id,
       date: today,
       status: status || "Present",
@@ -225,5 +275,25 @@ exports.recordSubjectAttendance = async (req, res) => {
     res
       .status(500)
       .json({ message: "Gagal absen mapel", error: error.message });
+  }
+};
+
+// Ambil Absensi per Jadwal (Untuk Monitoring Guru)
+exports.getAttendanceBySchedule = async (req, res) => {
+  try {
+    const { scheduleId, date } = req.query;
+    const attendanceDate = new Date(date || new Date());
+    attendanceDate.setHours(0, 0, 0, 0);
+
+    const records = await Attendance.find({
+      schedule: scheduleId,
+      date: attendanceDate,
+    }).populate("student", "username profile");
+
+    res.json(records);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal ambil histori absensi", error: error.message });
   }
 };

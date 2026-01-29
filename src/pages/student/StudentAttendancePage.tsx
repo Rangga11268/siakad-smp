@@ -14,10 +14,12 @@ import {
   CheckCircle,
   MapPin,
   SystemRestart,
+  XmarkCircle,
 } from "iconoir-react";
 import api from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
+import { cn } from "@/lib/utils";
 
 const StudentAttendancePage = () => {
   const { user } = useAuth();
@@ -51,14 +53,22 @@ const StudentAttendancePage = () => {
   const [todayName, setTodayName] = useState("Senin");
 
   useEffect(() => {
-    // Get day in English to be safe, then map to Indo
-    const d = new Date()
-      .toLocaleDateString("en-US", { weekday: "long" })
-      .toLowerCase();
-    const indoDay = dayMap[d] || "Senin";
+    // Robust day detection using index (0-6)
+    const dayNames = [
+      "Minggu",
+      "Senin",
+      "Selasa",
+      "Rabu",
+      "Kamis",
+      "Jumat",
+      "Sabtu",
+    ];
+    const d = new Date();
+    const dayIndex = d.getDay(); // 0 = Sunday
+    const indoDay = dayNames[dayIndex];
 
     setTodayName(indoDay);
-    if (days.includes(indoDay)) setSelectedDay(indoDay);
+    if (dayNames.includes(indoDay)) setSelectedDay(indoDay);
   }, []);
 
   useEffect(() => {
@@ -191,20 +201,74 @@ const StudentAttendancePage = () => {
                     Guru: {s.teacher?.profile?.fullName || "Guru"}
                   </p>
                 </div>
-                <Button
-                  onClick={() => handleAttend(s._id)}
-                  disabled={processing === s._id || selectedDay !== todayName}
-                  className={`${
-                    selectedDay === todayName ? "bg-blue-600" : "bg-slate-300"
-                  }`}
-                >
-                  {processing === s._id ? (
-                    <SystemRestart className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <CheckCircle className="mr-2 h-4 w-4" />
-                  )}
-                  {selectedDay === todayName ? "Absen Masuk" : "Lihat Saja"}
-                </Button>
+                {(() => {
+                  // Safety check for time format
+                  if (!s.startTime || !s.endTime) return null;
+
+                  if (selectedDay !== todayName) {
+                    return (
+                      <Button disabled className="bg-slate-300">
+                        <CheckCircle className="mr-2 h-4 w-4" /> Lihat Saja
+                      </Button>
+                    );
+                  }
+
+                  const now = new Date();
+
+                  // Helper to parse time safely
+                  const parseTime = (timeStr: string) => {
+                    const parts = timeStr.split(":");
+                    return {
+                      h: parseInt(parts[0]) || 0,
+                      m: parseInt(parts[1]) || 0,
+                    };
+                  };
+
+                  const start = parseTime(s.startTime);
+                  const end = parseTime(s.endTime);
+
+                  const startTime = new Date();
+                  startTime.setHours(start.h, start.m, 0, 0);
+                  const startTimeAllowed = new Date(startTime);
+                  startTimeAllowed.setMinutes(
+                    startTimeAllowed.getMinutes() - 15,
+                  );
+
+                  const endTime = new Date();
+                  endTime.setHours(end.h, end.m, 0, 0);
+
+                  const isTooEarly = now < startTimeAllowed;
+                  const isActive = now >= startTimeAllowed && now <= endTime;
+                  const isExpired = now > endTime;
+
+                  return (
+                    <Button
+                      onClick={() => handleAttend(s._id)}
+                      disabled={processing === s._id || !isActive}
+                      className={cn(
+                        "transition-all font-bold",
+                        isActive
+                          ? "bg-blue-600 hover:bg-blue-700 shadow-md text-white"
+                          : isExpired
+                            ? "bg-red-100 text-red-600 border border-red-200 hover:bg-red-200"
+                            : "bg-slate-200 text-slate-500",
+                      )}
+                    >
+                      {processing === s._id ? (
+                        <SystemRestart className="mr-2 h-4 w-4 animate-spin" />
+                      ) : isExpired ? (
+                        <XmarkCircle className="mr-2 h-4 w-4" />
+                      ) : (
+                        <CheckCircle className="mr-2 h-4 w-4" />
+                      )}
+                      {isActive
+                        ? "Absen Masuk"
+                        : isTooEarly
+                          ? "Belum Mulai"
+                          : "Waktu Habis"}
+                    </Button>
+                  );
+                })()}
               </CardContent>
             </Card>
           ))
