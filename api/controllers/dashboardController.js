@@ -42,3 +42,65 @@ exports.getDashboardStats = async (req, res) => {
     });
   }
 };
+
+exports.getStudentDashboardStats = async (req, res) => {
+  try {
+    const studentId = req.user.id;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    // 1. Attendance Today
+    const Attendance = require("../models/Attendance");
+    const attendance = await Attendance.findOne({
+      student: studentId,
+      date: { $gte: today },
+    });
+    const attendanceStatus = attendance ? attendance.status : "Belum Absen";
+
+    // 2. Unpaid Bills
+    const unpaidBills = await Billing.countDocuments({
+      student: studentId,
+      status: "unpaid",
+    });
+
+    // 3. Announcements (Latest 3)
+    const News = require("../models/News");
+    const announcements = await News.find({
+      category: "Pengumuman",
+      isPublished: true,
+    })
+      .sort({ publishedAt: -1 })
+      .limit(3)
+      .select("title summary publishedAt slug");
+
+    // 4. Upcoming Assignments (Next 7 Days)
+    const Assessment = require("../models/Assessment");
+    const nextWeek = new Date(today);
+    nextWeek.setDate(today.getDate() + 7);
+
+    // Find active academic year first
+    const AcademicYear = require("../models/AcademicYear");
+    const activeYear = await AcademicYear.findOne({ status: "active" });
+
+    let pendingTasks = 0;
+    if (activeYear) {
+      pendingTasks = await Assessment.countDocuments({
+        classes: req.user.profile.class,
+        academicYear: activeYear._id,
+        deadline: { $gte: today, $lte: nextWeek },
+      });
+    }
+
+    res.json({
+      attendanceStatus,
+      unpaidBills,
+      announcements,
+      pendingTasks,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Gagal ambil statistik siswa",
+      error: error.message,
+    });
+  }
+};

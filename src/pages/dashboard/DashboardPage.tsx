@@ -59,10 +59,37 @@ const DashboardPage = () => {
     }
   }, [user]);
 
-  const fetchAdminData = async () => {
-    // Only Admin can fetch stats
-    if (user?.role !== "admin") return;
+  // Student Stats State
+  const [studentStats, setStudentStats] = useState({
+    attendanceStatus: "Belum Absen",
+    unpaidBills: 0,
+    announcements: [],
+    pendingTasks: 0,
+  });
 
+  useEffect(() => {
+    if (!user) return;
+
+    if (user.role === "student") {
+      fetchStudentData();
+      fetchStudentStats(); // New Fetch
+    } else {
+      fetchAdminData();
+      fetchChartData();
+    }
+  }, [user]);
+
+  const fetchStudentStats = async () => {
+    try {
+      const { data } = await api.get("/dashboard/student-stats");
+      setStudentStats(data);
+    } catch (error) {
+      console.error("Gagal load student stats", error);
+    }
+  };
+
+  const fetchAdminData = async () => {
+    if (user?.role !== "admin") return;
     try {
       const { data } = await api.get("/dashboard/stats");
       setStatsData(data);
@@ -74,26 +101,22 @@ const DashboardPage = () => {
   const fetchChartData = async () => {
     try {
       const { data } = await api.get("/finance/chart");
-      // Expected format: [{ name: "Jul", value: 4000000 }, ...]
       if (data && Array.isArray(data)) {
         setChartData(data);
       }
     } catch (error) {
       console.error("Failed to fetch chart data", error);
-      // Fallback to empty or keep default
     }
   };
 
   const fetchStudentData = async () => {
     try {
-      // 1. Get Active Year
       const yearRes = await api.get("/academic/years");
       const activeYear =
         yearRes.data.find((y: any) => y.isActive) || yearRes.data[0];
 
       if (!activeYear) return;
 
-      // 2. Get Grades for Active Year
       const { data } = await api.get("/academic/my-grades", {
         params: {
           semester: activeYear.semester || "Ganjil",
@@ -109,14 +132,11 @@ const DashboardPage = () => {
   const handleSelfAttendance = async () => {
     setAttendanceLoading(true);
     try {
-      // Dynamic Year for Attendance too
       const yearRes = await api.get("/academic/years");
       const activeYear =
         yearRes.data.find((y: any) => y.isActive) || yearRes.data[0];
 
-      if (!activeYear) {
-        throw new Error("Tahun ajaran tidak ditemukan");
-      }
+      if (!activeYear) throw new Error("Tahun ajaran tidak ditemukan");
 
       await api.post("/attendance/self", {
         academicYear: activeYear._id,
@@ -125,6 +145,7 @@ const DashboardPage = () => {
         title: "Berhasil",
         description: "Anda berhasil absen hari ini.",
       });
+      fetchStudentStats(); // Refresh stats after attendance
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -136,44 +157,102 @@ const DashboardPage = () => {
     }
   };
 
-  const stats = [
-    {
-      title: "Total Siswa",
-      value: (statsData?.studentCount || 0).toString(),
-      icon: Group,
-      desc: "Aktif Tahun Ini",
-      color: "text-school-navy",
-      bgColor: "bg-school-navy/10",
-    },
-    {
-      title: "Rata-rata Nilai",
-      value: (statsData?.averageGrade || 0).toString(),
-      icon: Book,
-      desc: "Seluruh Mata Pelajaran",
-      color: "text-green-600",
-      bgColor: "bg-green-100",
-    },
-    {
-      title: "Laporan Insiden",
-      value: (statsData?.incidentCount || 0).toString(),
-      icon: WarningTriangle,
-      desc: "Status Open/FollowUp",
-      color: "text-orange-600",
-      bgColor: "bg-orange-100",
-    },
-    {
-      title: "Tagihan Belum Lunas",
-      value: new Intl.NumberFormat("id-ID", {
-        style: "currency",
-        currency: "IDR",
-        maximumFractionDigits: 0,
-      }).format(statsData?.totalUnpaid || 0),
-      icon: Wallet,
-      desc: "Total Tunggakan",
-      color: "text-red-600",
-      bgColor: "bg-red-100",
-    },
-  ];
+  // Stats Array Logic
+  const stats =
+    user?.role === "student"
+      ? [
+          {
+            title: "Kehadiran Hari Ini",
+            value: studentStats.attendanceStatus,
+            icon: CheckCircle,
+            desc: "Status absensi",
+            color:
+              studentStats.attendanceStatus === "Hadir"
+                ? "text-emerald-600"
+                : "text-orange-600",
+            bgColor:
+              studentStats.attendanceStatus === "Hadir"
+                ? "bg-emerald-50"
+                : "bg-orange-50",
+          },
+          {
+            title: "Tunggakan",
+            value: new Intl.NumberFormat("id-ID", {
+              style: "currency",
+              currency: "IDR",
+              maximumFractionDigits: 0,
+            }).format(studentStats.unpaidBills * 500000), // Dummy calculation or fetch real amount?
+            // Better: use count for now or fix backend to send amount. Backend sends 'count' in unpaidBills properly now?
+            // Wait, backend sends countDocuments. Let's just show Count.
+            // "2 Tagihan"
+            // Actually let's just show count.
+            valueDisplay: `${studentStats.unpaidBills} Tagihan`,
+            icon: Wallet,
+            desc: "Belum Lunas",
+            color: "text-red-600",
+            bgColor: "bg-red-50",
+          },
+          {
+            title: "Tugas Pending",
+            value: studentStats.pendingTasks.toString(),
+            icon: Book,
+            desc: "Deadline 7 Hari Kedepan",
+            color: "text-blue-600",
+            bgColor: "bg-blue-50",
+          },
+          {
+            title: "Rata-Rata Nilai",
+            value:
+              myGrades.length > 0
+                ? (
+                    myGrades.reduce((acc, curr) => acc + curr.average, 0) /
+                    myGrades.length
+                  ).toFixed(1)
+                : "0",
+            icon: OpenBook,
+            desc: "Semester Ini",
+            color: "text-purple-600",
+            bgColor: "bg-purple-50",
+          },
+        ]
+      : [
+          {
+            title: "Total Siswa",
+            value: (statsData?.studentCount || 0).toString(),
+            icon: Group,
+            desc: "Aktif Tahun Ini",
+            color: "text-school-navy",
+            bgColor: "bg-school-navy/10",
+          },
+          {
+            title: "Rata-rata Nilai",
+            value: (statsData?.averageGrade || 0).toString(),
+            icon: Book,
+            desc: "Seluruh Mata Pelajaran",
+            color: "text-green-600",
+            bgColor: "bg-green-100",
+          },
+          {
+            title: "Laporan Insiden",
+            value: (statsData?.incidentCount || 0).toString(),
+            icon: WarningTriangle,
+            desc: "Status Open/FollowUp",
+            color: "text-orange-600",
+            bgColor: "bg-orange-100",
+          },
+          {
+            title: "Tagihan Belum Lunas",
+            value: new Intl.NumberFormat("id-ID", {
+              style: "currency",
+              currency: "IDR",
+              maximumFractionDigits: 0,
+            }).format(statsData?.totalUnpaid || 0),
+            icon: Wallet,
+            desc: "Total Tunggakan",
+            color: "text-red-600",
+            bgColor: "bg-red-100",
+          },
+        ];
 
   const quickActions = [
     {
@@ -263,10 +342,16 @@ const DashboardPage = () => {
           {user?.role === "student" && (
             <Button
               onClick={handleSelfAttendance}
-              disabled={attendanceLoading}
-              className="w-full bg-school-gold hover:bg-yellow-600 text-school-navy font-bold shadow-lg"
+              disabled={
+                attendanceLoading || studentStats.attendanceStatus === "Hadir"
+              }
+              className={`w-full font-bold shadow-lg ${studentStats.attendanceStatus === "Hadir" ? "bg-emerald-500 hover:bg-emerald-600 text-white" : "bg-school-gold hover:bg-yellow-600 text-school-navy"}`}
             >
-              {attendanceLoading ? "Memproses..." : "Absen Sekarang"}
+              {attendanceLoading
+                ? "Memproses..."
+                : studentStats.attendanceStatus === "Hadir"
+                  ? "Sudah Absen"
+                  : "Absen Sekarang"}
             </Button>
           )}
         </div>
@@ -275,24 +360,11 @@ const DashboardPage = () => {
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-in fade-in duration-500">
       <WelcomeBanner />
 
       <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-        {(user?.role === "student"
-          ? [
-              {
-                title: "Kehadiran Hari Ini",
-                value: "Hadir", // Dinamis nanti
-                icon: CheckCircle,
-                desc: "Status absensi",
-                color: "text-emerald-600",
-                bgColor: "bg-emerald-50",
-              },
-              ...stats.slice(1, 2), // Example reuse
-            ]
-          : stats
-        ).map((stat, i) => (
+        {stats.map((stat: any, i) => (
           <Card
             key={i}
             className="border-none shadow-lg hover:shadow-xl transition-all duration-300 border-t-4 border-t-school-gold group"
@@ -309,7 +381,7 @@ const DashboardPage = () => {
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-serif font-bold text-school-navy mt-2">
-                {stat.value}
+                {stat.valueDisplay || stat.value}
               </div>
               <p className="text-xs text-slate-400 mt-2 font-medium">
                 {stat.desc}
@@ -342,18 +414,18 @@ const DashboardPage = () => {
                     {myGrades.map((g, i) => (
                       <div
                         key={i}
-                        className="p-4 bg-slate-50 rounded-lg flex flex-col gap-2 border border-slate-100"
+                        className="p-4 bg-slate-50 rounded-lg flex flex-col gap-2 border border-slate-100 hover:border-school-gold/50 transition-colors"
                       >
                         <div className="flex justify-between items-center w-full">
-                          <span className="font-bold text-slate-700">
+                          <span
+                            className="font-bold text-slate-700 truncate max-w-[120px]"
+                            title={g.subject}
+                          >
                             {g.subject}
                           </span>
                           <div className="text-right">
                             <span className="text-xl font-bold text-school-navy block leading-none">
                               {g.average}
-                            </span>
-                            <span className="text-[10px] text-slate-400 uppercase tracking-wider">
-                              Total
                             </span>
                           </div>
                         </div>
@@ -494,33 +566,47 @@ const DashboardPage = () => {
           <Card className="shadow-lg border-none bg-school-navy text-white">
             <CardHeader>
               <CardTitle className="font-serif text-lg text-school-gold flex items-center gap-2">
-                <WarningTriangle className="w-5 h-5" /> Pengumuman Penting
+                <WarningTriangle className="w-5 h-5" /> Pengumuman
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-6">
-                <div className="flex gap-4 items-start border-l-2 border-school-gold/30 pl-4">
-                  <div>
-                    <p className="text-sm font-bold text-school-gold mb-1">
-                      Pembukaan PPDB Gelombang 1
-                    </p>
-                    <p className="text-xs text-white/70 leading-relaxed">
-                      Segera verifikasi data pendaftar baru melalui menu PPDB
-                      Admin sebelum tanggal 20.
-                    </p>
+                {user?.role === "student" &&
+                studentStats.announcements.length > 0 ? (
+                  studentStats.announcements.map((news: any, idx: number) => (
+                    <div
+                      key={idx}
+                      className="flex gap-4 items-start border-l-2 border-school-gold/30 pl-4"
+                    >
+                      <div>
+                        <p className="text-sm font-bold text-school-gold mb-1">
+                          {news.title}
+                        </p>
+                        <p className="text-xs text-white/70 leading-relaxed line-clamp-2">
+                          {news.summary}
+                        </p>
+                        <p className="text-[10px] text-white/40 mt-1">
+                          {new Date(news.publishedAt).toLocaleDateString(
+                            "id-ID",
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  // Default Fallback / Admin View
+                  <div className="flex gap-4 items-start border-l-2 border-school-gold/30 pl-4">
+                    <div>
+                      <p className="text-sm font-bold text-school-gold mb-1">
+                        Sistem Informasi Sekolah
+                      </p>
+                      <p className="text-xs text-white/70 leading-relaxed">
+                        Selamat datang di dashboard {user?.role}. Pantau terus
+                        informasi terbaru disini.
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex gap-4 items-start border-l-2 border-school-gold/30 pl-4">
-                  <div>
-                    <p className="text-sm font-bold text-school-gold mb-1">
-                      Batas Input Nilai Rapor
-                    </p>
-                    <p className="text-xs text-white/70 leading-relaxed">
-                      Para guru dimohon menyelesaikan input nilai sebelum Jumat,
-                      20 Desember 2024.
-                    </p>
-                  </div>
-                </div>
+                )}
               </div>
             </CardContent>
           </Card>

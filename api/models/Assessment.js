@@ -18,6 +18,12 @@ const AssessmentSchema = new mongoose.Schema(
       enum: ["assignment", "material", "exam", "quiz", "project"],
       default: "assignment",
     },
+    academicYear: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "AcademicYear",
+      required: true,
+    },
+    semester: { type: String, enum: ["Ganjil", "Genap"], required: true },
   },
   { timestamps: true },
 );

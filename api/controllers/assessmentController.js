@@ -13,6 +13,14 @@ exports.createAssessment = async (req, res) => {
       attachments,
       type,
     } = req.body;
+
+    // Fetch Active Academic Year
+    const AcademicYear = require("../models/AcademicYear");
+    const activeYear = await AcademicYear.findOne({ status: "active" });
+    if (!activeYear) {
+      return res.status(400).json({ message: "Tidak ada tahun ajaran aktif" });
+    }
+
     const assessment = new Assessment({
       title,
       description,
@@ -22,6 +30,8 @@ exports.createAssessment = async (req, res) => {
       deadline,
       attachments,
       type,
+      academicYear: activeYear._id,
+      semester: activeYear.semester,
     });
     await assessment.save();
     res.status(201).json(assessment);
