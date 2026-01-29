@@ -369,7 +369,13 @@ const AssessmentPage = () => {
                   <span className="text-xs text-slate-400 flex items-center gap-1">
                     <Calendar className="w-3 h-3" />{" "}
                     {item.deadline
-                      ? new Date(item.deadline).toLocaleDateString()
+                      ? new Date(item.deadline).toLocaleString("id-ID", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        })
                       : "No deadline"}
                   </span>
                 </div>
@@ -522,7 +528,7 @@ const AssessmentPage = () => {
                       Tenggat Waktu
                     </Label>
                     <Input
-                      type="date"
+                      type="datetime-local"
                       className="border-slate-200"
                       value={newForm.deadline}
                       onChange={(e) =>
@@ -707,6 +713,7 @@ const AssessmentPage = () => {
                 <TableHead>Waktu</TableHead>
                 <TableHead>Jawaban</TableHead>
                 <TableHead>Nilai</TableHead>
+                <TableHead>Feedback</TableHead>
                 <TableHead>Aksi</TableHead>
               </TableRow>
             </TableHeader>
@@ -790,6 +797,25 @@ const AssessmentPage = () => {
                       ) : (
                         <span className="font-bold text-lg">
                           {sub.grade ?? "-"}
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {gradingId === sub._id ? (
+                        <Input
+                          placeholder="Masukkan feedback..."
+                          value={gradeInput.feedback}
+                          onChange={(e) =>
+                            setGradeInput({
+                              ...gradeInput,
+                              feedback: e.target.value,
+                            })
+                          }
+                          className="w-full min-w-[150px] h-8 text-xs"
+                        />
+                      ) : (
+                        <span className="text-xs text-slate-500 italic max-w-[200px] block truncate">
+                          {sub.feedback || "Tidak ada feedback"}
                         </span>
                       )}
                     </TableCell>

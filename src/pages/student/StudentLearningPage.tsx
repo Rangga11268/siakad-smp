@@ -43,7 +43,6 @@ import {
   UserBadgeCheck,
   WarningTriangle,
   SystemRestart,
-  XmarkCircle,
 } from "iconoir-react";
 import { cn } from "@/lib/utils";
 
@@ -275,12 +274,6 @@ const StudentLearningPage = () => {
     } finally {
       setSubmitting(false);
     }
-  };
-
-  const getMaterialIcon = (type: string) => {
-    if (type === "Video")
-      return <VideoCamera className="h-5 w-5 text-red-500" />;
-    return <Page className="h-5 w-5 text-blue-500" />;
   };
 
   if (loading)
@@ -725,7 +718,15 @@ const StudentLearningPage = () => {
                         </Badge>
                         <span className="text-[10px] font-bold text-slate-400 flex items-center gap-1">
                           <Calendar className="w-3 h-3" />{" "}
-                          {new Date(t.assessment.deadline).toLocaleDateString()}
+                          {new Date(t.assessment.deadline).toLocaleString(
+                            "id-ID",
+                            {
+                              day: "numeric",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            },
+                          )}
                         </span>
                       </div>
                       <CardTitle className="font-serif text-xl text-school-navy group-hover:text-school-gold transition-colors leading-tight">
@@ -789,9 +790,16 @@ const StudentLearningPage = () => {
                 <span className="text-xs text-white/50 flex items-center gap-1">
                   <Clock className="w-3 h-3" /> Tenggat:{" "}
                   {selectedTask?.assessment.deadline
-                    ? new Date(
-                        selectedTask.assessment.deadline,
-                      ).toLocaleDateString()
+                    ? new Date(selectedTask.assessment.deadline).toLocaleString(
+                        "id-ID",
+                        {
+                          day: "numeric",
+                          month: "long",
+                          year: "numeric",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                        },
+                      )
                     : "-"}
                 </span>
               </div>
