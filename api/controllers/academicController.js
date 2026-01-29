@@ -405,12 +405,20 @@ exports.getAssessments = async (req, res) => {
   try {
     const { classId, subjectId } = req.query;
     let query = {};
-    if (classId) query.class = classId;
+
+    if (classId) {
+      // Find Class Name from ID
+      const classDoc = await require("../models/Class").findById(classId);
+      if (classDoc) {
+        query.classes = classDoc.name; // Search in array of strings
+      }
+    }
+
     if (subjectId) query.subject = subjectId;
 
     const assessments = await Assessment.find(query)
       .populate("subject", "name")
-      .populate("class", "name")
+      .populate("teacher", "username profile.fullName") // Populate teacher too
       .sort({ createdAt: -1 });
 
     res.json(assessments);

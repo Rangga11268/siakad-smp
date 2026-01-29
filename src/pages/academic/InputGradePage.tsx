@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext"; // Import Auth
 import { Button } from "@/components/ui/button";
 import {
@@ -73,6 +74,7 @@ interface Student {
 
 const InputGradePage = () => {
   const { user } = useAuth(); // Get user
+  const navigate = useNavigate();
   const [activeAcademicYear, setActiveAcademicYear] = useState("");
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
@@ -198,7 +200,7 @@ const InputGradePage = () => {
     <div className="space-y-8">
       <div>
         <h2 className="font-serif text-3xl font-bold tracking-tight text-school-navy">
-          Input Nilai Akademik
+          Input Nilai Akademik (Guru)
         </h2>
         <p className="text-slate-500">
           Kelola nilai formatif dan sumatif berdasarkan Tujuan Pembelajaran
@@ -275,7 +277,17 @@ const InputGradePage = () => {
               <SelectContent>
                 {assessments.map((a) => (
                   <SelectItem key={a._id} value={a._id}>
-                    {a.title} ({a.type})
+                    {a.title} (
+                    {a.type === "assignment"
+                      ? "Tugas"
+                      : a.type === "exam"
+                        ? "Ulangan"
+                        : a.type === "quiz"
+                          ? "Kuis"
+                          : a.type === "project"
+                            ? "Proyek"
+                            : "Materi"}
+                    )
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -284,10 +296,8 @@ const InputGradePage = () => {
 
           <Button
             className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold shadow-md transition-all sm:w-auto w-full"
-            disabled={false} // Enabled
-            onClick={() =>
-              (window.location.href = "/dashboard/academic/assessment")
-            }
+            disabled={false}
+            onClick={() => navigate("/dashboard/academic/assessment")}
           >
             <BookStack className="mr-2 h-4 w-4" /> Kelola / Tambah Asesmen
           </Button>

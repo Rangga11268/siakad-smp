@@ -101,7 +101,7 @@ const AssessmentPage = () => {
     subject: string;
     classes: string[];
     deadline: string;
-    type: "assignment" | "material";
+    type: "assignment" | "material" | "exam" | "quiz" | "project";
   }>({
     title: "",
     description: "",
@@ -325,7 +325,29 @@ const AssessmentPage = () => {
             >
               <CardHeader>
                 <div className="flex justify-between items-start">
-                  <Badge className="bg-school-navy">Tugas</Badge>
+                  <Badge
+                    className={`${
+                      item.type === "exam"
+                        ? "bg-purple-600"
+                        : item.type === "quiz"
+                          ? "bg-orange-500"
+                          : item.type === "project"
+                            ? "bg-emerald-600"
+                            : item.type === "material"
+                              ? "bg-slate-500"
+                              : "bg-school-navy"
+                    } hover:opacity-90`}
+                  >
+                    {item.type === "exam"
+                      ? "Ulangan"
+                      : item.type === "quiz"
+                        ? "Kuis"
+                        : item.type === "project"
+                          ? "Proyek"
+                          : item.type === "material"
+                            ? "Materi"
+                            : "Tugas"}
+                  </Badge>
                   <span className="text-xs text-slate-400 flex items-center gap-1">
                     <Calendar className="w-3 h-3" />{" "}
                     {item.deadline
@@ -423,6 +445,28 @@ const AssessmentPage = () => {
                       {s.name}
                     </SelectItem>
                   ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label className="text-right text-sm font-bold">
+                Tipe Asesmen
+              </label>
+              <Select
+                value={newForm.type}
+                onValueChange={(val: any) =>
+                  setNewForm({ ...newForm, type: val })
+                }
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Pilih Tipe" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="assignment">Tugas</SelectItem>
+                  <SelectItem value="exam">Ulangan</SelectItem>
+                  <SelectItem value="quiz">Kuis</SelectItem>
+                  <SelectItem value="project">Proyek</SelectItem>
+                  <SelectItem value="material">Materi</SelectItem>
                 </SelectContent>
               </Select>
             </div>

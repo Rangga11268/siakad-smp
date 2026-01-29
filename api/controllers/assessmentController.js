@@ -140,6 +140,10 @@ exports.submitAssignment = async (req, res) => {
   }
 };
 
+const Grade = require("../models/Grade"); // Import Grade model
+
+// ...
+
 // Grade Submission
 exports.gradeSubmission = async (req, res) => {
   try {
@@ -155,6 +159,18 @@ exports.gradeSubmission = async (req, res) => {
       },
       { new: true },
     );
+
+    // Sync to Grade Model (Master Gradebook)
+    if (submission) {
+      await Grade.findOneAndUpdate(
+        { assessment: submission.assessment, student: submission.student },
+        {
+          score: grade,
+          feedback: feedback,
+        },
+        { upsert: true, new: true },
+      );
+    }
 
     res.json(submission);
   } catch (error) {
