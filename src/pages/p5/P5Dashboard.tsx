@@ -55,11 +55,14 @@ interface ProjectP5 {
   level: number;
   status?: string;
   startDate?: string;
+  endDate?: string;
+  facilitators: any[]; // User objects or IDs
 }
 
 const P5Dashboard = () => {
   const { user } = useAuth();
   const [projects, setProjects] = useState<ProjectP5[]>([]);
+  const [teachers, setTeachers] = useState<any[]>([]); // List of available teachers
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [openDialog, setOpenDialog] = useState(false);
@@ -76,12 +79,16 @@ const P5Dashboard = () => {
     description: "",
     level: "7",
     academicYear: "2024/2025",
+    facilitators: [] as string[],
+    startDate: "",
+    endDate: "",
   });
 
   const { toast } = useToast();
 
   useEffect(() => {
     fetchProjects();
+    fetchTeachers();
   }, []);
 
   const fetchProjects = async () => {
@@ -99,6 +106,15 @@ const P5Dashboard = () => {
     }
   };
 
+  const fetchTeachers = async () => {
+    try {
+      const res = await api.get("/academic/teachers");
+      setTeachers(res.data);
+    } catch (error) {
+      console.error("Gagal load teachers", error);
+    }
+  };
+
   const handleOpenCreate = () => {
     setIsEditing(false);
     setFormData({
@@ -107,6 +123,9 @@ const P5Dashboard = () => {
       description: "",
       level: "7",
       academicYear: "2024/2025",
+      facilitators: [],
+      startDate: "",
+      endDate: "",
     });
     setOpenDialog(true);
   };
@@ -120,6 +139,9 @@ const P5Dashboard = () => {
       description: project.description,
       level: project.level.toString(),
       academicYear: "2024/2025",
+      facilitators: project.facilitators.map((f: any) => f._id || f),
+      startDate: project.startDate || "",
+      endDate: project.endDate || "",
     });
     setOpenDialog(true);
   };
@@ -138,6 +160,20 @@ const P5Dashboard = () => {
     } catch (e) {
       toast({ variant: "destructive", title: "Gagal hapus projek" });
     }
+  };
+
+  const toggleFacilitator = (teacherId: string) => {
+    setFormData((prev) => {
+      const exists = prev.facilitators.includes(teacherId);
+      if (exists) {
+        return {
+          ...prev,
+          facilitators: prev.facilitators.filter((id) => id !== teacherId),
+        };
+      } else {
+        return { ...prev, facilitators: [...prev.facilitators, teacherId] };
+      }
+    });
   };
 
   const handleSubmit = async () => {
@@ -219,7 +255,7 @@ const P5Dashboard = () => {
                 <Plus className="mr-2 h-4 w-4" /> Buat Projek Baru
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="font-serif text-2xl text-school-navy">
                   {isEditing ? "Edit Projek P5" : "Buat Projek P5 Baru"}
@@ -334,6 +370,93 @@ const P5Dashboard = () => {
                     placeholder="Deskripsi singkat kegiatan..."
                   />
                 </div>
+
+                {/* Facilitator Selection */}
+                <div className="space-y-2">
+                  <Label className="font-semibold text-school-navy">
+                    Tim Fasilitator (Guru)
+                  </Label>
+                  <div className="border rounded-md p-4 max-h-40 overflow-y-auto bg-slate-50 space-y-2">
+                    {teachers.length === 0 ? (
+                      <p className="text-xs text-slate-400 italic">
+                        Memuat data guru...
+                      </p>
+                    ) : (
+                      teachers.map((t) => (
+                        <div
+                          key={t._id}
+                          className="flex items-center space-x-2"
+                        >
+                          <input
+                            type="checkbox"
+                            id={`teacher-${t._id}`}
+                            checked={formData.facilitators.includes(t._id)}
+                            onChange={() => toggleFacilitator(t._id)}
+                            className="rounded border-slate-300 text-school-navy focus:ring-school-gold"
+                          />
+                          <label
+                            htmlFor={`teacher-${t._id}`}
+                            className="text-sm cursor-pointer select-none text-slate-700"
+                          >
+                            {t.profile?.fullName || t.username}
+                          </label>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                  <p className="text-xs text-slate-400">
+                    Pilih guru yang akan menjadi fasilitator projek ini.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="startDate"
+                      className="font-semibold text-school-navy"
+                    >
+                      Tanggal Mulai
+                    </Label>
+                    <Input
+                      id="startDate"
+                      type="date"
+                      value={
+                        formData.startDate
+                          ? new Date(formData.startDate)
+                              .toISOString()
+                              .split("T")[0]
+                          : ""
+                      }
+                      onChange={(e) =>
+                        setFormData({ ...formData, startDate: e.target.value })
+                      }
+                      className="bg-slate-50"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="endDate"
+                      className="font-semibold text-school-navy"
+                    >
+                      Tanggal Selesai
+                    </Label>
+                    <Input
+                      id="endDate"
+                      type="date"
+                      value={
+                        formData.endDate
+                          ? new Date(formData.endDate)
+                              .toISOString()
+                              .split("T")[0]
+                          : ""
+                      }
+                      onChange={(e) =>
+                        setFormData({ ...formData, endDate: e.target.value })
+                      }
+                      className="bg-slate-50"
+                    />
+                  </div>
+                </div>
               </div>
               <DialogFooter>
                 <Button
@@ -408,7 +531,10 @@ const P5Dashboard = () => {
                     </div>
                     <div className="flex items-center">
                       <User className="mr-1.5 h-3.5 w-3.5 text-school-gold" />
-                      <span>Tim Fasilitator</span>
+                      <span>
+                        {project.facilitators ? project.facilitators.length : 0}{" "}
+                        Fasilitator
+                      </span>
                     </div>
                   </div>
                 </CardContent>

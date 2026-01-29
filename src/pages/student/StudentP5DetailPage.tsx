@@ -49,6 +49,8 @@ interface ProjectP5 {
   level: number;
   targets: any[];
   facilitators: any[];
+  startDate?: string;
+  endDate?: string;
 }
 
 const StudentP5DetailPage = () => {
@@ -449,6 +451,27 @@ const StudentP5DetailPage = () => {
               <CardTitle>Informasi Projek</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
+              {/* Timeline Info */}
+              {project.startDate && project.endDate && (
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 flex items-center gap-3 mb-4">
+                  <Calendar className="text-blue-600 h-5 w-5" />
+                  <div>
+                    <h4 className="font-bold text-school-navy text-sm">
+                      Durasi Pelaksanaan
+                    </h4>
+                    <p className="text-slate-700 text-sm">
+                      {new Date(project.startDate).toLocaleDateString("id-ID", {
+                        dateStyle: "long",
+                      })}
+                      <span className="mx-2 text-slate-400">s/d</span>
+                      {new Date(project.endDate).toLocaleDateString("id-ID", {
+                        dateStyle: "long",
+                      })}
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <h4 className="font-bold text-school-navy mb-2">

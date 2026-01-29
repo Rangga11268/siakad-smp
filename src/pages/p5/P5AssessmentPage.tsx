@@ -74,7 +74,13 @@ const P5AssessmentPage = () => {
   const [inputs, setInputs] = useState<Record<string, Record<string, string>>>(
     {},
   );
+  const [notesInput, setNotesInput] = useState<Record<string, string>>({});
   const [savedStatus, setSavedStatus] = useState<Record<string, boolean>>({});
+
+  // Dialog State
+  const [noteDialogStudent, setNoteDialogStudent] = useState<Student | null>(
+    null,
+  );
 
   // Logbook Review State
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
@@ -108,17 +114,20 @@ const P5AssessmentPage = () => {
         const existingAssessments = assessRes.data;
 
         const initialInputs: any = {};
+        const initialNotes: any = {};
         const status: any = {};
 
         existingAssessments.forEach((assess: any) => {
           const studentId = assess.student._id;
           status[studentId] = true;
           initialInputs[studentId] = {};
+          initialNotes[studentId] = assess.finalNotes || "";
           assess.scores.forEach((s: any) => {
             initialInputs[studentId][s.targetId] = s.score;
           });
         });
         setInputs(initialInputs);
+        setNotesInput(initialNotes);
         setSavedStatus(status);
       }
     } catch (error) {
@@ -144,6 +153,11 @@ const P5AssessmentPage = () => {
     setSavedStatus((prev) => ({ ...prev, [studentId]: false }));
   };
 
+  const handleNoteChange = (studentId: string, value: string) => {
+    setNotesInput((prev) => ({ ...prev, [studentId]: value }));
+    setSavedStatus((prev) => ({ ...prev, [studentId]: false }));
+  };
+
   const saveStudentAssessment = async (studentId: string) => {
     if (!project) return;
 
@@ -166,12 +180,12 @@ const P5AssessmentPage = () => {
         projectId: project._id,
         studentId,
         scores: scoresPayload,
-        finalNotes: "Penilaian Formatif",
+        finalNotes: notesInput[studentId] || "",
       });
       setSavedStatus((prev) => ({ ...prev, [studentId]: true }));
       toast({
         title: "Tersimpan",
-        description: "Nilai berhasil disimpan.",
+        description: "Nilai dan catatan berhasil disimpan.",
       });
     } catch (error) {
       toast({
@@ -186,6 +200,7 @@ const P5AssessmentPage = () => {
   const handlePrintReport = (studentId: string) => {
     const student = students.find((s) => s._id === studentId);
     const studentScores = inputs[studentId] || {};
+    const studentNote = notesInput[studentId] || "-";
 
     if (!student || !project) return;
 
@@ -245,8 +260,16 @@ const P5AssessmentPage = () => {
       headStyles: { fillColor: [22, 36, 71] }, // school-navy
     });
 
+    // NOTES
+    let finalY = (doc as any).lastAutoTable.finalY + 10;
+    doc.setFont("helvetica", "bold");
+    doc.text("Catatan Proses:", 20, finalY);
+    doc.setFont("helvetica", "normal");
+    const noteLines = doc.splitTextToSize(studentNote, 170);
+    doc.text(noteLines, 20, finalY + 7);
+
     // SIGNATURE
-    const finalY = (doc as any).lastAutoTable.finalY + 30;
+    finalY = finalY + 15 + noteLines.length * 5; // Adjust Y based on note length
     doc.text("Bandung, ......................", 140, finalY);
     doc.text("Fasilitator Projek,", 140, finalY + 10);
     doc.text("( ................................. )", 140, finalY + 35);
@@ -387,9 +410,18 @@ const P5AssessmentPage = () => {
                             <span className="text-school-navy font-bold text-sm">
                               {student.profile?.fullName || student.username}
                             </span>
-                            <span className="text-xs text-slate-400 font-mono">
-                              {student.profile?.nisn || "No NISN"}
-                            </span>
+                            <div className="mt-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setNoteDialogStudent(student)}
+                                className={`h-6 text-[10px] px-2 ${notesInput[student._id] ? "text-emerald-600 bg-emerald-50" : "text-school-navy/50 bg-slate-100"}`}
+                              >
+                                {notesInput[student._id]
+                                  ? "Edit Catatan"
+                                  : "+ Catatan"}
+                              </Button>
+                            </div>
                           </div>
                         </TableCell>
                         {project?.targets.map((target, idx) => (
@@ -527,6 +559,45 @@ const P5AssessmentPage = () => {
         </TabsContent>
       </Tabs>
 
+      {/* Note Dialog */}
+      <Dialog
+        open={!!noteDialogStudent}
+        onOpenChange={(open) => !open && setNoteDialogStudent(null)}
+      >
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>
+              Catatan Proses: {noteDialogStudent?.profile?.fullName}
+            </DialogTitle>
+            <DialogDescription>
+              Berikan catatan deskriptif mengenai perkembangan siswa dalam
+              projek ini.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Textarea
+              placeholder="Contoh: Siswa sangat aktif dalam diskusi dan mampu memimpin kelompok..."
+              className="min-h-[150px]"
+              value={
+                noteDialogStudent ? notesInput[noteDialogStudent._id] || "" : ""
+              }
+              onChange={(e) =>
+                noteDialogStudent &&
+                handleNoteChange(noteDialogStudent._id, e.target.value)
+              }
+            />
+          </div>
+          <div className="flex justify-end">
+            <Button
+              onClick={() => setNoteDialogStudent(null)}
+              className="bg-school-navy text-white"
+            >
+              Selesai & Tutup
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Logbook Review Dialog */}
       <Dialog
         open={!!selectedStudent}
@@ -550,13 +621,21 @@ const P5AssessmentPage = () => {
                   key={log._id}
                   className="border-l-4 border-school-navy pl-4 py-2 space-y-3"
                 >
-                  <div className="flex justify-between items-center">
-                    <h4 className="font-bold text-lg">{log.title}</h4>
-                    <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded">
-                      {new Date(log.createdAt).toLocaleDateString()}
-                    </span>
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="font-bold text-lg">{log.title}</h4>
+                      <span className="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded inline-block mt-1">
+                        {new Date(log.createdAt).toLocaleDateString()}
+                      </span>
+                    </div>
+                    {log.feedback && (
+                      <span className="bg-emerald-100 text-emerald-700 text-xs px-2 py-1 rounded-full font-bold flex items-center border border-emerald-200">
+                        <CheckCircle className="w-3 h-3 mr-1" /> Feedback
+                        Terkirim
+                      </span>
+                    )}
                   </div>
-                  <p className="text-slate-700 bg-slate-50 p-4 rounded text-sm whitespace-pre-wrap border shadow-sm leading-relaxed">
+                  <p className="text-slate-700 bg-slate-50 p-4 rounded text-sm mq-whitespace-pre-wrap border shadow-sm leading-relaxed">
                     {log.content}
                   </p>
 
@@ -577,12 +656,29 @@ const P5AssessmentPage = () => {
                   )}
 
                   <div className="pt-2">
+                    {log.feedback && (
+                      <div className="mb-3 bg-yellow-50 border border-yellow-200 p-3 rounded-lg">
+                        <label className="text-xs font-bold text-yellow-700 uppercase tracking-wide block mb-1">
+                          Feedback Saat Ini:
+                        </label>
+                        <p className="text-sm text-slate-800 italic">
+                          "{log.feedback}"
+                        </p>
+                      </div>
+                    )}
+
                     <label className="text-xs font-bold text-school-gold uppercase tracking-wide mb-1 block">
-                      Feedback Fasilitator
+                      {log.feedback
+                        ? "Update / Edit Feedback"
+                        : "Berikan Feedback"}
                     </label>
                     <div className="flex gap-2 items-start">
                       <Textarea
-                        placeholder="Berikan umpan balik yang membangun..."
+                        placeholder={
+                          log.feedback
+                            ? "Edit feedback sebelumnya..."
+                            : "Berikan umpan balik yang membangun..."
+                        }
                         className="min-h-[80px] text-sm flex-1"
                         defaultValue={log.feedback}
                         onChange={(e) =>
@@ -596,7 +692,7 @@ const P5AssessmentPage = () => {
                         className="h-[80px] bg-school-navy hover:bg-school-gold hover:text-school-navy"
                         onClick={() => handleSendFeedback(log._id)}
                       >
-                        <FloppyDisk className="w-4 h-4 mr-2" /> Kirim
+                        <FloppyDisk className="w-4 h-4 mr-2" /> Simpan
                       </Button>
                     </div>
                   </div>

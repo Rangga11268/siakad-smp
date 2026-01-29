@@ -138,7 +138,10 @@ exports.getP5ReportData = async (req, res) => {
     const { projectId, studentId } = req.params;
 
     // 1. Get Project Details
-    const project = await ProjectP5.findById(projectId);
+    const project = await ProjectP5.findById(projectId).populate(
+      "facilitators",
+      "username profile.fullName",
+    );
     if (!project)
       return res.status(404).json({ message: "Projek tidak ditemukan" });
 
