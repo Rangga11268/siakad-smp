@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext"; // Import Auth
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -86,10 +85,9 @@ const InputGradePage = () => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [classRes, subjectRes, yearRes] = await Promise.all([
+        const [classRes, subjectRes] = await Promise.all([
           api.get("/academic/class"),
           api.get("/academic/subjects"),
-          api.get("/academic/years"), // Fetch years
         ]);
         setClasses(classRes.data);
         setSubjects(subjectRes.data);
@@ -269,16 +267,7 @@ const InputGradePage = () => {
                 {assessments.map((a) => (
                   <SelectItem key={a._id} value={a._id}>
                     {a.title} (
-                    {a.type === "assignment"
-                      ? "Tugas"
-                      : a.type === "exam"
-                        ? "Ulangan"
-                        : a.type === "quiz"
-                          ? "Kuis"
-                          : a.type === "project"
-                            ? "Proyek"
-                            : "Materi"}
-                    )
+                    {a.type === "assignment" ? "Penugasan" : "Materi"})
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -304,11 +293,12 @@ const InputGradePage = () => {
                 Detail Asesmen:{" "}
                 {assessments.find((a) => a._id === selectedAssessment)?.title}
               </h4>
-              <p className="text-sm text-blue-600 mt-1">
+              <p className="text-sm text-blue-600 mt-1 font-medium">
+                Tipe:{" "}
                 {assessments.find((a) => a._id === selectedAssessment)?.type ===
-                "exam"
-                  ? "Tipe: Ulangan"
-                  : "Tipe: Tugas/Lainnya"}
+                "assignment"
+                  ? "Penugasan"
+                  : "Materi"}
               </p>
             </div>
             <div className="flex flex-wrap gap-2 justify-end max-w-md">

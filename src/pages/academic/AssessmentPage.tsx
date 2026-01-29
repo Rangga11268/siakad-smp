@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import api from "@/services/api";
-import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,7 +22,6 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Table,
@@ -34,17 +32,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  Plus,
   Folder,
-  Calendar,
-  User,
-  Eye,
-  CheckCircle,
-  Clock,
-  ArrowRight,
-  Book,
-  Trash,
   EditPencil,
+  Trash,
+  Plus,
+  Book,
+  Eye,
+  Calendar,
+  GoogleDrive,
 } from "iconoir-react";
 import {
   Select,
@@ -61,7 +56,7 @@ interface Assessment {
   subject: string | { _id: string; name: string };
   classes: string[];
   deadline: string;
-  type: "assignment" | "material" | "exam" | "quiz" | "project";
+  type: "assignment" | "material";
   teacher: { username: string; profile?: { fullName: string } };
   createdAt: string;
   attachments: string[];
@@ -76,6 +71,7 @@ interface Submission {
   submittedAt: string;
   text?: string;
   files?: string[];
+  driveLink?: string;
 }
 
 interface ClassData {
@@ -85,7 +81,6 @@ interface ClassData {
 }
 
 const AssessmentPage = () => {
-  const { user } = useAuth();
   const { toast } = useToast();
   const [assessments, setAssessments] = useState<Assessment[]>([]);
   const [availableClasses, setAvailableClasses] = useState<ClassData[]>([]);
@@ -101,7 +96,7 @@ const AssessmentPage = () => {
     subject: string;
     classes: string[];
     deadline: string;
-    type: "assignment" | "material" | "exam" | "quiz" | "project";
+    type: "assignment" | "material";
     learningGoals: string[];
   }>({
     title: "",
@@ -364,26 +359,12 @@ const AssessmentPage = () => {
                 <div className="flex justify-between items-start">
                   <Badge
                     className={`${
-                      item.type === "exam"
-                        ? "bg-purple-600"
-                        : item.type === "quiz"
-                          ? "bg-orange-500"
-                          : item.type === "project"
-                            ? "bg-emerald-600"
-                            : item.type === "material"
-                              ? "bg-slate-500"
-                              : "bg-school-navy"
-                    } hover:opacity-90`}
+                      item.type === "assignment"
+                        ? "bg-blue-100 text-blue-700"
+                        : "bg-orange-100 text-orange-700"
+                    } border-none font-bold`}
                   >
-                    {item.type === "exam"
-                      ? "Ulangan"
-                      : item.type === "quiz"
-                        ? "Kuis"
-                        : item.type === "project"
-                          ? "Proyek"
-                          : item.type === "material"
-                            ? "Materi"
-                            : "Tugas"}
+                    {item.type === "assignment" ? "Penugasan" : "Materi"}
                   </Badge>
                   <span className="text-xs text-slate-400 flex items-center gap-1">
                     <Calendar className="w-3 h-3" />{" "}
@@ -445,203 +426,265 @@ const AssessmentPage = () => {
 
       {/* Create/Edit Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle>
-              {isEditMode ? "Edit Tugas" : "Buat Tugas Baru"}
-            </DialogTitle>
-            <DialogDescription>Isi detail tugas akademik.</DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label className="text-right text-sm font-bold">Judul</label>
-              <Input
-                className="col-span-3"
-                value={newForm.title}
-                onChange={(e) =>
-                  setNewForm({ ...newForm, title: e.target.value })
-                }
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label className="text-right text-sm font-bold">
-                Mata Pelajaran
-              </label>
-              <Select
-                value={newForm.subject}
-                onValueChange={(val) =>
-                  setNewForm({ ...newForm, subject: val })
-                }
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Pilih Mata Pelajaran" />
-                </SelectTrigger>
-                <SelectContent>
-                  {subjects.map((s) => (
-                    <SelectItem key={s._id} value={s._id}>
-                      {s.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label className="text-right text-sm font-bold">
-                Tipe Asesmen
-              </label>
-              <Select
-                value={newForm.type}
-                onValueChange={(val: any) =>
-                  setNewForm({ ...newForm, type: val })
-                }
-              >
-                <SelectTrigger className="col-span-3">
-                  <SelectValue placeholder="Pilih Tipe" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="assignment">Tugas</SelectItem>
-                  <SelectItem value="exam">Ulangan</SelectItem>
-                  <SelectItem value="quiz">Kuis</SelectItem>
-                  <SelectItem value="project">Proyek</SelectItem>
-                  <SelectItem value="material">Materi</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-start gap-4">
-              <label className="text-right text-sm font-bold mt-2">
-                Target Kelas
-              </label>
-              <div className="col-span-3 border p-4 rounded-md h-40 overflow-y-auto space-y-2 bg-slate-50">
-                {availableClasses.length === 0 ? (
-                  <p className="text-xs text-slate-500 italic">
-                    Belum ada data kelas.
-                  </p>
-                ) : (
-                  availableClasses.map((cls) => (
-                    <div key={cls._id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`cls-${cls._id}`}
-                        checked={newForm.classes.includes(cls.name)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setNewForm((prev) => ({
-                              ...prev,
-                              classes: [...prev.classes, cls.name],
-                            }));
-                          } else {
-                            setNewForm((prev) => ({
-                              ...prev,
-                              classes: prev.classes.filter(
-                                (c) => c !== cls.name,
-                              ),
-                            }));
-                          }
-                        }}
-                      />
-                      <Label
-                        htmlFor={`cls-${cls._id}`}
-                        className="cursor-pointer text-sm font-medium"
-                      >
-                        {cls.name}{" "}
-                        <span className="text-xs text-slate-500">
-                          (Kls {cls.level})
-                        </span>
-                      </Label>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
-            <div className="grid grid-cols-4 items-start gap-4">
-              <label className="text-right text-sm font-bold mt-2">
-                Tujuan Pembelajaran (TP)
-              </label>
-              <div className="col-span-3 border p-4 rounded-md h-40 overflow-y-auto space-y-2 bg-slate-50">
-                {availableTPs.length === 0 ? (
-                  <p className="text-xs text-slate-500 italic">
-                    {!newForm.subject || newForm.classes.length === 0
-                      ? "Pilih Mapel & Kelas dulu untuk melihat TP."
-                      : "Belum ada data TP untuk Mapel & Level ini."}
-                  </p>
-                ) : (
-                  availableTPs.map((tp) => (
-                    <div key={tp._id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={`tp-${tp._id}`}
-                        checked={newForm.learningGoals.includes(tp._id)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setNewForm((prev) => ({
-                              ...prev,
-                              learningGoals: [...prev.learningGoals, tp._id],
-                            }));
-                          } else {
-                            setNewForm((prev) => ({
-                              ...prev,
-                              learningGoals: prev.learningGoals.filter(
-                                (id) => id !== tp._id,
-                              ),
-                            }));
-                          }
-                        }}
-                      />
-                      <Label
-                        htmlFor={`tp-${tp._id}`}
-                        className="cursor-pointer text-sm font-medium leading-tight"
-                      >
-                        <span className="font-bold text-xs text-school-navy block">
-                          {tp.code}
-                        </span>
-                        {tp.description}
-                      </Label>
-                    </div>
-                  ))
-                )}
-              </div>
-            </div>
+        <DialogContent className="max-w-4xl max-h-[95vh] flex flex-col p-0 overflow-hidden border-none shadow-2xl">
+          <div className="bg-school-navy p-6 text-white">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-serif font-bold text-white flex items-center gap-2">
+                <Book className="w-6 h-6 text-school-gold" />
+                {isEditMode ? "Modifikasi Tugas" : "Buat Penugasan Baru"}
+              </DialogTitle>
+              <DialogDescription className="text-slate-300">
+                Kelola detail instruksi, target kelas, dan tujuan pembelajaran.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
 
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label className="text-right text-sm font-bold">
-                Tenggat Waktu
-              </label>
-              <Input
-                type="date"
-                className="col-span-3"
-                value={newForm.deadline}
-                onChange={(e) =>
-                  setNewForm({ ...newForm, deadline: e.target.value })
-                }
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label className="text-right text-sm font-bold">Deskripsi</label>
-              <Textarea
-                className="col-span-3"
-                value={newForm.description}
-                onChange={(e) =>
-                  setNewForm({ ...newForm, description: e.target.value })
-                }
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <label className="text-right text-sm font-bold">Lampiran</label>
-              <Input
-                type="file"
-                className="col-span-3"
-                onChange={(e) =>
-                  setSelectedTxFile(e.target.files ? e.target.files[0] : null)
-                }
-              />
+          <div className="flex-1 overflow-y-auto p-6 bg-white">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Kolom Kiri: Informasi Utama */}
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <Label className="text-sm font-bold text-school-navy flex items-center gap-2">
+                    <div className="w-1.5 h-1.5 rounded-full bg-school-gold" />
+                    Judul Penugasan
+                  </Label>
+                  <Input
+                    placeholder="Contoh: Ulangan Harian Bab 1"
+                    className="border-slate-200 focus:border-school-gold focus:ring-school-gold transition-all"
+                    value={newForm.title}
+                    onChange={(e) =>
+                      setNewForm({ ...newForm, title: e.target.value })
+                    }
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-bold text-school-navy">
+                      Mata Pelajaran
+                    </Label>
+                    <Select
+                      value={newForm.subject}
+                      onValueChange={(val) =>
+                        setNewForm({ ...newForm, subject: val })
+                      }
+                    >
+                      <SelectTrigger className="border-slate-200">
+                        <SelectValue placeholder="Pilih Mapel" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {subjects.map((s) => (
+                          <SelectItem key={s._id} value={s._id}>
+                            {s.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-bold text-school-navy">
+                      Tipe Asesmen
+                    </Label>
+                    <Select
+                      value={newForm.type}
+                      onValueChange={(val: any) =>
+                        setNewForm({ ...newForm, type: val })
+                      }
+                    >
+                      <SelectTrigger className="border-slate-200">
+                        <SelectValue placeholder="Tipe" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="assignment">Penugasan</SelectItem>
+                        <SelectItem value="material">Materi</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-bold text-school-navy">
+                    Deskripsi & Instruksi
+                  </Label>
+                  <Textarea
+                    placeholder="Tuliskan petunjuk pengerjaan tugas di sini..."
+                    className="min-h-[120px] border-slate-200 resize-none focus:border-school-gold transition-all"
+                    value={newForm.description}
+                    onChange={(e) =>
+                      setNewForm({ ...newForm, description: e.target.value })
+                    }
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-bold text-school-navy">
+                      Tenggat Waktu
+                    </Label>
+                    <Input
+                      type="date"
+                      className="border-slate-200"
+                      value={newForm.deadline}
+                      onChange={(e) =>
+                        setNewForm({ ...newForm, deadline: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="text-sm font-bold text-school-navy">
+                      Lampiran File
+                    </Label>
+                    <Input
+                      type="file"
+                      className="border-slate-200 file:bg-slate-100 file:border-0 file:text-xs file:font-bold h-10"
+                      onChange={(e) =>
+                        setSelectedTxFile(
+                          e.target.files ? e.target.files[0] : null,
+                        )
+                      }
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Kolom Kanan: Target & Kompetensi */}
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <Label className="text-sm font-bold text-school-navy flex items-center justify-between">
+                    Target Kelas
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] font-normal"
+                    >
+                      {newForm.classes.length} Terpilih
+                    </Badge>
+                  </Label>
+                  <div className="border border-slate-100 p-3 rounded-lg h-32 overflow-y-auto space-y-1.5 bg-slate-50/50">
+                    {availableClasses.length === 0 ? (
+                      <p className="text-xs text-slate-400 italic p-2 text-center">
+                        Data kelas kosong
+                      </p>
+                    ) : (
+                      availableClasses.map((cls) => (
+                        <div
+                          key={cls._id}
+                          className="flex items-center space-x-2 bg-white p-1.5 rounded border border-slate-50 hover:border-school-gold/30 transition-colors"
+                        >
+                          <Checkbox
+                            id={`cls-${cls._id}`}
+                            checked={newForm.classes.includes(cls.name)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setNewForm((prev) => ({
+                                  ...prev,
+                                  classes: [...prev.classes, cls.name],
+                                }));
+                              } else {
+                                setNewForm((prev) => ({
+                                  ...prev,
+                                  classes: prev.classes.filter(
+                                    (c) => c !== cls.name,
+                                  ),
+                                }));
+                              }
+                            }}
+                          />
+                          <Label
+                            htmlFor={`cls-${cls._id}`}
+                            className="cursor-pointer text-xs font-medium flex-1"
+                          >
+                            {cls.name}{" "}
+                            <span className="text-[10px] text-slate-400 font-normal ml-1">
+                              (Level {cls.level})
+                            </span>
+                          </Label>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm font-bold text-school-navy flex items-center justify-between">
+                    Tujuan Pembelajaran (TP)
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] font-normal"
+                    >
+                      {newForm.learningGoals.length} Terpilih
+                    </Badge>
+                  </Label>
+                  <div className="border border-slate-100 p-3 rounded-lg h-[260px] overflow-y-auto space-y-2 bg-slate-50/50">
+                    {availableTPs.length === 0 ? (
+                      <div className="h-full flex flex-col items-center justify-center text-center p-4">
+                        <p className="text-xs text-slate-400 italic">
+                          {!newForm.subject || newForm.classes.length === 0
+                            ? "Pilih Mapel & Kelas dulu untuk memunculkan daftar TP."
+                            : "Belum ada TP untuk Mapel & Level ini."}
+                        </p>
+                      </div>
+                    ) : (
+                      availableTPs.map((tp) => (
+                        <div
+                          key={tp._id}
+                          className="flex items-start space-x-2 bg-white p-2.5 rounded border border-slate-50 hover:border-school-gold/30 transition-colors"
+                        >
+                          <Checkbox
+                            id={`tp-${tp._id}`}
+                            className="mt-1"
+                            checked={newForm.learningGoals.includes(tp._id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setNewForm((prev) => ({
+                                  ...prev,
+                                  learningGoals: [
+                                    ...prev.learningGoals,
+                                    tp._id,
+                                  ],
+                                }));
+                              } else {
+                                setNewForm((prev) => ({
+                                  ...prev,
+                                  learningGoals: prev.learningGoals.filter(
+                                    (id) => id !== tp._id,
+                                  ),
+                                }));
+                              }
+                            }}
+                          />
+                          <Label
+                            htmlFor={`tp-${tp._id}`}
+                            className="cursor-pointer text-xs font-medium leading-relaxed flex-1"
+                          >
+                            <span className="font-bold text-school-navy block mb-0.5 text-[10px]">
+                              {tp.code}
+                            </span>
+                            {tp.description}
+                          </Label>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-          <DialogFooter>
+
+          <div className="bg-slate-50 p-4 border-t flex justify-end gap-3">
+            <Button
+              variant="outline"
+              onClick={() => setIsDialogOpen(false)}
+              className="border-slate-300"
+            >
+              Batal
+            </Button>
             <Button
               onClick={handleSubmit}
-              className="bg-school-navy text-white"
+              className="bg-school-navy hover:bg-school-gold hover:text-school-navy text-white px-8 font-bold shadow-lg"
             >
-              {isEditMode ? "Update Tugas" : "Simpan Tugas"}
+              {isEditMode ? "Simpan Perubahan" : "Publikasikan Penugasan"}
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -704,6 +747,17 @@ const AssessmentPage = () => {
                       {new Date(sub.submittedAt).toLocaleString()}
                     </TableCell>
                     <TableCell>
+                      {sub.driveLink && (
+                        <a
+                          href={sub.driveLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-xs bg-green-50 text-green-700 px-2 py-1.5 rounded border border-green-200 font-bold flex items-center gap-1.5 hover:bg-green-100 transition-colors mb-2"
+                        >
+                          <GoogleDrive className="w-3.5 h-3.5" /> Buka Link
+                          Tugas
+                        </a>
+                      )}
                       {sub.text && (
                         <p className="text-xs italic bg-slate-50 p-1 mb-1 border truncated max-w-[200px]">
                           {sub.text}

@@ -107,7 +107,7 @@ exports.getAssessmentById = async (req, res) => {
 // Submit Assignment
 exports.submitAssignment = async (req, res) => {
   try {
-    const { text, files } = req.body;
+    const { text, files, driveLink } = req.body;
     const assessmentId = req.params.id;
 
     // Check existing
@@ -126,6 +126,7 @@ exports.submitAssignment = async (req, res) => {
     if (submission) {
       // Update
       submission.text = text;
+      submission.driveLink = driveLink;
       submission.files = files;
       submission.status = status === "late" ? "late" : submission.status;
       if (submission.grade) submission.status = "submitted";
@@ -136,6 +137,7 @@ exports.submitAssignment = async (req, res) => {
         assessment: assessmentId,
         student: req.user.id,
         text,
+        driveLink,
         files,
         status,
       });

@@ -14,6 +14,7 @@ const SubmissionSchema = new mongoose.Schema(
     },
     text: { type: String }, // Text answer
     files: [{ type: String }], // File URLs
+    driveLink: { type: String }, // Drive Link submission
     grade: { type: Number }, // 0-100
     feedback: { type: String }, // Teacher feedback
     submittedAt: { type: Date, default: Date.now },

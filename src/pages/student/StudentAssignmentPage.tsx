@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Calendar, Clock, Download, Send } from "iconoir-react";
+import { Calendar, Clock, Download, Send, GoogleDrive } from "iconoir-react";
 
 interface Assessment {
   _id: string;
@@ -34,6 +34,7 @@ interface Submission {
   submittedAt: string;
   text?: string;
   files?: string[];
+  driveLink?: string;
 }
 
 // Helper
@@ -55,6 +56,7 @@ const StudentAssignmentPage = () => {
     submission: Submission | null;
   } | null>(null);
   const [answerText, setAnswerText] = useState("");
+  const [driveLink, setDriveLink] = useState("");
   const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
 
@@ -90,6 +92,7 @@ const StudentAssignmentPage = () => {
   const handleOpenTask = (task: any) => {
     setSelectedTask(task);
     setAnswerText(task.submission?.text || "");
+    setDriveLink(task.submission?.driveLink || "");
     setFilesToUpload([]);
   };
 
@@ -113,6 +116,7 @@ const StudentAssignmentPage = () => {
 
       await api.post(`/assessment/${selectedTask.assessment._id}/submit`, {
         text: answerText,
+        driveLink: driveLink,
         files: uploadedUrls,
       });
 
@@ -346,8 +350,25 @@ const StudentAssignmentPage = () => {
                   </div>
 
                   <div>
+                    <label className="text-sm font-bold flex items-center gap-2 mb-1">
+                      <GoogleDrive className="w-4 h-4 text-green-600" /> Link
+                      Tugas (Google Drive / Lainnya)
+                    </label>
+                    <Input
+                      placeholder="https://drive.google.com/..."
+                      className="border-blue-200 focus:border-blue-500"
+                      value={driveLink}
+                      onChange={(e) => setDriveLink(e.target.value)}
+                      disabled={submitting}
+                    />
+                    <p className="text-[10px] text-slate-400 mt-1 italic">
+                      Pastikan link sudah diset "Anyone with the link can view".
+                    </p>
+                  </div>
+
+                  <div>
                     <label className="text-sm font-bold block mb-1">
-                      Upload File (Gambar/PDF)
+                      Alternatif: Upload File (Gambar/PDF)
                     </label>
                     <div className="flex items-center gap-2">
                       <Input
@@ -360,9 +381,6 @@ const StudentAssignmentPage = () => {
                         disabled={submitting}
                       />
                     </div>
-                    <p className="text-xs text-slate-400 mt-1">
-                      Bisa pilih lebih dari satu file.
-                    </p>
                   </div>
 
                   <Button
