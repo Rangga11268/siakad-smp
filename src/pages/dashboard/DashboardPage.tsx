@@ -49,7 +49,9 @@ const DashboardPage = () => {
   );
 
   useEffect(() => {
-    if (user?.role === "student") {
+    if (!user) return; // Wait for user to load
+
+    if (user.role === "student") {
       fetchStudentData();
     } else {
       fetchAdminData();
@@ -58,6 +60,9 @@ const DashboardPage = () => {
   }, [user]);
 
   const fetchAdminData = async () => {
+    // Only Admin can fetch stats
+    if (user?.role !== "admin") return;
+
     try {
       const { data } = await api.get("/dashboard/stats");
       setStatsData(data);
@@ -81,10 +86,20 @@ const DashboardPage = () => {
 
   const fetchStudentData = async () => {
     try {
-      // Dummy endpoint fetch
-      const { data } = await api.get(
-        "/academic/my-grades?semester=Ganjil&academicYear=676bd6ef259300302c09ef7a",
-      );
+      // 1. Get Active Year
+      const yearRes = await api.get("/academic/years");
+      const activeYear =
+        yearRes.data.find((y: any) => y.isActive) || yearRes.data[0];
+
+      if (!activeYear) return;
+
+      // 2. Get Grades for Active Year
+      const { data } = await api.get("/academic/my-grades", {
+        params: {
+          semester: activeYear.semester || "Ganjil",
+          academicYear: activeYear._id,
+        },
+      });
       setMyGrades(data);
     } catch (error) {
       console.error("Gagal load data siswa", error);
@@ -94,8 +109,17 @@ const DashboardPage = () => {
   const handleSelfAttendance = async () => {
     setAttendanceLoading(true);
     try {
+      // Dynamic Year for Attendance too
+      const yearRes = await api.get("/academic/years");
+      const activeYear =
+        yearRes.data.find((y: any) => y.isActive) || yearRes.data[0];
+
+      if (!activeYear) {
+        throw new Error("Tahun ajaran tidak ditemukan");
+      }
+
       await api.post("/attendance/self", {
-        academicYear: "676bd6ef259300302c09ef7a",
+        academicYear: activeYear._id,
       });
       toast({
         title: "Berhasil",
@@ -318,14 +342,40 @@ const DashboardPage = () => {
                     {myGrades.map((g, i) => (
                       <div
                         key={i}
-                        className="p-4 bg-slate-50 rounded-lg flex justify-between items-center border border-slate-100"
+                        className="p-4 bg-slate-50 rounded-lg flex flex-col gap-2 border border-slate-100"
                       >
-                        <span className="font-bold text-slate-700">
-                          {g.subject}
-                        </span>
-                        <span className="text-xl font-bold text-school-navy">
-                          {g.average}
-                        </span>
+                        <div className="flex justify-between items-center w-full">
+                          <span className="font-bold text-slate-700">
+                            {g.subject}
+                          </span>
+                          <div className="text-right">
+                            <span className="text-xl font-bold text-school-navy block leading-none">
+                              {g.average}
+                            </span>
+                            <span className="text-[10px] text-slate-400 uppercase tracking-wider">
+                              Total
+                            </span>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-2 gap-2 mt-1">
+                          <div className="bg-blue-50 px-2 py-1 rounded text-center border border-blue-100">
+                            <span className="block text-[10px] text-blue-500 font-bold uppercase">
+                              Tugas
+                            </span>
+                            <span className="block font-bold text-blue-700">
+                              {g.assignmentAvg || 0}
+                            </span>
+                          </div>
+                          <div className="bg-purple-50 px-2 py-1 rounded text-center border border-purple-100">
+                            <span className="block text-[10px] text-purple-500 font-bold uppercase">
+                              Ulangan
+                            </span>
+                            <span className="block font-bold text-purple-700">
+                              {g.examAvg || 0}
+                            </span>
+                          </div>
+                        </div>
                       </div>
                     ))}
                   </div>

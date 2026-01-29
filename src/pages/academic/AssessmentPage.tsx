@@ -46,15 +46,22 @@ import {
   Trash,
   EditPencil,
 } from "iconoir-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface Assessment {
   _id: string;
   title: string;
   description: string;
-  subject: string;
+  subject: string | { _id: string; name: string };
   classes: string[];
   deadline: string;
-  type: "assignment" | "material";
+  type: "assignment" | "material" | "exam" | "quiz" | "project";
   teacher: { username: string; profile?: { fullName: string } };
   createdAt: string;
   attachments: string[];
@@ -115,10 +122,22 @@ const AssessmentPage = () => {
     feedback: string;
   }>({ grade: 0, feedback: "" });
 
+  const [subjects, setSubjects] = useState<any[]>([]);
+
   useEffect(() => {
     fetchAssessments();
     fetchClasses();
+    fetchSubjects();
   }, []);
+
+  const fetchSubjects = async () => {
+    try {
+      const res = await api.get("/academic/subjects");
+      setSubjects(res.data);
+    } catch (error) {
+      console.error("Gagal load mapel");
+    }
+  };
 
   const fetchClasses = async () => {
     try {
@@ -160,7 +179,8 @@ const AssessmentPage = () => {
     setNewForm({
       title: item.title,
       description: item.description,
-      subject: item.subject,
+      subject:
+        typeof item.subject === "object" ? item.subject._id : item.subject,
       classes: item.classes,
       deadline: item.deadline ? item.deadline.split("T")[0] : "",
       type: item.type as any,
@@ -323,7 +343,10 @@ const AssessmentPage = () => {
               <CardContent>
                 <div className="text-sm space-y-2">
                   <div className="flex items-center gap-2 text-slate-600">
-                    <Book className="w-4 h-4" /> {item.subject}
+                    <Book className="w-4 h-4" />{" "}
+                    {typeof item.subject === "object"
+                      ? item.subject.name
+                      : item.subject}
                   </div>
                   <div className="flex items-center gap-2 text-slate-600">
                     <Folder className="w-4 h-4" /> Kelas:{" "}
@@ -385,14 +408,23 @@ const AssessmentPage = () => {
               <label className="text-right text-sm font-bold">
                 Mata Pelajaran
               </label>
-              <Input
-                className="col-span-3"
-                placeholder="Contoh: Matematika"
+              <Select
                 value={newForm.subject}
-                onChange={(e) =>
-                  setNewForm({ ...newForm, subject: e.target.value })
+                onValueChange={(val) =>
+                  setNewForm({ ...newForm, subject: val })
                 }
-              />
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Pilih Mata Pelajaran" />
+                </SelectTrigger>
+                <SelectContent>
+                  {subjects.map((s) => (
+                    <SelectItem key={s._id} value={s._id}>
+                      {s.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="grid grid-cols-4 items-start gap-4">
               <label className="text-right text-sm font-bold mt-2">

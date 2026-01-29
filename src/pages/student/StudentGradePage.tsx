@@ -39,7 +39,9 @@ const StudentGradePage = () => {
     try {
       const res = await api.get("/academic/years");
       setAcademicYears(res.data);
-      const active = res.data.find((y: any) => y.status === "Active");
+      const active = res.data.find(
+        (y: any) => y.status?.toLowerCase() === "active",
+      );
       if (active) {
         setSelectedYear(active._id);
         setSelectedSemester(active.semester);
@@ -131,19 +133,42 @@ const StudentGradePage = () => {
                 <Book className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold flex items-end gap-2">
-                  {g.average}
-                  <span
-                    className={`text-sm font-medium ${getPredicateColor(
-                      g.average,
-                    )}`}
-                  >
-                    {getGradePredicate(g.average)}
-                  </span>
+                <div className="flex justify-between items-end mb-4">
+                  <div>
+                    <div className="text-3xl font-bold flex items-end gap-2 text-school-navy">
+                      {g.average}
+                      <span
+                        className={`text-lg font-medium ${getPredicateColor(
+                          g.average,
+                        )}`}
+                      >
+                        {getGradePredicate(g.average)}
+                      </span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Rata-rata Total
+                    </p>
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground mt-1">
-                  Rata-rata Nilai
-                </p>
+
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-100">
+                  <div className="bg-blue-50 p-2 rounded-md">
+                    <p className="text-[10px] text-blue-600 font-bold uppercase tracking-wide">
+                      Tugas / PR
+                    </p>
+                    <p className="text-lg font-bold text-blue-700">
+                      {g.assignmentAvg || "-"}
+                    </p>
+                  </div>
+                  <div className="bg-purple-50 p-2 rounded-md">
+                    <p className="text-[10px] text-purple-600 font-bold uppercase tracking-wide">
+                      Ulangan
+                    </p>
+                    <p className="text-lg font-bold text-purple-700">
+                      {g.examAvg || "-"}
+                    </p>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           ))

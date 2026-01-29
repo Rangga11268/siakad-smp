@@ -747,32 +747,59 @@ exports.getMyGrades = async (req, res) => {
     const studentId = req.user.id;
     const { academicYear, semester } = req.query;
 
-    // Logic mirip generateFullReport tapi lebih ringkas atau sama
-    // Kita bisa reuse logic atau buat query sederhana
-    // Ambil nilai per mapel
-
     const grades = await Grade.find({ student: studentId }).populate({
       path: "assessment",
-      match: { academicYear, semester }, // Filter by active year/semester
+      match: { academicYear, semester },
       populate: { path: "subject" },
     });
 
-    // Group by Subject
+    // Group by Subject and Type
     const grouped = {};
+
     grades.forEach((g) => {
+      // Skip if assessment/subject is missing or filtered out
       if (!g.assessment || !g.assessment.subject) return;
+
       const subjName = g.assessment.subject.name;
+      const type = g.assessment.type || "assignment"; // Default to assignment
+
       if (!grouped[subjName]) {
-        grouped[subjName] = { score: 0, count: 0, subject: subjName };
+        grouped[subjName] = {
+          subject: subjName,
+          assignmentTotal: 0,
+          assignmentCount: 0,
+          examTotal: 0,
+          examCount: 0,
+          totalScore: 0,
+          totalCount: 0,
+        };
       }
-      grouped[subjName].score += g.score;
-      grouped[subjName].count += 1;
+
+      // Aggregate Total (Overall)
+      grouped[subjName].totalScore += g.score;
+      grouped[subjName].totalCount += 1;
+
+      // Aggregate by Category
+      if (type === "exam") {
+        grouped[subjName].examTotal += g.score;
+        grouped[subjName].examCount += 1;
+      } else {
+        // assignment, quiz, project -> Tugas
+        grouped[subjName].assignmentTotal += g.score;
+        grouped[subjName].assignmentCount += 1;
+      }
     });
 
-    // Calculate Average per Subject
+    // Calculate Averages
     const result = Object.values(grouped).map((item) => ({
       subject: item.subject,
-      average: Math.round(item.score / item.count),
+      average: Math.round(item.totalScore / item.totalCount),
+      assignmentAvg:
+        item.assignmentCount > 0
+          ? Math.round(item.assignmentTotal / item.assignmentCount)
+          : 0,
+      examAvg:
+        item.examCount > 0 ? Math.round(item.examTotal / item.examCount) : 0,
     }));
 
     res.json(result);
