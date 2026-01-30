@@ -1,6 +1,31 @@
 const Book = require("../models/Book");
 const Loan = require("../models/Loan");
 
+const handleError = (res, error, defaultMessage) => {
+  console.error(`❌ ${defaultMessage}:`, error);
+
+  if (error.name === "ValidationError") {
+    const details = Object.values(error.errors).map((err) => err.message);
+    return res.status(400).json({
+      message: `Validasi Gagal: ${details.join(", ")}`,
+      error: details.join(", "),
+    });
+  }
+
+  if (error.code === 11000) {
+    return res.status(400).json({
+      message: "Data Duplikat: ISBN atau Judul sudah ada.",
+      error: "Duplicate Key Error",
+    });
+  }
+
+  // FORCE SHOW ERROR IN UI
+  res.status(500).json({
+    message: `${defaultMessage}: ${error.message}`,
+    error: error.message,
+  });
+};
+
 // --- Books / Katalog ---
 
 exports.getBooks = async (req, res) => {
@@ -8,9 +33,7 @@ exports.getBooks = async (req, res) => {
     const books = await Book.find().sort({ title: 1 });
     res.json(books);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Gagal ambil data buku", error: error.message });
+    handleError(res, error, "Gagal ambil data buku");
   }
 };
 
@@ -30,6 +53,13 @@ exports.addBook = async (req, res) => {
       synopsis,
     } = req.body;
 
+    // Basic Validation manually (if needed, but Mongoose does it)
+    if (!title || !author || !category) {
+      return res
+        .status(400)
+        .json({ message: "Judul, Penulis, dan Kategori wajib diisi!" });
+    }
+
     const newBook = new Book({
       title,
       author,
@@ -48,9 +78,66 @@ exports.addBook = async (req, res) => {
     await newBook.save();
     res.status(201).json(newBook);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Gagal tambah buku", error: error.message });
+    handleError(res, error, "Gagal tambah buku");
+  }
+};
+
+// Update Book
+exports.updateBook = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updates = req.body;
+
+    // Validate if book exists
+    const book = await Book.findById(id);
+    if (!book) return res.status(404).json({ message: "Buku tidak ditemukan" });
+
+    // Handle stock update: Adjust available count based on difference
+    if (updates.stock !== undefined) {
+      const stockDiff = parseInt(updates.stock) - book.stock;
+      book.stock = parseInt(updates.stock);
+      book.available += stockDiff;
+      if (book.available < 0) book.available = 0; // Prevent negative
+    }
+
+    // Update other fields
+    Object.keys(updates).forEach((key) => {
+      if (key !== "stock" && key !== "available" && key !== "_id") {
+        book[key] = updates[key];
+      }
+    });
+
+    await book.save();
+    res.json(book);
+  } catch (error) {
+    handleError(res, error, "Gagal update buku");
+  }
+};
+
+// Delete Book
+exports.deleteBook = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const book = await Book.findById(id);
+    if (!book) return res.status(404).json({ message: "Buku tidak ditemukan" });
+
+    // Check if there are active loans
+    const activeLoans = await Loan.countDocuments({
+      book: id,
+      status: { $in: ["Borrowed", "Pending"] },
+    });
+
+    if (activeLoans > 0) {
+      return res.status(400).json({
+        message: "Tidak dapat menghapus buku yang sedang dipinjam.",
+        error: "Active loans exist",
+      });
+    }
+
+    await Book.deleteOne({ _id: id });
+    res.json({ message: "Buku berhasil dihapus" });
+  } catch (error) {
+    handleError(res, error, "Gagal hapus buku");
   }
 };
 
@@ -96,10 +183,7 @@ exports.borrowBook = async (req, res) => {
     await loan.save();
 
     // Only decrement available stock if directly borrowed (Admin)
-    // For Pending, we might want to reserve? But for now simple: decrement only on approve.
-    // OPTIONAL: Reserve stock on Pending to avoid overbooking.
-    // Let's decrement on Approve for simplicity, OR decrement now but restore on Reject.
-    // DECISION: Decrement ONLY on Borrowed status to strictly reflect physical availability.
+    const BookModel = require("../models/Book"); // Re-require to be safe or use 'book' doc
     if (status === "Borrowed") {
       book.available -= 1;
       await book.save();
@@ -107,9 +191,7 @@ exports.borrowBook = async (req, res) => {
 
     res.status(201).json(loan);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Gagal pinjam buku", error: error.message });
+    handleError(res, error, "Gagal pinjam buku");
   }
 };
 
@@ -142,7 +224,7 @@ exports.approveLoan = async (req, res) => {
 
     res.json(loan);
   } catch (error) {
-    res.status(500).json({ message: "Gagal menyetujui", error: error.message });
+    handleError(res, error, "Gagal menyetujui");
   }
 };
 
@@ -158,7 +240,7 @@ exports.rejectLoan = async (req, res) => {
 
     res.json(loan);
   } catch (error) {
-    res.status(500).json({ message: "Gagal menolak", error: error.message });
+    handleError(res, error, "Gagal menolak");
   }
 };
 
@@ -199,9 +281,7 @@ exports.returnBook = async (req, res) => {
       loan,
     });
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Gagal kembalikan buku", error: error.message });
+    handleError(res, error, "Gagal kembalikan buku");
   }
 };
 
@@ -212,9 +292,7 @@ exports.getMyLoans = async (req, res) => {
       .sort({ borrowDate: -1 });
     res.json(loans);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Gagal ambil data peminjaman", error: error.message });
+    handleError(res, error, "Gagal ambil data peminjaman");
   }
 };
 
@@ -227,8 +305,6 @@ exports.getAllLoans = async (req, res) => {
       .sort({ borrowDate: -1 });
     res.json(loans);
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "Gagal ambil data peminjaman", error: error.message });
+    handleError(res, error, "Gagal ambil data peminjaman");
   }
 };

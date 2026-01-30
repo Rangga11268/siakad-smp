@@ -1,7 +1,7 @@
 const multer = require("multer");
 const path = require("path");
 const fs = require("fs");
-const { fileTypeFromBuffer } = require("file-type");
+// const { fileTypeFromBuffer } = require("file-type"); // Removed unused and potentially incompatible import
 
 // Ensure upload directory exists
 const uploadDir = path.join(__dirname, "../uploads");

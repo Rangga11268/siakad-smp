@@ -1,6 +1,12 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
@@ -37,6 +43,11 @@ import {
   SystemRestart,
   ArrowRight,
   OpenBook,
+  User as UserIcon,
+  WarningTriangle,
+  CheckCircle,
+  Edit,
+  Trash,
 } from "iconoir-react";
 import { useAuth } from "@/context/AuthContext";
 import api from "@/services/api";
@@ -54,6 +65,9 @@ const LibraryDashboard = () => {
   // Dialogs
   const [openBookDialog, setOpenBookDialog] = useState(false);
   const [openLoanDialog, setOpenLoanDialog] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Forms
 
   // Forms
   const [bookForm, setBookForm] = useState({
@@ -124,36 +138,78 @@ const LibraryDashboard = () => {
 
     setSubmitting(true);
     try {
-      await api.post("/library/books", {
+      const payload = {
         ...bookForm,
         stock: parseInt(bookForm.stock),
         year: 2024, // default
-      });
+      };
+
+      if (editingId) {
+        await api.put(`/library/books/${editingId}`, payload);
+        toast({ title: "Berhasil", description: "Data buku diperbarui." });
+      } else {
+        await api.post("/library/books", payload);
+        toast({ title: "Berhasil", description: "Buku baru ditambahkan." });
+      }
+
       setOpenBookDialog(false);
-      setBookForm({
-        title: "",
-        author: "",
-        publisher: "",
-        category: "Fiksi",
-        stock: "1",
-        location: "",
-        pdfUrl: "",
-        synopsis: "",
-        coverImage: "",
-      });
+      resetBookForm();
       fetchData();
-      toast({
-        title: "Berhasil",
-        description: "Buku baru ditambahkan ke katalog.",
-      });
-    } catch (error) {
+    } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Gagal",
-        description: "Gagal tambah buku.",
+        description:
+          error.response?.data?.message || "Gagal menyimpan data buku.",
       });
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const resetBookForm = () => {
+    setEditingId(null);
+    setBookForm({
+      title: "",
+      author: "",
+      publisher: "",
+      category: "Fiksi",
+      stock: "1",
+      location: "",
+      pdfUrl: "",
+      synopsis: "",
+      coverImage: "",
+    });
+  };
+
+  const handleEditBook = (book: any) => {
+    setEditingId(book._id);
+    setBookForm({
+      title: book.title,
+      author: book.author,
+      publisher: book.publisher || "",
+      category: book.category,
+      stock: book.stock.toString(),
+      location: book.location || "",
+      pdfUrl: book.pdfUrl || "",
+      synopsis: book.synopsis || "",
+      coverImage: book.coverImage || "",
+    });
+    setOpenBookDialog(true);
+  };
+
+  const handleDeleteBook = async (id: string, title: string) => {
+    if (!window.confirm(`Yakin ingin menghapus buku "${title}"?`)) return;
+    try {
+      await api.delete(`/library/books/${id}`);
+      toast({ title: "Berhasil", description: "Buku dihapus." });
+      fetchData();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Gagal",
+        description: error.response?.data?.message || "Gagal hapus buku.",
+      });
     }
   };
 
@@ -264,12 +320,23 @@ const LibraryDashboard = () => {
     }
   };
 
+  // Stats Calculation
+  const totalBooks = books.length;
+  // const totalLoans = loans.filter((l: any) => l.status === "active" || l.status === "Borrowed" || l.status === "Approved").length;
+  const activeLoans = loans.filter((l: any) =>
+    ["active", "Borrowed", "Approved"].includes(l.status),
+  ).length;
+  const overdueLoans = loans.filter((l: any) => {
+    if (l.status === "returned") return false;
+    return new Date(l.dueDate) < new Date();
+  }).length;
+
   return (
-    <div className="space-y-8">
-      <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+    <div className="space-y-8 pb-10">
+      <div className="flex flex-col md:flex-row justify-between items-start gap-4">
         <div>
           <h2 className="font-serif text-3xl font-bold tracking-tight text-school-navy">
-            E-Library & Literasi
+            Dashboard Perpustakaan
           </h2>
           <p className="text-slate-500">
             Katalog buku digital, manajemen stok, dan sirkulasi peminjaman.
@@ -277,18 +344,76 @@ const LibraryDashboard = () => {
         </div>
       </div>
 
+      {/* Stats Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="border-none shadow-md bg-white hover:shadow-lg transition-all">
+          <CardContent className="p-6 flex items-center gap-4">
+            <div className="p-3 rounded-full bg-blue-100 text-blue-600">
+              <BookStack className="w-8 h-8" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-500">
+                Total Koleksi
+              </p>
+              <h3 className="text-2xl font-bold text-school-navy">
+                {totalBooks}{" "}
+                <span className="text-xs font-normal text-slate-400">
+                  Judul
+                </span>
+              </h3>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-md bg-white hover:shadow-lg transition-all">
+          <CardContent className="p-6 flex items-center gap-4">
+            <div className="p-3 rounded-full bg-green-100 text-green-600">
+              <OpenBook className="w-8 h-8" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-500">
+                Sedang Dipinjam
+              </p>
+              <h3 className="text-2xl font-bold text-school-navy">
+                {activeLoans}{" "}
+                <span className="text-xs font-normal text-slate-400">Buku</span>
+              </h3>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-none shadow-md bg-white hover:shadow-lg transition-all">
+          <CardContent className="p-6 flex items-center gap-4">
+            <div className="p-3 rounded-full bg-red-100 text-red-600">
+              <WarningTriangle className="w-8 h-8" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-500">
+                Terlambat Kembali
+              </p>
+              <h3 className="text-2xl font-bold text-school-navy">
+                {overdueLoans}{" "}
+                <span className="text-xs font-normal text-slate-400">
+                  Siswa
+                </span>
+              </h3>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <Tabs defaultValue="books" className="space-y-6">
         <TabsList className="bg-slate-100 p-1 rounded-lg">
           <TabsTrigger
             value="books"
-            className="data-[state=active]:bg-school-navy data-[state=active]:text-white px-6"
+            className="data-[state=active]:bg-school-navy data-[state=active]:text-white px-6 w-32"
           >
-            <OpenBook className="mr-2 h-4 w-4" />
-            Katalog Buku
+            <Book className="mr-2 h-4 w-4" />
+            Katalog
           </TabsTrigger>
           <TabsTrigger
             value="loans"
-            className="data-[state=active]:bg-school-navy data-[state=active]:text-white px-6"
+            className="data-[state=active]:bg-school-navy data-[state=active]:text-white px-6 w-32"
           >
             <ArrowRight className="mr-2 h-4 w-4" />
             Sirkulasi
@@ -296,9 +421,9 @@ const LibraryDashboard = () => {
           {user?.role !== "student" && (
             <TabsTrigger
               value="requests"
-              className="data-[state=active]:bg-school-navy data-[state=active]:text-white px-6"
+              className="data-[state=active]:bg-school-navy data-[state=active]:text-white px-6 w-32"
             >
-              <BookStack className="mr-2 h-4 w-4" />
+              <CheckCircle className="mr-2 h-4 w-4" />
               Permintaan
               {loans.filter((l: any) => l.status === "Pending").length > 0 && (
                 <Badge
@@ -313,27 +438,33 @@ const LibraryDashboard = () => {
         </TabsList>
 
         <TabsContent value="books" className="space-y-6">
-          <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm border border-slate-100">
+          <div className="flex justify-between items-center bg-white p-4 rounded-xl shadow-sm border border-slate-100">
             <div className="flex items-center gap-2 w-full max-w-md">
               <div className="relative w-full">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <Input
                   placeholder="Cari Judul / Penulis..."
-                  className="pl-9 bg-slate-50 border-slate-200"
+                  className="pl-10 bg-slate-50 border-slate-200 rounded-full"
                 />
               </div>
             </div>
             {user?.role !== "student" && (
-              <Dialog open={openBookDialog} onOpenChange={setOpenBookDialog}>
+              <Dialog
+                open={openBookDialog}
+                onOpenChange={(open) => {
+                  setOpenBookDialog(open);
+                  if (!open) resetBookForm();
+                }}
+              >
                 <DialogTrigger asChild>
-                  <Button className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold shadow-md transition-all">
-                    <Plus className="mr-2 h-4 w-4" /> Tambah Koleksi Buku
+                  <Button className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold shadow-md transition-all rounded-full px-6">
+                    <Plus className="mr-2 h-4 w-4" /> Tambah Koleksi
                   </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-[700px]">
                   <DialogHeader>
                     <DialogTitle className="font-serif text-2xl text-school-navy">
-                      Tambah Koleksi Buku
+                      {editingId ? "Edit Buku" : "Tambah Koleksi Buku"}
                     </DialogTitle>
                   </DialogHeader>
                   <div className="grid gap-4 py-4">
@@ -404,6 +535,20 @@ const LibraryDashboard = () => {
                           className="bg-slate-50"
                         />
                       </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label className="font-semibold text-school-navy">
+                        Deskripsi / Sinopsis
+                      </Label>
+                      <textarea
+                        className="flex min-h-[80px] w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-school-navy disabled:cursor-not-allowed disabled:opacity-50"
+                        placeholder="Ringkasan singkat tentang buku..."
+                        value={bookForm.synopsis}
+                        onChange={(e) =>
+                          setBookForm({ ...bookForm, synopsis: e.target.value })
+                        }
+                      />
                     </div>
 
                     <div className="space-y-2">
@@ -482,7 +627,7 @@ const LibraryDashboard = () => {
                     {book.coverImage ? (
                       <img
                         src={book.coverImage}
-                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                         onError={(e) => {
                           (e.target as HTMLImageElement).src =
                             "https://placehold.co/400x600/1e293b/FFF?text=No+Cover";
@@ -493,16 +638,50 @@ const LibraryDashboard = () => {
                         <Book className="h-12 w-12" />
                       </div>
                     )}
-                    <div className="absolute top-2 right-2">
+
+                    {/* Status Badge - Top Left */}
+                    <div className="absolute top-2 left-2 z-10">
                       <Badge
-                        className={`${book.available > 0 ? "bg-green-600" : "bg-red-600"} shadow-sm`}
+                        className={`${
+                          book.available > 0
+                            ? "bg-green-600/90 backdrop-blur-sm"
+                            : "bg-red-600/90 backdrop-blur-sm"
+                        } shadow-sm border-none text-white`}
                       >
                         {book.available > 0 ? "Tersedia" : "Habis"}
                       </Badge>
                     </div>
+
+                    {/* Admin Actions - Top Right (Hover) */}
+                    {user?.role !== "student" && (
+                      <div className="absolute top-2 right-2 flex flex-col gap-2 z-10 translate-x-12 group-hover:translate-x-0 transition-transform duration-300 ease-out">
+                        <Button
+                          size="icon"
+                          className="h-8 w-8 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white text-blue-600 shadow-md border border-slate-100"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleEditBook(book);
+                          }}
+                          title="Edit Buku"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          className="h-8 w-8 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white text-red-600 shadow-md border border-slate-100"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteBook(book._id, book.title);
+                          }}
+                          title="Hapus Buku"
+                        >
+                          <Trash className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
 
-                  <CardContent className="p-4 flex flex-col flex-grow">
+                  <CardContent className="p-4 flex flex-col flex-grow relative">
                     <div className="flex-grow">
                       <h4
                         className="font-bold text-school-navy line-clamp-2 leading-tight mb-1"
@@ -574,6 +753,9 @@ const LibraryDashboard = () => {
                 <CardTitle className="font-serif text-lg text-school-navy">
                   Riwayat Sirkulasi
                 </CardTitle>
+                <CardDescription>
+                  Pencatatan peminjaman dan pengembalian buku.
+                </CardDescription>
               </div>
               {user?.role !== "student" && (
                 <Dialog open={openLoanDialog} onOpenChange={setOpenLoanDialog}>
@@ -803,15 +985,14 @@ const LibraryDashboard = () => {
                             <div className="flex justify-end gap-2">
                               <Button
                                 size="sm"
-                                className="bg-green-600 hover:bg-green-700 h-8"
+                                className="bg-green-600 hover:bg-green-700 text-white"
                                 onClick={() => handleApprove(loan._id)}
                               >
-                                Setujui
+                                Terima
                               </Button>
                               <Button
                                 size="sm"
                                 variant="destructive"
-                                className="h-8"
                                 onClick={() => handleReject(loan._id)}
                               >
                                 Tolak

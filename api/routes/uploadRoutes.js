@@ -39,7 +39,9 @@ const upload = multer({
   },
 });
 
-router.post("/", auth, upload.single("file"), (req, res) => {
+const optimizeImage = require("../middleware/optimizeImage");
+
+router.post("/", auth, upload.single("file"), optimizeImage, (req, res) => {
   try {
     if (!req.file) return res.status(400).json({ message: "No file uploaded" });
 

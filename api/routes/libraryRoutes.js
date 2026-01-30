@@ -9,7 +9,19 @@ router.post(
   "/books",
   auth,
   checkRole(["admin", "teacher"]),
-  libraryController.addBook
+  libraryController.addBook,
+);
+router.put(
+  "/books/:id",
+  auth,
+  checkRole(["admin", "teacher"]),
+  libraryController.updateBook,
+);
+router.delete(
+  "/books/:id",
+  auth,
+  checkRole(["admin", "teacher"]),
+  libraryController.deleteBook,
 );
 
 // Loans
@@ -17,34 +29,34 @@ router.post(
   "/borrow",
   auth,
   checkRole(["admin", "teacher", "student"]), // Self-service borrowing
-  libraryController.borrowBook
+  libraryController.borrowBook,
 ); // Admin borrows for student or student borrows? Context: Admin/Librarian usually scans.
 router.post(
   "/return",
   auth,
   checkRole(["admin", "teacher"]),
-  libraryController.returnBook
+  libraryController.returnBook,
 );
 
 router.post(
   "/approve",
   auth,
   checkRole(["admin", "teacher"]),
-  libraryController.approveLoan
+  libraryController.approveLoan,
 );
 
 router.post(
   "/reject",
   auth,
   checkRole(["admin", "teacher"]),
-  libraryController.rejectLoan
+  libraryController.rejectLoan,
 );
 
 router.get(
   "/loans",
   auth,
   checkRole(["admin", "teacher"]),
-  libraryController.getAllLoans
+  libraryController.getAllLoans,
 );
 router.get("/my-loans", auth, libraryController.getMyLoans);
 
