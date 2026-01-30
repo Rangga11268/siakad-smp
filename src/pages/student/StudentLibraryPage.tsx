@@ -139,7 +139,7 @@ const StudentLibraryPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50/50 pb-20">
+    <div className="-mt-6 -mx-6 md:-mt-8 md:-mx-8 min-h-screen bg-slate-50/50 pb-20 relative">
       {/* Header Decoration */}
       <div className="bg-school-navy h-48 w-full absolute top-0 left-0 z-0 rounded-b-[40px] shadow-xl overflow-hidden">
         <div className="absolute top-0 right-0 w-64 h-64 bg-school-gold/10 rounded-full -translate-y-1/2 translate-x-1/4 blur-3xl" />

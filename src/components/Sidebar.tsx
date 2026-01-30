@@ -129,6 +129,12 @@ const Sidebar = () => {
           roles: ["student"],
         },
         {
+          title: "Perpustakaan",
+          icon: BookStack,
+          path: "/dashboard/student/library",
+          roles: ["student"],
+        },
+        {
           title: "Nilai Saya",
           icon: ReportColumns,
           path: "/dashboard/student/grades",
