@@ -54,6 +54,8 @@ const UksDashboard = () => {
   const [healthRecords, setHealthRecords] = useState([]);
   const [visits, setVisits] = useState([]);
   const [students, setStudents] = useState([]);
+  const [classes, setClasses] = useState<any[]>([]);
+  const [selectedClass, setSelectedClass] = useState("all");
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
 
@@ -88,6 +90,7 @@ const UksDashboard = () => {
     fetchData();
     if (canEdit) {
       fetchStudents();
+      fetchClasses();
     }
   }, [user]);
 
@@ -118,6 +121,27 @@ const UksDashboard = () => {
     }
   };
 
+  const fetchClasses = async () => {
+    try {
+      const res = await api.get("/academic/class");
+      setClasses(res.data);
+    } catch (error) {
+      console.error("Gagal load kelas", error);
+    }
+  };
+
+  const calculateBMI = (height: number, weight: number) => {
+    if (!height || !weight) return null;
+    const hMeter = height / 100;
+    return (weight / (hMeter * hMeter)).toFixed(1);
+  };
+
+  const getBMIStatus = (bmi: number) => {
+    if (bmi < 18.5) return "Underweight";
+    if (bmi <= 25) return "Normal";
+    return "Overweight";
+  };
+
   const handleAddRecord = async () => {
     if (!recordForm.studentId || !recordForm.height || !recordForm.weight) {
       toast({
@@ -145,6 +169,7 @@ const UksDashboard = () => {
         dentalHealth: "Sehat",
         notes: "",
       });
+      setSelectedClass("all");
       fetchData();
       toast({
         title: "Berhasil",
@@ -319,6 +344,29 @@ const UksDashboard = () => {
                       </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
+                      {/* Class Filter */}
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label className="text-right font-semibold text-school-navy">
+                          Filter Kelas
+                        </Label>
+                        <Select
+                          value={selectedClass}
+                          onValueChange={setSelectedClass}
+                        >
+                          <SelectTrigger className="col-span-3 bg-slate-50">
+                            <SelectValue placeholder="Semua Kelas" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Semua Siswa</SelectItem>
+                            {classes.map((cls: any) => (
+                              <SelectItem key={cls._id} value={cls._id}>
+                                {cls.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
                       <div className="grid grid-cols-4 items-center gap-4">
                         <Label className="text-right font-semibold text-school-navy">
                           Siswa
@@ -332,11 +380,19 @@ const UksDashboard = () => {
                             <SelectValue placeholder="Pilih Siswa" />
                           </SelectTrigger>
                           <SelectContent>
-                            {students.map((s: any) => (
-                              <SelectItem key={s._id} value={s._id}>
-                                {s.profile?.fullName}
-                              </SelectItem>
-                            ))}
+                            {students
+                              .filter((s: any) => {
+                                if (selectedClass === "all") return true;
+                                const cls = classes.find(
+                                  (c: any) => c._id === selectedClass,
+                                );
+                                return s.profile?.class === cls?.name;
+                              })
+                              .map((s: any) => (
+                                <SelectItem key={s._id} value={s._id}>
+                                  {s.profile?.fullName}
+                                </SelectItem>
+                              ))}
                           </SelectContent>
                         </Select>
                       </div>
@@ -372,6 +428,34 @@ const UksDashboard = () => {
                           }
                         />
                       </div>
+
+                      {/* Real-time BMI */}
+                      {recordForm.height && recordForm.weight && (
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label className="text-right font-semibold text-school-navy">
+                            BMI Preview
+                          </Label>
+                          <div className="col-span-3 flex items-center gap-3">
+                            <Badge className="bg-school-navy text-white text-lg px-4">
+                              {calculateBMI(
+                                parseFloat(recordForm.height),
+                                parseFloat(recordForm.weight),
+                              )}
+                            </Badge>
+                            <span className="text-sm font-bold text-slate-500">
+                              Status:{" "}
+                              {getBMIStatus(
+                                parseFloat(
+                                  calculateBMI(
+                                    parseFloat(recordForm.height),
+                                    parseFloat(recordForm.weight),
+                                  ) || "0",
+                                ),
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      )}
                       <div className="grid grid-cols-4 items-center gap-4">
                         <Label className="text-right font-semibold text-school-navy">
                           Penglihatan
@@ -586,6 +670,29 @@ const UksDashboard = () => {
                       </DialogTitle>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
+                      {/* Class Filter */}
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label className="text-right font-semibold text-school-navy">
+                          Filter Kelas
+                        </Label>
+                        <Select
+                          value={selectedClass}
+                          onValueChange={setSelectedClass}
+                        >
+                          <SelectTrigger className="col-span-3 bg-slate-50">
+                            <SelectValue placeholder="Semua Kelas" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">Semua Siswa</SelectItem>
+                            {classes.map((cls: any) => (
+                              <SelectItem key={cls._id} value={cls._id}>
+                                {cls.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
                       <div className="grid grid-cols-4 items-center gap-4">
                         <Label className="text-right font-semibold text-school-navy">
                           Pasien (Siswa)
@@ -599,11 +706,19 @@ const UksDashboard = () => {
                             <SelectValue placeholder="Pilih Siswa" />
                           </SelectTrigger>
                           <SelectContent>
-                            {students.map((s: any) => (
-                              <SelectItem key={s._id} value={s._id}>
-                                {s.profile?.fullName}
-                              </SelectItem>
-                            ))}
+                            {students
+                              .filter((s: any) => {
+                                if (selectedClass === "all") return true;
+                                const cls = classes.find(
+                                  (c: any) => c._id === selectedClass,
+                                );
+                                return s.profile?.class === cls?.name;
+                              })
+                              .map((s: any) => (
+                                <SelectItem key={s._id} value={s._id}>
+                                  {s.profile?.fullName}
+                                </SelectItem>
+                              ))}
                           </SelectContent>
                         </Select>
                       </div>
