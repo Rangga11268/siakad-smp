@@ -128,7 +128,26 @@ const AttendancePage = () => {
       });
 
       setStudents(studentList);
-      setAttendanceData(initialData);
+
+      // Auto-fill Alpha for students with no record
+      const autoFilledData = { ...initialData };
+      let autoCount = 0;
+
+      studentList.forEach((s: any) => {
+        if (!autoFilledData[s._id].status) {
+          autoFilledData[s._id].status = "Alpha";
+          autoCount++;
+        }
+      });
+
+      setAttendanceData(autoFilledData);
+
+      if (autoCount > 0) {
+        toast({
+          title: "Auto-Alpha Applied",
+          description: `${autoCount} siswa belum absen ditandai sebagai Alpha.`,
+        });
+      }
     } catch (error) {
       console.error("Gagal load data absensi", error);
       toast({

@@ -482,7 +482,7 @@ const StudentLearningPage = () => {
                           isActive
                             ? "bg-emerald-600 hover:bg-emerald-700 text-white shadow-lg shadow-emerald-200"
                             : isExpired
-                              ? "bg-slate-100 text-slate-400 border border-slate-200"
+                              ? "bg-red-500 hover:bg-red-600 text-white shadow-md shadow-red-200 border border-red-300"
                               : "bg-slate-50 text-slate-400 border border-slate-100",
                         )}
                       >
@@ -491,7 +491,7 @@ const StudentLearningPage = () => {
                         ) : isActive ? (
                           "ABSEN MASUK SEKARANG"
                         ) : isExpired ? (
-                          "WAKTU HABIS"
+                          "TIDAK HADIR (ALPHA)"
                         ) : (
                           "BELUM MULAI"
                         )}
