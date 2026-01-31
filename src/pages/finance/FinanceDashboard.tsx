@@ -44,7 +44,7 @@ interface Bill {
   student: {
     _id: string;
     username: string;
-    profile?: { fullName: string; nisn: string };
+    profile?: { fullName: string; nisn: string; class?: string };
   };
   title: string;
   amount: number;
@@ -52,12 +52,13 @@ interface Bill {
   paymentType: string;
   evidence?: string;
   createdAt: string;
+  dueDate?: string;
 }
 
 interface Student {
   _id: string;
   username: string;
-  profile: { fullName: string; nisn: string };
+  profile: { fullName: string; nisn: string; class?: string };
 }
 
 const FinanceDashboard = () => {
@@ -370,6 +371,7 @@ const FinanceDashboard = () => {
                 <TableHead>Siswa</TableHead>
                 <TableHead>Kelas</TableHead>
                 <TableHead>Judul</TableHead>
+                <TableHead>Jatuh Tempo</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Metode</TableHead>
                 <TableHead className="text-right">Jumlah</TableHead>
@@ -406,6 +408,11 @@ const FinanceDashboard = () => {
                       {bill.student?.profile?.class || "-"}
                     </TableCell>
                     <TableCell>{bill.title}</TableCell>
+                    <TableCell className="text-xs text-red-600 font-bold">
+                      {bill.dueDate
+                        ? new Date(bill.dueDate).toLocaleDateString()
+                        : "-"}
+                    </TableCell>
                     <TableCell>
                       <Badge
                         variant={

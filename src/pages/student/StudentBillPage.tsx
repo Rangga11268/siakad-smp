@@ -234,6 +234,15 @@ const StudentBillPage = () => {
                         ? new Date(bill.dueDate).toLocaleDateString()
                         : "-"}
                     </div>
+                    {/* Status Badges */}
+                    {bill.status === "pending" &&
+                      bill.dueDate &&
+                      new Date(bill.dueDate) < new Date() && (
+                        <Badge className="mt-2 bg-red-600 hover:bg-red-700 animate-pulse">
+                          <WarningTriangle className="mr-1 w-3 h-3" /> TELAT
+                          BAYAR
+                        </Badge>
+                      )}
                     {bill.status === "waiting_verification" && (
                       <Badge className="mt-2 bg-yellow-100 text-yellow-800 hover:bg-yellow-200">
                         <Clock className="mr-1 w-3 h-3" /> Menunggu Verifikasi
