@@ -13,6 +13,8 @@ exports.createAsset = async (req, res) => {
       purchasePrice,
     } = req.body;
 
+    const image = req.file ? `/uploads/${req.file.filename}` : null;
+
     const newAsset = new Asset({
       code,
       name,
@@ -22,6 +24,7 @@ exports.createAsset = async (req, res) => {
       purchaseDate,
       purchasePrice,
       currentValue: purchasePrice, // Awal nilai = harga beli
+      image,
     });
 
     await newAsset.save();
@@ -33,23 +36,63 @@ exports.createAsset = async (req, res) => {
   }
 };
 
-// Update Kondisi Aset (Misal saat Stock Opname)
-exports.updateAssetCondition = async (req, res) => {
+// Update Asset (Full Update)
+exports.updateAsset = async (req, res) => {
   try {
     const { assetId } = req.params;
-    const { condition, location } = req.body;
+    const {
+      code,
+      name,
+      category,
+      condition,
+      location,
+      purchaseDate,
+      purchasePrice,
+    } = req.body;
 
-    const asset = await Asset.findByIdAndUpdate(
-      assetId,
-      { condition, location },
-      { new: true }
-    );
+    const updates = {
+      code,
+      name,
+      category,
+      condition,
+      location,
+      purchaseDate,
+      purchasePrice,
+    };
+
+    if (req.file) {
+      updates.image = `/uploads/${req.file.filename}`;
+    }
+
+    const asset = await Asset.findByIdAndUpdate(assetId, updates, {
+      new: true,
+    });
+
+    if (!asset) {
+      return res.status(404).json({ message: "Aset tidak ditemukan" });
+    }
 
     res.json(asset);
   } catch (error) {
     res
       .status(500)
       .json({ message: "Gagal update aset", error: error.message });
+  }
+};
+
+// Delete Asset
+exports.deleteAsset = async (req, res) => {
+  try {
+    const { assetId } = req.params;
+    const asset = await Asset.findByIdAndDelete(assetId);
+
+    if (!asset) {
+      return res.status(404).json({ message: "Aset tidak ditemukan" });
+    }
+
+    res.json({ message: "Aset berhasil dihapus" });
+  } catch (error) {
+    res.status(500).json({ message: "Gagal hapus aset", error: error.message });
   }
 };
 

@@ -88,7 +88,56 @@ const AssetDashboard = () => {
     setFormData({ ...formData, purchasePrice: rawValue });
   };
 
-  const handleCreate = async () => {
+  const [editingId, setEditingId] = useState<string | null>(null);
+
+  // Stats
+  const totalAssets = assets.length;
+  const totalValue = assets.reduce(
+    (acc, curr: any) => acc + (curr.purchasePrice || 0),
+    0,
+  );
+  const goodCondition = assets.filter(
+    (a: any) => a.condition === "Baik",
+  ).length;
+  const badCondition = totalAssets - goodCondition;
+
+  const handleEdit = (asset: any) => {
+    setFormData({
+      code: asset.code,
+      name: asset.name,
+      category: asset.category,
+      condition: asset.condition,
+      location: asset.location,
+      purchasePrice: asset.purchasePrice.toString(),
+    });
+    setEditingId(asset._id);
+    setOpenDialog(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!window.confirm("Yakin ingin menghapus aset ini?")) return;
+    try {
+      await api.delete(`/assets/${id}`);
+      fetchAssets();
+      toast({ title: "Berhasil", description: "Aset berhasil dihapus." });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Gagal",
+        description: "Gagal hapus aset.",
+      });
+    }
+  };
+
+  const [selectedImage, setSelectedImage] = useState<File | null>(null);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setSelectedImage(e.target.files[0]);
+    }
+  };
+
+  const handleSubmit = async () => {
     if (!formData.code || !formData.name || !formData.purchasePrice) {
       toast({
         variant: "destructive",
@@ -100,11 +149,34 @@ const AssetDashboard = () => {
 
     setSubmitting(true);
     try {
-      await api.post("/assets", {
-        ...formData,
-        purchasePrice: parseInt(formData.purchasePrice),
-        purchaseDate: new Date(),
-      });
+      const payload = new FormData();
+      payload.append("code", formData.code);
+      payload.append("name", formData.name);
+      payload.append("category", formData.category);
+      payload.append("condition", formData.condition);
+      payload.append("location", formData.location);
+      payload.append("purchasePrice", formData.purchasePrice);
+      // payload.append("purchaseDate", new Date().toISOString()); // Backend handles or we send string
+
+      if (selectedImage) {
+        payload.append("image", selectedImage);
+      }
+
+      if (editingId) {
+        await api.put(`/assets/${editingId}`, payload, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        toast({ title: "Berhasil", description: "Aset berhasil diperbarui." });
+      } else {
+        await api.post("/assets", payload, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        toast({
+          title: "Berhasil",
+          description: "Aset baru berhasil didaftarkan.",
+        });
+      }
+
       setOpenDialog(false);
       setFormData({
         code: "",
@@ -114,20 +186,32 @@ const AssetDashboard = () => {
         location: "Lab Komputer",
         purchasePrice: "",
       });
+      setSelectedImage(null);
+      setEditingId(null);
       fetchAssets();
-      toast({
-        title: "Berhasil",
-        description: "Aset baru berhasil didaftarkan.",
-      });
     } catch (error) {
       toast({
         variant: "destructive",
         title: "Gagal",
-        description: "Gagal tambah aset.",
+        description: editingId ? "Gagal update aset." : "Gagal tambah aset.",
       });
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const openValidDialog = () => {
+    setEditingId(null);
+    setFormData({
+      code: "",
+      name: "",
+      category: "Elektronik",
+      condition: "Baik",
+      location: "Lab Komputer",
+      purchasePrice: "",
+    });
+    setSelectedImage(null);
+    setOpenDialog(true);
   };
 
   // QR Code State
@@ -191,6 +275,50 @@ const AssetDashboard = () => {
         </div>
       </div>
 
+      {/* Quick Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card className="bg-school-navy text-white border-none shadow-lg">
+          <CardContent className="p-6 flex items-center gap-4">
+            <div className="p-3 bg-white/10 rounded-full">
+              <Box className="w-8 h-8 text-school-gold" />
+            </div>
+            <div>
+              <p className="text-sm text-white/70">Total Aset</p>
+              <h3 className="text-2xl font-bold font-serif">
+                {totalAssets} Unit
+              </h3>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-white border-none shadow-lg">
+          <CardContent className="p-6 flex items-center gap-4">
+            <div className="p-3 bg-green-50 rounded-full">
+              <SystemRestart className="w-8 h-8 text-green-600" />
+              {/* Using SystemRestart as a placeholder for 'Value' icon if Wallet is not imported, or just reuse generic */}
+            </div>
+            <div>
+              <p className="text-sm text-slate-500">Total Nilai Aset</p>
+              <h3 className="text-2xl font-bold font-serif text-school-navy">
+                {formatRupiah(totalValue)}
+              </h3>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="bg-white border-none shadow-lg">
+          <CardContent className="p-6 flex items-center gap-4">
+            <div className="p-3 bg-orange-50 rounded-full">
+              <SystemRestart className="w-8 h-8 text-orange-600" />
+            </div>
+            <div>
+              <p className="text-sm text-slate-500">Perlu Perbaikan</p>
+              <h3 className="text-2xl font-bold font-serif text-school-navy">
+                {badCondition} Unit
+              </h3>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Search and Action Bar */}
       <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm border border-slate-100">
         <div className="relative w-full max-w-sm">
@@ -204,17 +332,22 @@ const AssetDashboard = () => {
         </div>
         <Dialog open={openDialog} onOpenChange={setOpenDialog}>
           <DialogTrigger asChild>
-            <Button className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold shadow-md transition-all">
+            <Button
+              onClick={openValidDialog}
+              className="bg-school-navy hover:bg-school-gold hover:text-school-navy font-bold shadow-md transition-all"
+            >
               <Plus className="mr-2 h-4 w-4" /> Registrasi Aset
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[600px]">
             <DialogHeader>
               <DialogTitle className="font-serif text-2xl text-school-navy">
-                Registrasi Aset Baru
+                {editingId ? "Edit Data Aset" : "Registrasi Aset Baru"}
               </DialogTitle>
               <DialogDescription>
-                Masukkan detail aset untuk inventarisasi.
+                {editingId
+                  ? "Perbarui informasi aset."
+                  : "Masukkan detail aset untuk inventarisasi."}
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
@@ -317,10 +450,26 @@ const AssetDashboard = () => {
                   </p>
                 </div>
               </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label className="text-right font-semibold text-school-navy">
+                  Foto Aset
+                </Label>
+                <div className="col-span-3">
+                  <Input
+                    type="file"
+                    className="bg-slate-50"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Format: JPG, PNG. Maks 5MB.
+                  </p>
+                </div>
+              </div>
             </div>
             <DialogFooter>
               <Button
-                onClick={handleCreate}
+                onClick={handleSubmit}
                 disabled={submitting}
                 className="bg-school-navy hover:bg-school-gold hover:text-school-navy w-full font-bold"
               >
@@ -393,6 +542,7 @@ const AssetDashboard = () => {
                 <TableHead className="text-white font-bold">
                   Kode Aset
                 </TableHead>
+                <TableHead className="text-white font-bold">Foto</TableHead>
                 <TableHead className="text-white font-bold">
                   Nama Barang
                 </TableHead>
@@ -402,8 +552,8 @@ const AssetDashboard = () => {
                 <TableHead className="text-white font-bold">
                   Nilai Awal
                 </TableHead>
-                <TableHead className="text-white font-bold text-right">
-                  Label
+                <TableHead className="text-white font-bold text-center">
+                  Aksi
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -436,6 +586,21 @@ const AssetDashboard = () => {
                   >
                     <TableCell className="font-mono font-bold text-school-navy text-xs">
                       {asset.code}
+                    </TableCell>
+                    <TableCell>
+                      {asset.image ? (
+                        <div className="w-12 h-12 rounded-md overflow-hidden border border-slate-200">
+                          <img
+                            src={`${import.meta.env.VITE_API_URL}${asset.image}`}
+                            alt={asset.name}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-12 h-12 bg-slate-100 rounded-md flex items-center justify-center text-slate-400">
+                          <Box className="w-6 h-6" />
+                        </div>
+                      )}
                     </TableCell>
                     <TableCell className="font-bold text-slate-700">
                       {asset.name}
@@ -471,16 +636,38 @@ const AssetDashboard = () => {
                     <TableCell className="font-medium text-slate-700">
                       {formatRupiah(asset.purchasePrice)}
                     </TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0 hover:bg-school-navy hover:text-white"
-                        onClick={() => handleShowQr(asset)}
-                        title="Lihat QR Code"
-                      >
-                        <QrCode className="w-4 h-4" />
-                      </Button>
+                    <TableCell className="text-center">
+                      <div className="flex items-center justify-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-blue-600 hover:bg-blue-50"
+                          onClick={() => handleEdit(asset)}
+                          title="Edit"
+                        >
+                          <Box className="w-4 h-4" />
+                          {/* Using Box as generic edit icon placeholder if Edit is missing, or I can import Edit from iconoir */}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 text-red-600 hover:bg-red-50"
+                          onClick={() => handleDelete(asset._id)}
+                          title="Hapus"
+                        >
+                          <SystemRestart className="w-4 h-4 rotate-45" />
+                          {/* Using SystemRestart rotated as generic Close/Delete if X is missing. Better Check imports. */}
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 hover:bg-school-navy hover:text-white"
+                          onClick={() => handleShowQr(asset)}
+                          title="Lihat QR Code"
+                        >
+                          <QrCode className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))

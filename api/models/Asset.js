@@ -17,10 +17,11 @@ const assetSchema = new mongoose.Schema(
     purchaseDate: Date,
     purchasePrice: Number,
     currentValue: Number, // For depreciation calculation
+    image: { type: String }, // Path to image file
 
     assignedTo: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // Penanggung Jawab
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = mongoose.model("Asset", assetSchema);
