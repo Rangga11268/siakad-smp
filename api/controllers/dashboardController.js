@@ -104,3 +104,57 @@ exports.getStudentDashboardStats = async (req, res) => {
     });
   }
 };
+exports.getTeacherDashboardStats = async (req, res) => {
+  try {
+    const teacherId = req.user.id;
+    const { day } = req.query; // e.g. "Senin"
+
+    // 1. Teaching Hours Today
+    const Schedule = require("../models/Schedule");
+    const AcademicYear = require("../models/AcademicYear");
+    const activeYear = await AcademicYear.findOne({ status: "active" });
+
+    let teachingHours = 0;
+    if (activeYear) {
+      teachingHours = await Schedule.countDocuments({
+        teacher: teacherId,
+        day: day,
+        academicYear: activeYear._id,
+        semester: activeYear.semester,
+      });
+    }
+
+    // 2. Pending Grading (Submissions that are 'submitted' but not 'graded')
+    const Assessment = require("../models/Assessment");
+    const Submission = require("../models/Submission");
+
+    // Find assessments by this teacher
+    const myAssessments = await Assessment.find({
+      teacher: teacherId,
+      academicYear: activeYear ? activeYear._id : null,
+    }).select("_id");
+
+    const myAssessmentIds = myAssessments.map((a) => a._id);
+
+    const pendingGrading = await Submission.countDocuments({
+      assessment: { $in: myAssessmentIds },
+      status: "submitted",
+    });
+
+    // 3. Homeroom Class
+    const Class = require("../models/Class");
+    const homeroomClass = await Class.findOne({ homeroomTeacher: teacherId });
+
+    res.json({
+      teachingHours,
+      pendingGrading,
+      homeroomClass: homeroomClass ? homeroomClass.name : null,
+      homeroomClassId: homeroomClass ? homeroomClass._id : null,
+    });
+  } catch (error) {
+    res.status(500).json({
+      message: "Gagal ambil statistik guru",
+      error: error.message,
+    });
+  }
+};

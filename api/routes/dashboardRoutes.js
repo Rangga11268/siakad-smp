@@ -10,5 +10,11 @@ router.get(
   checkRole(["student"]),
   dashboardController.getStudentDashboardStats,
 );
+router.get(
+  "/teacher-stats",
+  auth,
+  checkRole(["teacher", "admin"]),
+  dashboardController.getTeacherDashboardStats,
+);
 
 module.exports = router;

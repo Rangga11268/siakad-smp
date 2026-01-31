@@ -63,6 +63,12 @@ const Sidebar = () => {
       label: "Akademik",
       items: [
         {
+          title: "Ruang Guru",
+          icon: HomeSimpleDoor, // Using HomeSimpleDoor as placeholder or maybe another icon like Presentation
+          path: "/dashboard/teacher/hub",
+          roles: ["teacher", "admin"],
+        },
+        {
           title: "Jadwal Pelajaran",
           icon: Calendar,
           path: "/dashboard/academic/schedule",

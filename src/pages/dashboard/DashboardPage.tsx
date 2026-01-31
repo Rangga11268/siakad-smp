@@ -55,7 +55,9 @@ const DashboardPage = () => {
       fetchStudentData();
     } else {
       fetchAdminData();
-      fetchChartData();
+      if (user.role === "admin") {
+        fetchChartData();
+      }
     }
   }, [user]);
 
@@ -75,7 +77,9 @@ const DashboardPage = () => {
       fetchStudentStats(); // New Fetch
     } else {
       fetchAdminData();
-      fetchChartData();
+      if (user.role === "admin") {
+        fetchChartData();
+      }
     }
   }, [user]);
 
@@ -89,7 +93,7 @@ const DashboardPage = () => {
   };
 
   const fetchAdminData = async () => {
-    if (user?.role !== "admin") return;
+    if (user?.role !== "admin" && user?.role !== "teacher") return;
     try {
       const { data } = await api.get("/dashboard/stats");
       setStatsData(data);
@@ -398,12 +402,16 @@ const DashboardPage = () => {
             <CardTitle className="font-serif text-xl text-school-navy">
               {user?.role === "student"
                 ? "Nilai Semester Ini"
-                : "Arus Kas Masuk (SPP)"}
+                : user?.role === "admin"
+                  ? "Arus Kas Masuk (SPP)"
+                  : "Ruang Guru"}
             </CardTitle>
             <CardDescription>
               {user?.role === "student"
                 ? "Grafik perkembangan nilai akademik."
-                : "Tren pembayaran siswa 6 bulan terakhir."}
+                : user?.role === "admin"
+                  ? "Tren pembayaran siswa 6 bulan terakhir."
+                  : "Pusat aktivitas dan manajemen kelas Anda."}
             </CardDescription>
           </CardHeader>
           <CardContent className="p-6">
@@ -458,7 +466,7 @@ const DashboardPage = () => {
                   </div>
                 )}
               </div>
-            ) : (
+            ) : user?.role === "admin" ? (
               <div className="h-[300px] w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <AreaChart data={chartData}>
@@ -527,6 +535,28 @@ const DashboardPage = () => {
                     />
                   </AreaChart>
                 </ResponsiveContainer>
+              </div>
+            ) : (
+              // Teacher / Other Role View
+              <div className="h-[300px] w-full flex flex-col items-center justify-center text-center p-6 text-slate-500">
+                <div className="bg-school-gold/10 p-4 rounded-full mb-4">
+                  <Book className="w-10 h-10 text-school-gold" />
+                </div>
+                <h3 className="text-lg font-bold text-school-navy mb-2">
+                  Akses Cepat Ruang Guru
+                </h3>
+                <p className="max-w-md mb-6">
+                  Kelola jadwal mengajar, penilaian, dan administrasi kelas Anda
+                  di satu tempat yang terpadu.
+                </p>
+                <Button
+                  onClick={() =>
+                    (window.location.href = "/dashboard/teacher/hub")
+                  }
+                  className="bg-school-navy hover:bg-school-navy/90"
+                >
+                  Buka Ruang Guru <ArrowRight className="w-4 h-4 ml-2" />
+                </Button>
               </div>
             )}
           </CardContent>
