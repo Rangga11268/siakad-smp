@@ -280,4 +280,45 @@ exports.getFinanceChartData = async (req, res) => {
   }
 };
 
+// Get Finance Summary Stats
+exports.getFinanceStats = async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const [totalOutstanding, totalCollected, todayIncome, pendingVerification] =
+      await Promise.all([
+        Bill.aggregate([
+          { $match: { status: { $in: ["pending", "failed"] } } },
+          { $group: { _id: null, total: { $sum: "$amount" } } },
+        ]),
+        Bill.aggregate([
+          { $match: { status: "paid" } },
+          { $group: { _id: null, total: { $sum: "$amount" } } },
+        ]),
+        Bill.aggregate([
+          {
+            $match: {
+              status: "paid",
+              updatedAt: { $gte: today },
+            },
+          },
+          { $group: { _id: null, total: { $sum: "$amount" } } },
+        ]),
+        Bill.countDocuments({ status: "waiting_verification" }),
+      ]);
+
+    res.json({
+      outstanding: totalOutstanding[0]?.total || 0,
+      collected: totalCollected[0]?.total || 0,
+      today: todayIncome[0]?.total || 0,
+      pending: pendingVerification,
+    });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal memuat statistik", error: error.message });
+  }
+};
+
 // Optional: Midtrans Notification Webhook logic here

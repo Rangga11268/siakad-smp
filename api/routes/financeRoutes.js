@@ -40,5 +40,6 @@ router.get(
   checkRole(["admin"]),
   controller.getFinanceChartData,
 );
+router.get("/stats", auth, checkRole(["admin"]), controller.getFinanceStats);
 
 module.exports = router;

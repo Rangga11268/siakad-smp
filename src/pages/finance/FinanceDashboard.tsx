@@ -64,11 +64,22 @@ const FinanceDashboard = () => {
   const { toast } = useToast();
   const [bills, setBills] = useState<Bill[]>([]);
   const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    outstanding: 0,
+    collected: 0,
+    today: 0,
+    pending: 0,
+  });
 
   // Create State
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [students, setStudents] = useState<Student[]>([]);
   const [uniqueClasses, setUniqueClasses] = useState<string[]>([]);
+
+  // Filter States
+  const [classFilter, setClassFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [searchTerm, setSearchTerm] = useState("");
 
   const [createForm, setCreateForm] = useState({
     targetType: "student", // student, class, level
@@ -87,12 +98,14 @@ const FinanceDashboard = () => {
 
   const fetchData = async () => {
     try {
-      const [billRes, stRes] = await Promise.all([
+      const [billRes, stRes, statsRes] = await Promise.all([
         api.get("/finance"),
         api.get("/academic/students"),
+        api.get("/finance/stats"),
       ]);
       setBills(billRes.data);
       setStudents(stRes.data);
+      setStats(statsRes.data);
 
       // Extract classes
       const classes = Array.from(
@@ -140,16 +153,7 @@ const FinanceDashboard = () => {
           action === "approve" ? "Pembayaran Diterima" : "Pembayaran Ditolak",
       });
       setVerifyingBill(null);
-      setBills((prev) =>
-        prev.map((b) =>
-          b._id === verifyingBill._id
-            ? ({
-                ...b,
-                status: action === "approve" ? "paid" : "failed",
-              } as Bill)
-            : b,
-        ),
-      );
+      fetchData(); // Refresh stats too
     } catch (e) {
       toast({ variant: "destructive", title: "Gagal verifikasi" });
     }
@@ -162,11 +166,42 @@ const FinanceDashboard = () => {
     }).format(num);
   };
 
+  const handleExportCSV = () => {
+    const headers = ["Tanggal,Siswa,Kelas,Judul,Status,Metode,Jumlah"];
+    const rows = bills.map(
+      (b) =>
+        `${new Date(b.createdAt).toLocaleDateString()},"${b.student?.profile?.fullName || "Deleted"}",${b.student?.profile?.class || "-"},"${b.title}",${b.status},${b.paymentType},${b.amount}`,
+    );
+    const csvContent =
+      "data:text/csv;charset=utf-8," + [headers, ...rows].join("\n");
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement("a");
+    link.setAttribute("href", encodedUri);
+    link.setAttribute(
+      "download",
+      `laporan_keuangan_${new Date().toISOString().split("T")[0]}.csv`,
+    );
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Filter Logic
+  const filteredBills = bills.filter((bill) => {
+    const matchesClass =
+      classFilter === "all" || bill.student?.profile?.class === classFilter;
+    const matchesStatus =
+      statusFilter === "all" || bill.status === statusFilter;
+    const matchesSearch =
+      bill.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      bill.student?.profile?.fullName
+        ?.toLowerCase()
+        .includes(searchTerm.toLowerCase());
+    return matchesClass && matchesStatus && matchesSearch;
+  });
+
   const pendingVerification = bills.filter(
     (b) => b.status === "waiting_verification",
-  );
-  const allOtherBills = bills.filter(
-    (b) => b.status !== "waiting_verification",
   );
 
   return (
@@ -180,12 +215,53 @@ const FinanceDashboard = () => {
             Kelola SPP, tagihan, dan verifikasi pembayaran.
           </p>
         </div>
-        <Button
-          onClick={() => setIsCreateOpen(true)}
-          className="bg-school-navy hover:bg-school-gold hover:text-school-navy"
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExportCSV}>
+            <FilterList className="mr-2 h-4 w-4" /> Export CSV
+          </Button>
+          <Button
+            onClick={() => setIsCreateOpen(true)}
+            className="bg-school-navy hover:bg-school-gold hover:text-school-navy"
+          >
+            <Plus className="mr-2 h-4 w-4" /> Buat Tagihan Baru
+          </Button>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <Card className="bg-school-navy text-white border-none">
+          <CardContent className="p-6">
+            <p className="text-white/70 text-sm">Pemasukan Hari Ini</p>
+            <h3 className="text-2xl font-bold">{formatRupiah(stats.today)}</h3>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <p className="text-slate-500 text-sm">Total Tagihan Lunas</p>
+            <h3 className="text-2xl font-bold text-green-600">
+              {formatRupiah(stats.collected)}
+            </h3>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-6">
+            <p className="text-slate-500 text-sm">Total Outstanding</p>
+            <h3 className="text-2xl font-bold text-red-600">
+              {formatRupiah(stats.outstanding)}
+            </h3>
+          </CardContent>
+        </Card>
+        <Card
+          className={stats.pending > 0 ? "bg-yellow-50 border-yellow-200" : ""}
         >
-          <Plus className="mr-2 h-4 w-4" /> Buat Tagihan Baru
-        </Button>
+          <CardContent className="p-6">
+            <p className="text-slate-500 text-sm">Perlu Verifikasi</p>
+            <h3 className="text-2xl font-bold text-yellow-700">
+              {stats.pending} Transaksi
+            </h3>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Verification Alert */}
@@ -249,7 +325,42 @@ const FinanceDashboard = () => {
 
       <Card>
         <CardHeader>
-          <CardTitle>Daftar Semua Tagihan</CardTitle>
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
+            <CardTitle>Daftar Semua Tagihan</CardTitle>
+            <div className="flex gap-2 w-full md:w-auto">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
+                <Input
+                  placeholder="Cari Siswa/Tagihan..."
+                  className="pl-9 w-[200px]"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+              <select
+                className="border rounded px-3 text-sm bg-white"
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+              >
+                <option value="all">Semua Status</option>
+                <option value="paid">Lunas</option>
+                <option value="pending">Belum Bayar</option>
+                <option value="failed">Gagal</option>
+              </select>
+              <select
+                className="border rounded px-3 text-sm bg-white"
+                value={classFilter}
+                onChange={(e) => setClassFilter(e.target.value)}
+              >
+                <option value="all">Semua Kelas</option>
+                {uniqueClasses.map((c) => (
+                  <option key={c} value={c}>
+                    Kelas {c}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -257,6 +368,7 @@ const FinanceDashboard = () => {
               <TableRow>
                 <TableHead>Tanggal</TableHead>
                 <TableHead>Siswa</TableHead>
+                <TableHead>Kelas</TableHead>
                 <TableHead>Judul</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Metode</TableHead>
@@ -266,18 +378,32 @@ const FinanceDashboard = () => {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={6} className="text-center">
-                    Loading...
+                  <TableCell colSpan={7} className="text-center h-24">
+                    <div className="flex items-center justify-center gap-2 text-slate-500">
+                      Loading data...
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ) : filteredBills.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={7}
+                    className="text-center h-24 text-slate-500"
+                  >
+                    Data tidak ditemukan.
                   </TableCell>
                 </TableRow>
               ) : (
-                allOtherBills.map((bill) => (
+                filteredBills.map((bill) => (
                   <TableRow key={bill._id}>
                     <TableCell className="text-xs text-slate-500">
                       {new Date(bill.createdAt).toLocaleDateString()}
                     </TableCell>
                     <TableCell className="font-medium">
                       {bill.student?.profile?.fullName || "Deleted User"}
+                    </TableCell>
+                    <TableCell className="text-xs text-slate-500">
+                      {bill.student?.profile?.class || "-"}
                     </TableCell>
                     <TableCell>{bill.title}</TableCell>
                     <TableCell>
