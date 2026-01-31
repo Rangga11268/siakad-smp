@@ -12,6 +12,13 @@ router.post(
   validate("createSubject"), // Add validation
   academicController.createSubject,
 );
+router.put(
+  "/subject/:id",
+  auth,
+  checkRole(["admin"]),
+  // validate("createSubject"),
+  academicController.updateSubject,
+);
 // Report
 router.post("/report/generate", auth, academicController.generateReport);
 router.get("/report/full", auth, academicController.generateFullReport);

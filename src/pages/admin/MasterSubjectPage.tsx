@@ -45,6 +45,7 @@ const MasterSubjectPage = () => {
   const [search, setSearch] = useState("");
   const [openDialog, setOpenDialog] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -88,45 +89,54 @@ const MasterSubjectPage = () => {
 
     setSubmitting(true);
     try {
-      await api.post("/academic/subject", {
-        ...formData,
-        level: parseInt(formData.level),
-      });
+      if (editingId) {
+        await api.put(`/academic/subject/${editingId}`, {
+          ...formData,
+          level: parseInt(formData.level),
+        });
+        toast({ title: "Berhasil", description: "Mapel berhasil diperbarui." });
+      } else {
+        await api.post("/academic/subject", {
+          ...formData,
+          level: parseInt(formData.level),
+        });
+        toast({
+          title: "Berhasil",
+          description: "Mapel berhasil ditambahkan.",
+        });
+      }
+
       setOpenDialog(false);
-      setSearch(""); // Reset search agar data baru terlihat
-      setFormData({ code: "", name: "", level: "7", kktpType: "interval" }); // Reset
-      fetchSubjects(); // Refresh
-      toast({
-        title: "Berhasil!",
-        description: "Mata pelajaran berhasil ditambahkan.",
-      });
+      setEditingId(null);
+      setFormData({ code: "", name: "", level: "7", kktpType: "interval" });
+      fetchSubjects();
     } catch (error: any) {
       console.error("Gagal simpan mapel", error);
-      const errorMessage =
-        error.response?.data?.message ||
-        "Terjadi kesalahan saat menyimpan mapel.";
-      const validationDetails = error.response?.data?.errors
-        ?.map((e: any) => `- ${e.message}`)
-        .join("\n");
-
       toast({
         variant: "destructive",
         title: "Gagal Simpan",
-        description: (
-          <div className="whitespace-pre-wrap">
-            {errorMessage}
-            {validationDetails && (
-              <>
-                <br />
-                {validationDetails}
-              </>
-            )}
-          </div>
-        ),
+        description: error.response?.data?.message || "Terjadi kesalahan.",
       });
     } finally {
       setSubmitting(false);
     }
+  };
+
+  const handleEdit = (subject: Subject) => {
+    setEditingId(subject._id);
+    setFormData({
+      code: subject.code,
+      name: subject.name,
+      level: subject.level.toString(),
+      kktpType: subject.kktpType,
+    });
+    setOpenDialog(true);
+  };
+
+  const openNewDialog = () => {
+    setEditingId(null);
+    setFormData({ code: "", name: "", level: "7", kktpType: "interval" });
+    setOpenDialog(true);
   };
 
   const filteredSubjects = subjects.filter(
@@ -136,7 +146,7 @@ const MasterSubjectPage = () => {
   );
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-in fade-in">
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h2 className="font-serif text-3xl font-bold tracking-tight text-school-navy">
@@ -149,17 +159,20 @@ const MasterSubjectPage = () => {
 
         <Dialog open={openDialog} onOpenChange={setOpenDialog}>
           <DialogTrigger asChild>
-            <Button className="bg-school-navy hover:bg-school-gold hover:text-school-navy transition-colors font-bold shadow-md">
+            <Button
+              onClick={openNewDialog}
+              className="bg-school-navy hover:bg-school-gold hover:text-school-navy transition-colors font-bold shadow-md"
+            >
               <Plus className="mr-2 h-4 w-4" /> Tambah Mapel
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[500px]">
             <DialogHeader>
               <DialogTitle className="font-serif text-2xl text-school-navy">
-                Tambah Mata Pelajaran
+                {editingId ? "Edit Mata Pelajaran" : "Tambah Mata Pelajaran"}
               </DialogTitle>
               <DialogDescription>
-                Masukan detail mata pelajaran baru untuk kurikulum merdeka.
+                Masukan detail mata pelajaran untuk kurikulum merdeka.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-6 py-4">
@@ -258,7 +271,7 @@ const MasterSubjectPage = () => {
                 {submitting && (
                   <SystemRestart className="mr-2 h-4 w-4 animate-spin" />
                 )}
-                Simpan Data
+                {editingId ? "Simpan Perubahan" : "Simpan Data"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -329,20 +342,40 @@ const MasterSubjectPage = () => {
                     className="hover:bg-slate-50 border-b border-slate-100"
                   >
                     <TableCell className="font-bold text-school-navy">
-                      {subject.code}
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-8 bg-school-gold rounded-full"></div>
+                        {subject.code}
+                      </div>
                     </TableCell>
                     <TableCell className="font-medium text-slate-700">
                       {subject.name}
                     </TableCell>
                     <TableCell>
-                      <span className="px-2 py-1 rounded bg-blue-50 text-blue-700 text-xs font-bold">
+                      <span className="px-2 py-1 rounded bg-blue-50 text-blue-700 text-xs font-bold border border-blue-200">
                         Kelas {subject.level}
                       </span>
                     </TableCell>
                     <TableCell className="capitalize text-slate-600">
-                      {subject.kktpType}
+                      <div className="flex items-center gap-2">
+                        {subject.kktpType === "rubric" ? (
+                          <span className="w-2 h-2 rounded-full bg-purple-500"></span>
+                        ) : (
+                          <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                        )}
+                        {subject.kktpType === "rubric"
+                          ? "Rubrik (Deskripsi)"
+                          : "Interval Nilai"}
+                      </div>
                     </TableCell>
                     <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEdit(subject)}
+                        className="text-slate-500 hover:text-school-navy hover:bg-blue-50 mr-1"
+                      >
+                        Edit
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"

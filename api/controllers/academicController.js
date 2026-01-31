@@ -46,6 +46,23 @@ exports.createSubject = async (req, res) => {
   }
 };
 
+exports.updateSubject = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const updatedSubject = await Subject.findByIdAndUpdate(id, req.body, {
+      new: true,
+    });
+    if (!updatedSubject) {
+      return res.status(404).json({ message: "Mapel tidak ditemukan" });
+    }
+    res.json(updatedSubject);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal update mapel", error: error.message });
+  }
+};
+
 // Guru
 exports.getTeachers = async (req, res) => {
   try {
