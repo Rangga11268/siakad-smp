@@ -152,9 +152,7 @@ const ProfileDropdown = ({
   const getAvatarUrl = (path: string | undefined) => {
     if (!path) return "https://github.com/shadcn.png";
     if (path.startsWith("http")) return path;
-    // Assuming backend is at localhost:5000 based on api.ts
-    // In production, this should be env variable
-    return `http://localhost:5000${path}`;
+    return `http://localhost:5000${path}`; // TODO: Use env var in production
   };
 
   // Form State
