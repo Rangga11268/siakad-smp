@@ -91,8 +91,7 @@ const MasterNewsPage = () => {
   const fetchNews = async () => {
     setLoading(true);
     try {
-      // Use isPublished=false/true filters if needed, or get all usually.
-      // Admin should see all.
+      // Use isPublished=false/true filters if needed, or get all usually. Admin should see all.
       const res = await api.get("/news");
       setNewsList(res.data);
     } catch (error) {
@@ -124,8 +123,7 @@ const MasterNewsPage = () => {
 
   const handleOpenEdit = async (news: News) => {
     setEditingNews(news);
-    // Fetch detail needed? Or just use what we have? Only basics.
-    // Ideally fetch full detail for content.
+    // Fetch detail needed? Or just use what we have? Only basics. Ideally fetch full detail for content.
     try {
       const res = await api.get(`/news/${news._id}`); // Should be slug or ID
       const detail = res.data;

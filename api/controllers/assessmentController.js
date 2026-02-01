@@ -59,8 +59,7 @@ exports.getAssessments = async (req, res) => {
       if (student && student.profile.class) {
         query.classes = student.profile.class;
       } else {
-        // If student has no class, maybe show nothing or all?
-        // Safest: show nothing to avoid leak.
+        // If student has no class, maybe show nothing or all? Safest: show nothing to avoid leak.
         return res.json([]);
       }
     }

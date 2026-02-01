@@ -93,8 +93,7 @@ exports.getStudentSummary = async (req, res) => {
       .json({ message: "Gagal ambil rekap absensi", error: error.message });
   }
 };
-// Absen Mandiri (Siswa)
-// Absen Mandiri (Siswa)
+// Absen Mandiri (Siswa) Absen Mandiri (Siswa)
 exports.recordSelfAttendance = async (req, res) => {
   try {
     const studentId = req.user.id; // From Auth Middleware
@@ -139,9 +138,7 @@ exports.recordSelfAttendance = async (req, res) => {
         .json({ message: "Data kelas Anda belum diatur. Hubungi Admin." });
     }
 
-    // Cari Class ID berdasarkan nama kelas di profile
-    // Note: Schema Attendance butuh Class ID.
-    // Kita cari Class model
+    // Cari Class ID berdasarkan nama kelas di profile Note: Schema Attendance butuh Class ID. Kita cari Class model
     const studentClass = await Class.findOne({
       name: studentUser.profile.class,
     });
@@ -152,8 +149,7 @@ exports.recordSelfAttendance = async (req, res) => {
       });
     }
 
-    // Get Active Academic Year if not provided
-    // Get Active Academic Year if not provided
+    // Get Active Academic Year if not provided Get Active Academic Year if not provided
     let academicYearId = req.body.academicYear;
     if (!academicYearId) {
       const activeYear = await AcademicYear.findOne({ status: "Active" }); // Use top-level require

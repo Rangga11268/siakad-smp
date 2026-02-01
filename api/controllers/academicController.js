@@ -549,8 +549,7 @@ exports.generateReport = async (req, res) => {
       }
     });
 
-    // Susun Kalimat Deskripsi (Logic sederhana)
-    // Jika highest sama dengan lowest (misal cuma 1 TP atau nilai sama rata), sesuaikan kalimat
+    // Susun Kalimat Deskripsi (Logic sederhana) Jika highest sama dengan lowest (misal cuma 1 TP atau nilai sama rata), sesuaikan kalimat
     let description = "";
     if (highestTP === lowestTP) {
       description = `Ananda sudah mencapai kompetensi ${highestTP} dengan baik.`;

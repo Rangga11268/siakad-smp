@@ -73,8 +73,7 @@ exports.getAllRegistrants = async (req, res) => {
   }
 };
 
-// Admin: Update Status (Verify/Accept/Reject)
-// Admin: Update Status (Verify/Accept/Reject)
+// Admin: Update Status (Verify/Accept/Reject) Admin: Update Status (Verify/Accept/Reject)
 exports.updateStatus = async (req, res) => {
   try {
     const { id } = req.params;

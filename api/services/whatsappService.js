@@ -7,8 +7,7 @@ const sendWhatsApp = async (target, message) => {
       return;
     }
 
-    // Ensure phone number format (Fonnte requires 08... or 62...)
-    // If it starts with 08, reasonable.
+    // Ensure phone number format (Fonnte requires 08... or 62...) If it starts with 08, reasonable.
 
     if (!process.env.FONNTE_TOKEN) {
       console.warn("WA Service: No FONNTE_TOKEN in .env");

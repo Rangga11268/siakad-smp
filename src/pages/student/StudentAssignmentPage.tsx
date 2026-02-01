@@ -111,8 +111,7 @@ const StudentAssignmentPage = () => {
         uploadedUrls.push(up.data.url);
       }
 
-      // Combine with existing files if update logic needed in future
-      // Currently backend handles file replacement logic
+      // Combine with existing files if update logic needed in future Currently backend handles file replacement logic
 
       await api.post(`/assessment/${selectedTask.assessment._id}/submit`, {
         text: answerText,

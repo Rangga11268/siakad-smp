@@ -13,8 +13,7 @@ const User = require("../models/User");
 // Admin: Create Bill (Bulk or Single)
 exports.createBill = async (req, res) => {
   try {
-    // targetType: 'student' | 'class' | 'level'
-    // targetValue: studentId | '7A' | '7'
+    // targetType: 'student' | 'class' | 'level' targetValue: studentId | '7A' | '7'
     const { targetType, targetValue, title, amount, dueDate } = req.body;
 
     let students = [];
@@ -95,8 +94,7 @@ exports.createMidtransTransaction = async (req, res) => {
     if (!bill)
       return res.status(404).json({ message: "Tagihan tidak ditemukan" });
 
-    // Generate Order ID if not exists or create new for retry?
-    // Reuse existing order ID if pending, else generate new
+    // Generate Order ID if not exists or create new for retry? Reuse existing order ID if pending, else generate new
     let orderId = bill.midtransOrderId;
     if (!orderId) {
       orderId = `BILL-${bill._id}-${Date.now()}`;

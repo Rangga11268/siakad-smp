@@ -4,8 +4,7 @@ const User = require("../models/User");
 const logger = require("../config/logger");
 
 const startBillingScheduler = () => {
-  // Run regularly (Every 1st of Month at 00:01)
-  // Format: Minute Hour DayMonth Month DayWeek
+  // Run regularly (Every 1st of Month at 00:01) Format: Minute Hour DayMonth Month DayWeek
   cron.schedule("1 0 1 * *", async () => {
     logger.info("⏳ Running Monthly Billing Job...");
     try {

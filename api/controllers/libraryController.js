@@ -153,8 +153,7 @@ exports.borrowBook = async (req, res) => {
     if (book.available < 1)
       return res.status(400).json({ message: "Stok buku habis" });
 
-    // Check active loan
-    // Allow multiple requests? Maybe limit Pending + Borrowed
+    // Check active loan Allow multiple requests? Maybe limit Pending + Borrowed
     const activeLoan = await Loan.findOne({
       student: isStudent ? req.user.id : studentId,
       book: bookId,
