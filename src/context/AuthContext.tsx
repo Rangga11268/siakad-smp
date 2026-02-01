@@ -11,6 +11,22 @@ interface User {
     nisn?: string;
     nip?: string;
     class?: string;
+    address?: string;
+    phone?: string;
+    bio?: string;
+    birthPlace?: string;
+    birthDate?: string;
+    family?: {
+      fatherName?: string;
+      motherName?: string;
+      guardianName?: string;
+      phone?: string;
+    };
+    physical?: {
+      height?: number;
+      weight?: number;
+      bloodType?: string;
+    };
   };
 }
 

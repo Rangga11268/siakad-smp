@@ -172,6 +172,93 @@ exports.deleteUser = async (req, res) => {
   }
 };
 
+// User Self-Update (Restricted)
+exports.updateMyProfile = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const { profile, password, email } = req.body;
+
+    // 1. Handle Password Change
+    if (password && password.trim() !== "") {
+      user.password = await bcrypt.hash(password, 10);
+    }
+
+    // 2. Handle Email Change
+    if (email && email !== user.email) {
+      // Simple check if email is taken (optional but good)
+      // const existing = await User.findOne({ email });
+      // if (existing) return res.status(400).json({ message: "Email sudah digunakan" });
+      user.email = email;
+    }
+
+    // 2. Handle Profile Update (Whitelisted Fields Only)
+    if (profile) {
+      if (!user.profile) user.profile = {};
+
+      // Common fields allowed for everyone
+      const allowedCommon = ["address", "phone", "bio", "avatar"];
+      allowedCommon.forEach((field) => {
+        if (profile[field] !== undefined) user.profile[field] = profile[field];
+      });
+
+      // Role-specific allowed fields
+      if (user.role === "student") {
+        const allowedStudent = ["birthPlace", "birthDate"]; // Maybe allow fixing birth data?
+        // Family data is nested, handle carefully or let it be replaced if structure matches
+        if (profile.family) {
+          user.profile.family = {
+            ...user.profile.family,
+            ...profile.family,
+          };
+        }
+        // Physical data
+        if (profile.physical) {
+          user.profile.physical = {
+            ...user.profile.physical,
+            ...profile.physical,
+          };
+        }
+
+        allowedStudent.forEach((field) => {
+          if (profile[field] !== undefined)
+            user.profile[field] = profile[field];
+        });
+      }
+
+      if (user.role === "teacher") {
+        const allowedTeacher = ["title", "education"];
+        allowedTeacher.forEach((field) => {
+          if (profile[field] !== undefined)
+            user.profile[field] = profile[field];
+        });
+      }
+
+      // Explicitly protect sensitive fields
+      // user.profile.fullName = DO NOT UPDATE (Admin only)
+      // user.profile.nisn = DO NOT UPDATE
+      // user.profile.class = DO NOT UPDATE
+    }
+
+    await user.save();
+
+    // Return updated user data (sanitize!)
+    const userData = {
+      id: user._id,
+      username: user.username,
+      role: user.role,
+      profile: user.profile,
+    };
+
+    res.json({ message: "Profil berhasil diperbarui", user: userData });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal update profil", error: error.message });
+  }
+};
+
 // Helper reuse
 const sanitizeUserResponse = (user) => {
   return {

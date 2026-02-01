@@ -82,10 +82,14 @@ exports.getStudentDashboardStats = async (req, res) => {
     const AcademicYear = require("../models/AcademicYear");
     const activeYear = await AcademicYear.findOne({ status: "active" });
 
+    // FIX: Fetch full user to get profile.class (req.user only has id & role)
+    const user = await User.findById(studentId);
+
     let pendingTasks = 0;
-    if (activeYear) {
+    // Check if user exists, has profile, and has class
+    if (activeYear && user && user.profile && user.profile.class) {
       pendingTasks = await Assessment.countDocuments({
-        classes: req.user.profile.class,
+        classes: user.profile.class,
         academicYear: activeYear._id,
         deadline: { $gte: today, $lte: nextWeek },
       });

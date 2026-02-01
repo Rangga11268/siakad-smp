@@ -43,6 +43,7 @@ import {
   UserBadgeCheck,
   WarningTriangle,
   SystemRestart,
+  EditPencil,
 } from "iconoir-react";
 import { cn } from "@/lib/utils";
 
@@ -127,6 +128,65 @@ const StudentLearningPage = () => {
   const [filesToUpload, setFilesToUpload] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [processingAbsence, setProcessingAbsence] = useState("");
+
+  const [isProfileOpen, setProfileOpen] = useState(false);
+  const [profileData, setProfileData] = useState({
+    username: user?.username || "",
+    avatar: user?.profile?.avatar || "",
+    // Basic
+    address: user?.profile?.address || "",
+    phone: user?.profile?.phone || "",
+    bio: user?.profile?.bio || "",
+    // Student Specific
+    birthPlace: user?.profile?.birthPlace || "",
+    birthDate: user?.profile?.birthDate
+      ? new Date(user.profile.birthDate).toISOString().split("T")[0]
+      : "",
+
+    // Family (Nested would need careful handling, keeping simple for now)
+    fatherName: user?.profile?.family?.fatherName || "",
+    motherName: user?.profile?.family?.motherName || "",
+    phoneParent: user?.profile?.family?.phone || "",
+  });
+
+  const handleUpdateProfile = async () => {
+    try {
+      setSubmitting(true);
+      const payload = {
+        profile: {
+          address: profileData.address,
+          phone: profileData.phone,
+          bio: profileData.bio,
+          birthPlace: profileData.birthPlace,
+          birthDate: profileData.birthDate,
+          family: {
+            fatherName: profileData.fatherName,
+            motherName: profileData.motherName,
+            phone: profileData.phoneParent,
+          },
+        },
+      };
+
+      const res = await api.put("/auth/profile", payload);
+
+      // Update local user context if possible, or just notify
+      toast({
+        title: "Profil Berhasil Diupdate",
+        description: "Perubahan telah disimpan.",
+      });
+      setProfileOpen(false);
+      // Reload page to reflect changes is simplest for now
+      window.location.reload();
+    } catch (err) {
+      toast({
+        title: "Gagal Update",
+        description: "Perubahan gagal disimpan.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const days = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"];
 
@@ -285,8 +345,7 @@ const StudentLearningPage = () => {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700 pb-12">
-      {/* --- HERO BANNER --- */}
-      <div className="relative overflow-hidden rounded-[2rem] bg-school-navy text-white shadow-2xl p-10 md:p-14">
+      <div className="relative overflow-hidden rounded-[2rem] bg-school-navy text-white shadow-2xl p-6 md:p-14">
         <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-gradient-to-br from-school-gold/20 to-transparent rounded-full blur-3xl -mr-40 -mt-40"></div>
         <div className="absolute bottom-0 left-0 w-80 h-80 bg-blue-500/10 rounded-full blur-3xl -ml-20 -mb-20"></div>
 
