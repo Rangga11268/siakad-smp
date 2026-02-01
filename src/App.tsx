@@ -13,6 +13,7 @@ import DashboardPage from "@/pages/dashboard/DashboardPage";
 import MasterSubjectPage from "@/pages/admin/MasterSubjectPage";
 import MasterClassPage from "@/pages/admin/MasterClassPage";
 import MasterStudentPage from "@/pages/admin/MasterStudentPage";
+import StudentDetailPage from "@/pages/admin/StudentDetailPage";
 import MasterTeacherPage from "@/pages/admin/MasterTeacherPage";
 import MasterNewsPage from "./pages/admin/MasterNewsPage";
 import InputGradePage from "@/pages/academic/InputGradePage";
@@ -97,6 +98,10 @@ function App() {
             <Route path="academic/subjects" element={<MasterSubjectPage />} />
             <Route path="academic/classes" element={<MasterClassPage />} />
             <Route path="academic/students" element={<MasterStudentPage />} />
+            <Route
+              path="academic/students/:id"
+              element={<StudentDetailPage />}
+            />
             <Route path="academic/teachers" element={<MasterTeacherPage />} />
             <Route path="academic/attendance" element={<AttendancePage />} />
             <Route path="academic/journal" element={<JournalPage />} />

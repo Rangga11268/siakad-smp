@@ -863,3 +863,75 @@ exports.getMyGrades = async (req, res) => {
       .json({ message: "Gagal mengambil nilai", error: error.message });
   }
 };
+
+exports.getStudentGrades = async (req, res) => {
+  try {
+    const { studentId } = req.params;
+    const { academicYear, semester } = req.query;
+
+    const grades = await Grade.find({ student: studentId }).populate({
+      path: "assessment",
+      match: { academicYear, semester },
+      populate: { path: "subject" },
+    });
+
+    const grouped = {};
+
+    grades.forEach((g) => {
+      if (!g.assessment || !g.assessment.subject) return;
+
+      const subjName = g.assessment.subject.name;
+      const type = g.assessment.type || "assignment";
+
+      if (!grouped[subjName]) {
+        grouped[subjName] = {
+          subject: subjName,
+          assignmentTotal: 0,
+          assignmentCount: 0,
+          examTotal: 0,
+          examCount: 0,
+          totalScore: 0,
+          totalCount: 0,
+          details: [],
+        };
+      }
+
+      grouped[subjName].totalScore += g.score;
+      grouped[subjName].totalCount += 1;
+
+      grouped[subjName].details.push({
+        title: g.assessment.title,
+        type: type,
+        score: g.score,
+        date: g.assessment.createdAt,
+        tpCodes: g.assessment.learningGoals?.map((tp) => tp.code) || [],
+      });
+
+      if (type === "exam") {
+        grouped[subjName].examTotal += g.score;
+        grouped[subjName].examCount += 1;
+      } else {
+        grouped[subjName].assignmentTotal += g.score;
+        grouped[subjName].assignmentCount += 1;
+      }
+    });
+
+    const result = Object.values(grouped).map((item) => ({
+      subject: item.subject,
+      average: Math.round(item.totalScore / item.totalCount),
+      assignmentAvg:
+        item.assignmentCount > 0
+          ? Math.round(item.assignmentTotal / item.assignmentCount)
+          : 0,
+      examAvg:
+        item.examCount > 0 ? Math.round(item.examTotal / item.examCount) : 0,
+      details: item.details,
+    }));
+
+    res.json(result);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal ambil nilai siswa", error: error.message });
+  }
+};

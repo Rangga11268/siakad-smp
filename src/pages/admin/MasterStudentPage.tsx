@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 import api from "@/services/api";
 import {
   Table,
@@ -17,7 +18,6 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import {
@@ -25,10 +25,11 @@ import {
   Search,
   UserPlus,
   Group,
-  Trash,
   GraduationCap,
   SystemRestart,
   EditPencil,
+  FilterList,
+  Eye,
 } from "iconoir-react";
 import {
   Select,
@@ -73,9 +74,13 @@ interface Student {
 }
 
 const MasterStudentPage = () => {
+  const navigate = useNavigate(); // Hook Navigasi
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [classFilter, setClassFilter] = useState("all"); // Filter Kelas
+  const [classes, setClasses] = useState<any[]>([]); // Data Kelas
+
   const [isOpen, setIsOpen] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -111,10 +116,15 @@ const MasterStudentPage = () => {
 
   const { toast } = useToast();
 
-  const fetchStudents = async () => {
+  const fetchData = async () => {
     try {
-      const { data } = await api.get("/academic/students");
-      setStudents(data);
+      setLoading(true);
+      const [studentRes, classRes] = await Promise.all([
+        api.get("/academic/students"),
+        api.get("/academic/class"),
+      ]);
+      setStudents(studentRes.data);
+      setClasses(classRes.data);
     } catch (error) {
       toast({
         variant: "destructive",
@@ -127,7 +137,7 @@ const MasterStudentPage = () => {
   };
 
   useEffect(() => {
-    fetchStudents();
+    fetchData();
   }, []);
 
   const handleOpenDialog = (student?: Student) => {
@@ -211,7 +221,7 @@ const MasterStudentPage = () => {
 
       setIsOpen(false);
       setSearch(""); // Reset filter agar data baru langsung terlihat
-      fetchStudents();
+      fetchData(); // Refresh all
     } catch (error: any) {
       console.error("Submit Error:", error.response?.data);
       const errorMessage =
@@ -241,12 +251,18 @@ const MasterStudentPage = () => {
     }
   };
 
-  const filteredStudents = students.filter((s) =>
-    s.profile?.fullName?.toLowerCase().includes(search.toLowerCase()),
-  );
+  const filteredStudents = students.filter((s) => {
+    const matchesSearch =
+      s.profile?.fullName?.toLowerCase().includes(search.toLowerCase()) ||
+      s.profile?.nisn?.includes(search);
+    const matchesClass =
+      classFilter === "all" || s.profile?.class === classFilter;
+
+    return matchesSearch && matchesClass;
+  });
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-in fade-in">
       <div className="flex flex-col md:flex-row justify-between items-center gap-6">
         <div>
           <h2 className="font-serif text-3xl font-bold tracking-tight text-school-navy">
@@ -649,14 +665,32 @@ const MasterStudentPage = () => {
               <GraduationCap className="w-6 h-6 text-school-gold" />
               Daftar Siswa Aktif
             </CardTitle>
-            <div className="w-full md:w-1/3 relative">
-              <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-              <Input
-                placeholder="Cari siswa berdasarkan nama atau NISN..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 border-slate-200 focus:border-school-gold focus:ring-school-gold bg-slate-50 rounded-full"
-              />
+            <div className="flex flex-1 gap-2 w-full md:w-auto">
+              <div className="w-40">
+                <Select value={classFilter} onValueChange={setClassFilter}>
+                  <SelectTrigger className="bg-slate-50 border-slate-200">
+                    <FilterList className="w-4 h-4 mr-2" />
+                    <SelectValue placeholder="Semua Kelas" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Semua Kelas</SelectItem>
+                    {classes.map((cls: any) => (
+                      <SelectItem key={cls._id} value={cls.name}>
+                        Kelas {cls.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                <Input
+                  placeholder="Cari siswa berdasarkan nama atau NISN..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-9 border-slate-200 focus:border-school-gold focus:ring-school-gold bg-slate-50 rounded-full w-full"
+                />
+              </div>
             </div>
           </div>
         </CardHeader>
@@ -673,7 +707,7 @@ const MasterStudentPage = () => {
                 <TableHead className="text-white font-bold text-center w-[80px]">
                   L/P
                 </TableHead>
-                <TableHead className="text-white font-bold w-[150px]">
+                <TableHead className="text-white font-bold w-[100px]">
                   Kelas
                 </TableHead>
                 <TableHead className="text-white font-bold text-right">
@@ -707,7 +741,7 @@ const MasterStudentPage = () => {
                         Tidak ada data siswa ditemukan.
                       </p>
                       <p className="text-sm">
-                        Silakan tambah siswa baru atau gunakan kata kunci lain.
+                        Silakan tambah siswa baru atau gunakan filter lain.
                       </p>
                     </div>
                   </TableCell>
@@ -741,12 +775,22 @@ const MasterStudentPage = () => {
                     </TableCell>
                     <TableCell className="text-right">
                       <Button
-                        variant="outline"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() =>
+                          navigate(`/dashboard/academic/students/${s._id}`)
+                        }
+                        className="text-slate-500 hover:text-school-navy hover:bg-blue-50 mr-1"
+                      >
+                        <Eye className="w-4 h-4 mr-2" /> Profil
+                      </Button>
+                      <Button
+                        variant="ghost"
                         size="sm"
                         onClick={() => handleOpenDialog(s)}
-                        className="border-school-navy text-school-navy hover:bg-school-navy hover:text-white transition-colors"
+                        className="text-slate-500 hover:text-orange-600 hover:bg-orange-50"
                       >
-                        <EditPencil className="h-3 w-3 mr-2" /> Detail
+                        <EditPencil className="h-4 w-4" />
                       </Button>
                     </TableCell>
                   </TableRow>

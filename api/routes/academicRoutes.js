@@ -154,4 +154,12 @@ router.get(
   academicController.getMyGrades,
 );
 
+// Admin/Teacher: Get Specific Student Grades
+router.get(
+  "/student-grades/:studentId",
+  auth,
+  checkRole(["admin", "teacher"]),
+  academicController.getStudentGrades,
+);
+
 module.exports = router;
