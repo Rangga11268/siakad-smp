@@ -5,11 +5,23 @@ const learningMaterialSchema = new mongoose.Schema(
     title: { type: String, required: true },
     type: {
       type: String,
-      enum: ["Materi", "Tugas", "Latihan", "Lainnya"],
+      enum: ["Materi", "Tugas", "Latihan", "Video", "Lainnya"],
       default: "Materi",
     },
     description: { type: String },
-    fileUrl: { type: String, required: true }, // Path to uploaded file
+
+    // File-based content
+    fileUrl: { type: String }, // Path to uploaded file (optional if using externalUrl)
+
+    // External link content (YouTube, Google Drive, etc.)
+    externalUrl: { type: String },
+
+    // Source type to differentiate content type
+    sourceType: {
+      type: String,
+      enum: ["file", "link", "youtube"],
+      default: "file",
+    },
 
     subject: {
       type: mongoose.Schema.Types.ObjectId,
@@ -30,8 +42,11 @@ const learningMaterialSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "AcademicYear",
     },
+
+    // Optional: View count for analytics
+    viewCount: { type: Number, default: 0 },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 module.exports = mongoose.model("LearningMaterial", learningMaterialSchema);

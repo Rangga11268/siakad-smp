@@ -46,6 +46,13 @@ import {
   SystemRestart,
   EditPencil,
   ScanQrCode,
+  Play,
+  Link as LinkIcon,
+  AppWindow,
+  Eye,
+  BookStack,
+  ClipboardCheck,
+  MediaVideo,
 } from "iconoir-react";
 import { cn } from "@/lib/utils";
 import StudentQRCard from "@/components/student/StudentQRCard";
@@ -88,7 +95,9 @@ interface Material {
   title: string;
   description: string;
   type: string;
-  fileUrl: string;
+  fileUrl?: string;
+  externalUrl?: string;
+  sourceType: string;
   subject: { name: string; _id: string };
   teacher: { profile?: { fullName: string } };
   gradeLevel: number;
@@ -119,6 +128,8 @@ const StudentLearningPage = () => {
   const [todayName, setTodayName] = useState("");
   const [materialSearch, setMaterialSearch] = useState("");
   const [selectedMaterialSubject, setSelectedMaterialSubject] = useState("all");
+  const [selectedMaterialType, setSelectedMaterialType] = useState("all");
+  const [previewMaterial, setPreviewMaterial] = useState<Material | null>(null);
   const [selectedTaskSubject, setSelectedTaskSubject] = useState("all");
   const [selectedTask, setSelectedTask] = useState<{
     assessment: Assessment;
@@ -275,8 +286,33 @@ const StudentLearningPage = () => {
 
   const fetchMaterials = async () => {
     try {
+      const userAny = user as any;
+      const clsName = userAny?.profile?.class || "";
+
+      // Extract grade level robustly
+      let studentGrade = 0;
+      const cleanClass = clsName.toUpperCase().trim();
+
+      // Logic: Check VIII first (longest roman), then VII.
+      // Also check specific numbers.
+      if (cleanClass.includes("VIII") || cleanClass.includes("8")) {
+        studentGrade = 8;
+      } else if (cleanClass.includes("VII") || cleanClass.includes("7")) {
+        studentGrade = 7;
+      } else if (cleanClass.includes("IX") || cleanClass.includes("9")) {
+        studentGrade = 9;
+      }
+
       const res = await api.get("/learning-material");
-      setMaterials(res.data);
+      const allMaterials: Material[] = res.data;
+
+      // Filter materials by student's grade level (if grade is determined)
+      const filteredMaterials =
+        studentGrade > 0
+          ? allMaterials.filter((m) => Number(m.gradeLevel) === studentGrade)
+          : allMaterials;
+
+      setMaterials(filteredMaterials);
     } catch (e) {
       console.error("Materials error", e);
     }
@@ -588,29 +624,30 @@ const StudentLearningPage = () => {
 
         {/* --- MATERIALS TAB --- */}
         <TabsContent value="materials" className="space-y-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
             <h3 className="font-serif text-2xl font-bold text-school-navy flex items-center gap-2">
-              <Page className="w-6 h-6 text-school-gold" /> Bahan Ajar & Modul
+              <BookStack className="w-6 h-6 text-school-gold" /> Bahan Ajar &
+              Modul
             </h3>
-            <div className="relative w-full md:w-96">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <Input
-                placeholder="Cari judul materi atau guru..."
-                className="pl-11 h-12 rounded-2xl bg-white border-slate-200 shadow-sm focus:ring-school-gold transition-all"
-                value={materialSearch}
-                onChange={(e) => setMaterialSearch(e.target.value)}
-              />
-            </div>
-            <div className="w-full md:w-64">
+            <div className="flex flex-wrap gap-3 w-full md:w-auto">
+              <div className="relative flex-1 md:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+                <Input
+                  placeholder="Cari judul materi..."
+                  className="pl-10 h-10 rounded-xl bg-white border-slate-200 shadow-sm"
+                  value={materialSearch}
+                  onChange={(e) => setMaterialSearch(e.target.value)}
+                />
+              </div>
               <Select
                 value={selectedMaterialSubject}
                 onValueChange={setSelectedMaterialSubject}
               >
-                <SelectTrigger className="h-12 rounded-2xl bg-white border-slate-200 shadow-sm focus:ring-school-gold">
-                  <SelectValue placeholder="Semua Mata Pelajaran" />
+                <SelectTrigger className="h-10 w-44 rounded-xl bg-white border-slate-200 shadow-sm">
+                  <SelectValue placeholder="Semua Mapel" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Semua Mata Pelajaran</SelectItem>
+                  <SelectItem value="all">Semua Mapel</SelectItem>
                   {subjects.map((s) => (
                     <SelectItem key={s._id} value={s._id}>
                       {s.name}
@@ -618,10 +655,25 @@ const StudentLearningPage = () => {
                   ))}
                 </SelectContent>
               </Select>
+              <Select
+                value={selectedMaterialType}
+                onValueChange={setSelectedMaterialType}
+              >
+                <SelectTrigger className="h-10 w-36 rounded-xl bg-white border-slate-200 shadow-sm">
+                  <SelectValue placeholder="Semua Tipe" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Semua Tipe</SelectItem>
+                  <SelectItem value="Materi">📘 Materi</SelectItem>
+                  <SelectItem value="Tugas">📝 Tugas</SelectItem>
+                  <SelectItem value="Latihan">📋 Latihan</SelectItem>
+                  <SelectItem value="Video">🎬 Video</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {materials.filter((m) => {
               const matchSearch = m.title
                 .toLowerCase()
@@ -629,10 +681,14 @@ const StudentLearningPage = () => {
               const matchSubject =
                 selectedMaterialSubject === "all" ||
                 m.subject?._id === selectedMaterialSubject;
-              return matchSearch && matchSubject;
+              const matchType =
+                selectedMaterialType === "all" ||
+                m.type === selectedMaterialType;
+              return matchSearch && matchSubject && matchType;
             }).length === 0 ? (
-              <div className="col-span-full py-20 text-center text-slate-400 bg-slate-50 border-2 border-dashed rounded-[2rem]">
-                Tidak ada materi yang ditemukan.
+              <div className="col-span-full py-16 text-center text-slate-400 bg-slate-50 border-2 border-dashed rounded-2xl">
+                <Book className="w-12 h-12 mx-auto mb-3 text-slate-200" />
+                <p className="font-medium">Tidak ada materi yang ditemukan.</p>
               </div>
             ) : (
               materials
@@ -643,71 +699,120 @@ const StudentLearningPage = () => {
                   const matchSubject =
                     selectedMaterialSubject === "all" ||
                     m.subject?._id === selectedMaterialSubject;
-                  return matchSearch && matchSubject;
+                  const matchType =
+                    selectedMaterialType === "all" ||
+                    m.type === selectedMaterialType;
+                  return matchSearch && matchSubject && matchType;
                 })
-                .map((m) => (
-                  <Card
-                    key={m._id}
-                    className="group overflow-hidden border-none shadow-lg hover:shadow-2xl transition-all duration-500 rounded-[2rem] bg-white"
-                  >
-                    <div className="aspect-video bg-slate-100 flex items-center justify-center relative overflow-hidden">
-                      {m.type === "Video" ? (
-                        <div className="bg-red-500/10 p-6 rounded-full">
-                          <VideoCamera className="w-12 h-12 text-red-600" />
+                .map((m) => {
+                  const getGradient = (type: string) => {
+                    switch (type) {
+                      case "Materi":
+                        return "from-emerald-500 to-teal-500";
+                      case "Tugas":
+                        return "from-orange-500 to-amber-500";
+                      case "Latihan":
+                        return "from-purple-500 to-violet-500";
+                      case "Video":
+                        return "from-rose-500 to-pink-500";
+                      default:
+                        return "from-slate-500 to-gray-500";
+                    }
+                  };
+                  const getIcon = (type: string) => {
+                    switch (type) {
+                      case "Materi":
+                        return <Book className="w-5 h-5" />;
+                      case "Tugas":
+                        return <ClipboardCheck className="w-5 h-5" />;
+                      case "Latihan":
+                        return <BookStack className="w-5 h-5" />;
+                      case "Video":
+                        return <MediaVideo className="w-5 h-5" />;
+                      default:
+                        return <Page className="w-5 h-5" />;
+                    }
+                  };
+                  const getSourceIcon = (sourceType: string) => {
+                    switch (sourceType) {
+                      case "youtube":
+                        return <Play className="w-4 h-4 text-red-500" />;
+                      case "link":
+                        return <LinkIcon className="w-4 h-4 text-blue-500" />;
+                      default:
+                        return <Page className="w-4 h-4 text-slate-400" />;
+                    }
+                  };
+                  const getBadgeStyle = (type: string) => {
+                    switch (type) {
+                      case "Materi":
+                        return "bg-emerald-100 text-emerald-700 border-emerald-200";
+                      case "Tugas":
+                        return "bg-orange-100 text-orange-700 border-orange-200";
+                      case "Latihan":
+                        return "bg-purple-100 text-purple-700 border-purple-200";
+                      case "Video":
+                        return "bg-rose-100 text-rose-700 border-rose-200";
+                      default:
+                        return "bg-slate-100 text-slate-700 border-slate-200";
+                    }
+                  };
+
+                  return (
+                    <Card
+                      key={m._id}
+                      className="group overflow-hidden border-none shadow-lg hover:shadow-xl transition-all cursor-pointer bg-white rounded-2xl"
+                      onClick={() => setPreviewMaterial(m)}
+                    >
+                      <div
+                        className={`h-2 bg-gradient-to-r ${getGradient(m.type)}`}
+                      />
+                      <CardHeader className="pb-2">
+                        <div className="flex justify-between items-start">
+                          <Badge
+                            variant="outline"
+                            className={getBadgeStyle(m.type)}
+                          >
+                            {getIcon(m.type)}
+                            <span className="ml-1">{m.type}</span>
+                          </Badge>
+                          {getSourceIcon(m.sourceType)}
                         </div>
-                      ) : (
-                        <div className="bg-blue-500/10 p-6 rounded-full">
-                          <Page className="w-12 h-12 text-blue-600" />
+                        <CardTitle className="font-serif text-lg line-clamp-2 text-school-navy group-hover:text-school-gold transition-colors mt-2">
+                          {m.title}
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent className="pb-4">
+                        <p className="text-sm text-slate-500 line-clamp-2 mb-3">
+                          {m.description ||
+                            "Akses materi pembelajaran dari guru."}
+                        </p>
+                        <div className="flex flex-wrap gap-2 text-xs mb-3">
+                          <Badge variant="secondary">{m.subject?.name}</Badge>
+                          <Badge variant="secondary">
+                            Kelas {m.gradeLevel}
+                          </Badge>
                         </div>
-                      )}
-                      <div className="absolute top-4 right-4">
-                        <Badge className="bg-white/90 backdrop-blur-sm text-school-navy border-none shadow-sm uppercase text-[9px] font-black">
-                          {m.type}
-                        </Badge>
-                      </div>
-                    </div>
-                    <CardHeader className="p-6">
-                      <div className="flex items-center gap-2 mb-2">
-                        <Badge className="bg-school-navy text-white text-[9px] px-2 py-0.5 border-none">
-                          {m.subject?.name}
-                        </Badge>
-                      </div>
-                      <CardTitle className="font-serif text-xl line-clamp-1 text-school-navy group-hover:text-school-gold transition-colors">
-                        {m.title}
-                      </CardTitle>
-                      <p className="text-sm text-slate-500 mt-2 line-clamp-2 leading-relaxed">
-                        {m.description ||
-                          "Akses materi pembelajaran yang diupload oleh guru pengampu."}
-                      </p>
-                    </CardHeader>
-                    <CardContent className="px-6 pb-6 pt-0">
-                      <div className="flex items-center justify-between border-t border-slate-50 pt-4 mt-auto">
-                        <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center font-bold text-[10px] text-slate-500">
-                            {m.teacher?.profile?.fullName?.charAt(0) || "G"}
-                          </div>
-                          <span className="text-xs font-medium text-slate-400">
+                        <div className="flex items-center justify-between border-t pt-3">
+                          <span className="text-xs text-slate-400">
                             {m.teacher?.profile?.fullName || "Guru"}
                           </span>
-                        </div>
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="rounded-full text-school-navy hover:text-school-gold hover:bg-school-gold/5"
-                          asChild
-                        >
-                          <a
-                            href={getFileUrl(m.fileUrl)}
-                            target="_blank"
-                            rel="noopener noreferrer"
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-8 text-xs rounded-lg"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setPreviewMaterial(m);
+                            }}
                           >
-                            <Download className="w-5 h-4" />
-                          </a>
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))
+                            <Eye className="w-3 h-3 mr-1" /> Lihat
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })
             )}
           </div>
         </TabsContent>
@@ -1018,6 +1123,96 @@ const StudentLearningPage = () => {
                 </div>
               )}
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Material Preview Modal */}
+      <Dialog
+        open={!!previewMaterial}
+        onOpenChange={() => setPreviewMaterial(null)}
+      >
+        <DialogContent className="sm:max-w-[750px] max-h-[90vh]">
+          <DialogHeader>
+            <DialogTitle className="font-serif text-xl text-school-navy">
+              {previewMaterial?.title}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            {previewMaterial?.description && (
+              <p className="text-sm text-slate-500 mb-4">
+                {previewMaterial.description}
+              </p>
+            )}
+
+            {previewMaterial?.sourceType === "youtube" &&
+            previewMaterial?.externalUrl ? (
+              <div className="aspect-video rounded-lg overflow-hidden bg-black">
+                <iframe
+                  src={(() => {
+                    const url = previewMaterial.externalUrl;
+                    const match = url.match(
+                      /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/,
+                    );
+                    return match
+                      ? `https://www.youtube.com/embed/${match[1]}`
+                      : "";
+                  })()}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            ) : previewMaterial?.sourceType === "link" &&
+              previewMaterial?.externalUrl ? (
+              <div className="text-center py-8">
+                <LinkIcon className="w-16 h-16 text-blue-500 mx-auto mb-4" />
+                <p className="text-slate-600 mb-4">
+                  Materi ini merupakan tautan eksternal.
+                </p>
+                <a
+                  href={previewMaterial.externalUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button className="bg-blue-600 hover:bg-blue-700">
+                    <AppWindow className="mr-2 h-4 w-4" /> Buka Link
+                  </Button>
+                </a>
+              </div>
+            ) : previewMaterial?.fileUrl ? (
+              <div className="text-center py-8">
+                <Page className="w-16 h-16 text-slate-400 mx-auto mb-4" />
+                <p className="text-slate-600 mb-4">
+                  File: {previewMaterial.fileUrl.split("/").pop()}
+                </p>
+                <a
+                  href={getFileUrl(previewMaterial.fileUrl)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <Button className="bg-school-navy hover:bg-school-gold hover:text-school-navy">
+                    <Download className="mr-2 h-4 w-4" /> Unduh File
+                  </Button>
+                </a>
+              </div>
+            ) : (
+              <div className="text-center py-8 text-slate-400">
+                Tidak ada konten tersedia.
+              </div>
+            )}
+          </div>
+
+          {/* Material Info */}
+          <div className="border-t pt-4 flex flex-wrap gap-2 items-center">
+            <Badge variant="secondary">{previewMaterial?.type}</Badge>
+            <Badge variant="secondary">{previewMaterial?.subject?.name}</Badge>
+            <Badge variant="secondary">
+              Kelas {previewMaterial?.gradeLevel}
+            </Badge>
+            <span className="text-xs text-slate-400 ml-auto">
+              Oleh: {previewMaterial?.teacher?.profile?.fullName}
+            </span>
           </div>
         </DialogContent>
       </Dialog>

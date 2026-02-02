@@ -24,23 +24,46 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB limit
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit (for videos)
 });
 
 // Routes
+
+// Stats (must be before /:id to avoid conflict)
+router.get(
+  "/stats",
+  auth,
+  checkRole(["teacher", "admin"]),
+  learningMaterialController.getMaterialStats,
+);
+
+// Create
 router.post(
   "/",
   auth,
   checkRole(["teacher", "admin"]),
   upload.single("file"),
-  learningMaterialController.uploadMaterial
+  learningMaterialController.uploadMaterial,
 );
-router.get("/", auth, learningMaterialController.getMaterials); // Available to all (Student, Teacher, Admin)
+
+// Read all
+router.get("/", auth, learningMaterialController.getMaterials);
+
+// Update
+router.put(
+  "/:id",
+  auth,
+  checkRole(["teacher", "admin"]),
+  upload.single("file"),
+  learningMaterialController.updateMaterial,
+);
+
+// Delete
 router.delete(
   "/:id",
   auth,
   checkRole(["teacher", "admin"]),
-  learningMaterialController.deleteMaterial
+  learningMaterialController.deleteMaterial,
 );
 
 module.exports = router;
