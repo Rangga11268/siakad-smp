@@ -30,8 +30,7 @@ exports.recordBatchAttendance = async (req, res) => {
       if (scheduleId) {
         filter.schedule = scheduleId;
       } else {
-        // For daily attendance, ensure we target the record WITHOUT schedule
-        // strictly speaking, we want to find the record where schedule/subject does NOT exist
+        // For daily attendance, ensure we target the record WITHOUT schedule. strictly speaking, we want to find the record where schedule/subject does NOT exist
         filter.schedule = { $exists: false };
       }
 

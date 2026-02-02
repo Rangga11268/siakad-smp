@@ -217,14 +217,7 @@ const ProfileDropdown = ({
 
       // 3. Update Real Data & Clear Preview (Switch to Remote URL)
       setFormData((prev) => ({ ...prev, avatar: res.data.url }));
-      // Optional: Give a slight delay or just switch.
-      // Keeping preview until save is also an option, but we want to ensure URL is valid.
-      // Let's keep preview for smooth transition or switch?
-      // Switching is safer to ensure users see what is actually saved.
-      // But clearing it causes a flicker if the image isn't cached yet.
-      // Let's leave avatarPreview active? No, `formData.avatar` should be the truth.
-      // Actually, if we keep avatarPreview, we don't know if upload failed later?
-      // We handle error below.
+      // Optional: Give a slight delay or just switch.. Keeping preview until save is also an option, but we want to ensure URL is valid.. Let's keep preview for smooth transition or switch?. Switching is safer to ensure users see what is actually saved.. But clearing it causes a flicker if the image isn't cached yet.. Let's leave avatarPreview active? No, `formData.avatar` should be the truth.. Actually, if we keep avatarPreview, we don't know if upload failed later?. We handle error below.
 
       toast({
         title: "Foto Terupload",

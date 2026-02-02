@@ -187,9 +187,7 @@ exports.updateMyProfile = async (req, res) => {
 
     // 2. Handle Email Change
     if (email && email !== user.email) {
-      // Simple check if email is taken (optional but good)
-      // const existing = await User.findOne({ email });
-      // if (existing) return res.status(400).json({ message: "Email sudah digunakan" });
+      // Simple check if email is taken (optional but good). const existing = await User.findOne({ email });. if (existing) return res.status(400).json({ message: "Email sudah digunakan" });
       user.email = email;
     }
 
@@ -235,10 +233,7 @@ exports.updateMyProfile = async (req, res) => {
         });
       }
 
-      // Explicitly protect sensitive fields
-      // user.profile.fullName = DO NOT UPDATE (Admin only)
-      // user.profile.nisn = DO NOT UPDATE
-      // user.profile.class = DO NOT UPDATE
+      // Explicitly protect sensitive fields. user.profile.fullName = DO NOT UPDATE (Admin only). user.profile.nisn = DO NOT UPDATE. user.profile.class = DO NOT UPDATE
     }
 
     await user.save();

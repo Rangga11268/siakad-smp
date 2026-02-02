@@ -32,10 +32,7 @@ const attendanceSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-// Compound unique index: prevent duplicate attendance for same student, date, and subject/schedule
-// This allows:
-// - Same student can have multiple attendance records per day (different subjects)
-// - Same student cannot have duplicate attendance for same subject on same day
+// Compound unique index: prevent duplicate attendance for same student, date, and subject/schedule. This allows:. - Same student can have multiple attendance records per day (different subjects). - Same student cannot have duplicate attendance for same subject on same day
 attendanceSchema.index(
   { student: 1, date: 1, schedule: 1 },
   {

@@ -23,12 +23,7 @@ const NewsPage = () => {
     try {
       const params: any = { isPublished: true };
       if (selectedCategory !== "All") params.category = selectedCategory;
-      // In a real app, backend should handle search. For now we might filter here or if backend supports it.
-      // Assuming backend doesn't support search q yet based on my previous code, but let's assume I might add it or filter client side for now if needed.
-      // But newsController.getAllNews used News.find(query).
-      // I'll filter client side for search if the API doesn't support 'search' param yet,
-      // OR I can quickly add search support to the controller.
-      // For now, I'll just fetch by category and filter title client-side for simplicity unless list is huge.
+      // In a real app, backend should handle search. For now we might filter here or if backend supports it.. Assuming backend doesn't support search q yet based on my previous code, but let's assume I might add it or filter client side for now if needed.. But newsController.getAllNews used News.find(query).. I'll filter client side for search if the API doesn't support 'search' param yet,. OR I can quickly add search support to the controller.. For now, I'll just fetch by category and filter title client-side for simplicity unless list is huge.
 
       const res = await api.get("/news", { params });
       let data = res.data;

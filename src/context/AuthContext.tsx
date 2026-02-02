@@ -55,9 +55,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setToken(storedToken);
         // Fetch fresh user data
         try {
-          // Set default header manually here or rely on interceptor if configured (api service usually has interceptor)
-          // Ideally api.interceptors handles this, but let's be safe if possible or assume api service is good.
-          // Note: api service typically reads localStorage token.
+          // Set default header manually here or rely on interceptor if configured (api service usually has interceptor). Ideally api.interceptors handles this, but let's be safe if possible or assume api service is good.. Note: api service typically reads localStorage token.
 
           const res = await api.get("/auth/me");
           // Normalize _id to id

@@ -186,10 +186,7 @@ const DashboardPage = () => {
               currency: "IDR",
               maximumFractionDigits: 0,
             }).format(studentStats.unpaidBills * 500000), // Dummy calculation or fetch real amount?
-            // Better: use count for now or fix backend to send amount. Backend sends 'count' in unpaidBills properly now?
-            // Wait, backend sends countDocuments. Let's just show Count.
-            // "2 Tagihan"
-            // Actually let's just show count.
+            // Better: use count for now or fix backend to send amount. Backend sends 'count' in unpaidBills properly now?. Wait, backend sends countDocuments. Let's just show Count.. "2 Tagihan". Actually let's just show count.
             valueDisplay: `${studentStats.unpaidBills} Tagihan`,
             icon: Wallet,
             desc: "Belum Lunas",

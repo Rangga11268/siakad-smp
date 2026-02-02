@@ -175,12 +175,10 @@ const AttendancePage = () => {
         if (record) {
           initialStatus = record.status;
         } else {
-          // Not recorded yet? Default to Present if Daily is Present
-          // If Daily is Sick, default to Sick (and will be disabled)
+          // Not recorded yet? Default to Present if Daily is Present. If Daily is Sick, default to Sick (and will be disabled)
           if (dailyStatus === "Present" || !dailyStatus) {
             initialStatus = null; // Let user choose (or auto-fill) - Let's keeping it null for 'Belum Absen' visual?
-            // Or better: Auto-fill to "Present" for ease?
-            // User prefers efficiency. Let's auto-fill Present if Daily is Present.
+            // Or better: Auto-fill to "Present" for ease?. User prefers efficiency. Let's auto-fill Present if Daily is Present.
           } else {
             initialStatus = dailyStatus;
           }
@@ -604,9 +602,7 @@ const AttendanceTable = ({
                   dailyStatus !== "Present";
                 const currentStatus = data[student._id]?.status;
 
-                // If inherited, force display valid daily status, else current status
-                // Actually, currentStatus should already be set correctly by fetchSubjectData
-                // But let's ensure visual feedback
+                // If inherited, force display valid daily status, else current status. Actually, currentStatus should already be set correctly by fetchSubjectData. But let's ensure visual feedback
 
                 return (
                   <TableRow key={student._id}>

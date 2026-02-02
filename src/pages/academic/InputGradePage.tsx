@@ -68,13 +68,7 @@ const InputGradePage = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [grades, setGrades] = useState<Record<string, number>>({});
 
-  // Data for New Assessment Removed
-  // const [availableTPs, setAvailableTPs] = useState<LearningGoal[]>([]); removed if only used for create logic?
-  // Wait, fetchTPs is used? Line 124. Used for filtering? No, mainly for creating assessment.
-  // Unless input grade displays TP? No, table just shows Score.
-  // So availableTPs can be removed too?
-  // Cek line 399: availableTPs rendered in Dialog.
-  // Yes, remove availableTPs and create form states.
+  // Data for New Assessment Removed. const [availableTPs, setAvailableTPs] = useState<LearningGoal[]>([]); removed if only used for create logic?. Wait, fetchTPs is used? Line 124. Used for filtering? No, mainly for creating assessment.. Unless input grade displays TP? No, table just shows Score.. So availableTPs can be removed too?. Cek line 399: availableTPs rendered in Dialog.. Yes, remove availableTPs and create form states.
 
   const [loadingOptions, setLoadingOptions] = useState(true);
   const [loadingGrades, setLoadingGrades] = useState(false);
