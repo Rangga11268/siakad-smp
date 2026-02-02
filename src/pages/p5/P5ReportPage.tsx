@@ -129,6 +129,29 @@ const P5ReportPage = () => {
 
       {reportData && (
         <div className="flex flex-col items-center">
+          <style>
+            {`
+              @media print {
+                @page {
+                  size: A4;
+                  margin: 0;
+                }
+                body {
+                  -webkit-print-color-adjust: exact;
+                }
+                .print-container {
+                  width: 100% !important;
+                  height: auto !important;
+                  min-height: 0 !important;
+                  margin: 0 !important;
+                  padding: 15mm !important; /* Increased padding for better look */
+                  box-shadow: none !important;
+                  border: none !important;
+                }
+              }
+            `}
+          </style>
+
           <Button
             onClick={handlePrint}
             className="mb-8 noprint bg-school-gold text-school-navy hover:bg-yellow-500 font-bold px-8 shadow-lg transform hover:-translate-y-1 transition-all"
@@ -136,34 +159,40 @@ const P5ReportPage = () => {
             <Printer className="mr-2 h-5 w-5" /> Cetak PDF Rapor
           </Button>
 
-          {/* REPORT PREVIEW (A4 Styled) */}
+          {/* REPORT PREVIEW (A4 Styled) - Polished & Balanced */}
           <div
             ref={componentRef}
-            className="w-[210mm] min-h-[297mm] bg-white p-[20mm] shadow-lg text-black text-sm leading-relaxed"
+            className="print-container w-[210mm] min-h-[297mm] bg-white px-[15mm] py-[10mm] shadow-lg text-black text-sm leading-tight mx-auto"
             style={{ fontFamily: "Times New Roman, serif" }}
           >
-            <div className="text-center mb-8 border-b-2 border-black pb-4">
-              <h1 className="text-xl font-bold uppercase">
+            {/* Header */}
+            <div className="text-center mb-4 relative">
+              <div className="border-b-[3px] border-black pb-1 mb-0.5" />
+              <div className="border-b border-black mb-2" />
+              <h1 className="text-xl font-bold uppercase tracking-wider">
                 Rapor Projek Penguatan Profil Pelajar Pancasila
               </h1>
               <h2 className="text-lg font-bold">SMP PUTRA BANGSA</h2>
-              <p>Jl. Pendidikan No. 123, Kota Belajar. Telp: (021) 12345678</p>
+              <p className="text-xs italic">
+                Jl. Pendidikan No. 123, Kota Belajar. Telp: (021) 12345678
+              </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            {/* Student Info */}
+            <div className="grid grid-cols-2 gap-6 mb-4 text-xs">
               <div>
                 <table className="w-full">
                   <tbody>
                     <tr>
-                      <td className="font-semibold w-32">Nama Peserta Didik</td>
+                      <td className="font-bold w-28">Nama Siswa</td>
                       <td>: {reportData.student.profile.fullName}</td>
                     </tr>
                     <tr>
-                      <td className="font-semibold">NISN</td>
+                      <td className="font-bold">NISN</td>
                       <td>: {reportData.student.profile.nisn}</td>
                     </tr>
                     <tr>
-                      <td className="font-semibold">Kelas</td>
+                      <td className="font-bold">Kelas</td>
                       <td>: {reportData.student.profile.class}</td>
                     </tr>
                   </tbody>
@@ -173,11 +202,11 @@ const P5ReportPage = () => {
                 <table className="w-full">
                   <tbody>
                     <tr>
-                      <td className="font-semibold w-32">Fase</td>
+                      <td className="font-bold w-24">Fase</td>
                       <td>: D</td>
                     </tr>
                     <tr>
-                      <td className="font-semibold">Tahun Ajaran</td>
+                      <td className="font-bold">Tahun Ajaran</td>
                       <td>
                         : {reportData.project.academicYear || "2024/2025"}
                       </td>
@@ -187,37 +216,39 @@ const P5ReportPage = () => {
               </div>
             </div>
 
-            <div className="mb-6 bg-gray-50 p-4 border rounded">
-              <h3 className="font-bold mb-1">
-                Projek: {reportData.project.title}
+            {/* Project Info */}
+            <div className="mb-4 bg-gray-50 p-3 border border-gray-300 rounded-sm">
+              <h3 className="font-bold mb-1 text-sm uppercase">
+                {reportData.project.title}
               </h3>
-              <p className="mb-2">
+              <p className="mb-2 text-xs">
                 <strong>Tema:</strong> {reportData.project.theme}
               </p>
-              <p className="text-justify italic">
+              <p className="text-justify text-xs leading-relaxed">
                 {reportData.project.description}
               </p>
             </div>
 
-            <table className="w-full border-collapse border border-black mb-6 text-sm">
+            {/* Assessment Table */}
+            <table className="w-full border-collapse border border-black mb-4 text-xs">
               <thead>
-                <tr className="bg-gray-200">
-                  <th className="border border-black p-2 text-left w-1/3">
+                <tr className="bg-gray-100">
+                  <th className="border border-black p-2 text-left w-[40%]">
                     Dimensi / Elemen
                   </th>
                   <th className="border border-black p-2 text-left">
                     Sub-Elemen
                   </th>
-                  <th className="border border-black p-2 text-center w-10">
+                  <th className="border border-black p-1 text-center w-8">
                     BB
                   </th>
-                  <th className="border border-black p-2 text-center w-10">
+                  <th className="border border-black p-1 text-center w-8">
                     MB
                   </th>
-                  <th className="border border-black p-2 text-center w-10">
+                  <th className="border border-black p-1 text-center w-8">
                     BSH
                   </th>
-                  <th className="border border-black p-2 text-center w-10">
+                  <th className="border border-black p-1 text-center w-8">
                     SB
                   </th>
                 </tr>
@@ -229,23 +260,25 @@ const P5ReportPage = () => {
                   )?.score;
                   return (
                     <tr key={target._id}>
-                      <td className="border border-black p-2">
+                      <td className="border border-black p-2 align-top">
                         <div className="font-bold mb-1">{target.dimension}</div>
-                        <div className="pl-2">- {target.element}</div>
+                        <div className="pl-3 text-[11px] text-gray-700 italic">
+                          - {target.element}
+                        </div>
                       </td>
-                      <td className="border border-black p-2">
+                      <td className="border border-black p-2 align-top text-[11px]">
                         {target.subElement}
                       </td>
-                      <td className="border border-black p-2 text-center">
+                      <td className="border border-black p-1 text-center align-middle font-bold text-lg">
                         {score === "BB" ? "✔" : ""}
                       </td>
-                      <td className="border border-black p-2 text-center">
+                      <td className="border border-black p-1 text-center align-middle font-bold text-lg">
                         {score === "MB" ? "✔" : ""}
                       </td>
-                      <td className="border border-black p-2 text-center">
+                      <td className="border border-black p-1 text-center align-middle font-bold text-lg">
                         {score === "BSH" ? "✔" : ""}
                       </td>
-                      <td className="border border-black p-2 text-center">
+                      <td className="border border-black p-1 text-center align-middle font-bold text-lg">
                         {score === "SB" ? "✔" : ""}
                       </td>
                     </tr>
@@ -254,46 +287,54 @@ const P5ReportPage = () => {
               </tbody>
             </table>
 
-            <div className="mb-6">
-              <h4 className="font-bold mb-2">Catatan Proses:</h4>
-              <div className="border border-black p-4 min-h-[100px]">
+            {/* Notes */}
+            <div className="mb-4">
+              <h4 className="font-bold mb-1 text-sm">Catatan Proses:</h4>
+              <div className="border border-black p-2 min-h-[40px] text-xs leading-relaxed">
                 {reportData.assessment.finalNotes || "-"}
               </div>
             </div>
 
+            {/* Legend */}
             <div className="mb-6">
-              <h4 className="font-bold mb-2">Keterangan:</h4>
-              <ul className="list-disc pl-5 text-xs">
+              <h4 className="font-bold mb-1 text-xs uppercase text-gray-600">
+                Keterangan:
+              </h4>
+              <ul className="list-disc pl-5 text-[10px] grid grid-cols-2 gap-x-4 text-gray-700">
                 <li>
-                  <strong>BB</strong>: Belum Berkembang (Siswa masih membutuhkan
-                  bimbingan dalam mengembangkan kemampuan)
+                  <strong>BB (Belum Berkembang)</strong>: Siswa masih
+                  membutuhkan bimbingan dalam mengembangkan kemampuan.
                 </li>
                 <li>
-                  <strong>MB</strong>: Mulai Berkembang (Siswa mulai
-                  mengembangkan kemampuan namun masih butuh bimbingan)
+                  <strong>MB (Mulai Berkembang)</strong>: Siswa mulai
+                  menunjukkan kemampuan sesuai tujuan projek.
                 </li>
                 <li>
-                  <strong>BSH</strong>: Berkembang Sesuai Harapan (Siswa telah
-                  mengembangkan kemampuan hingga tahap ajeg)
+                  <strong>BSH (Berkembang Sesuai Harapan)</strong>: Siswa telah
+                  mengembangkan kemampuan hingga tahap ajeg.
                 </li>
                 <li>
-                  <strong>SB</strong>: Sangat Berkembang (Siswa mengembangkan
-                  kemampuan melampaui harapan)
+                  <strong>SB (Sangat Berkembang)</strong>: Siswa mengembangkan
+                  kemampuan melampaui harapan.
                 </li>
               </ul>
             </div>
 
-            <div className="flex justify-between mt-16 px-8">
+            {/* Signatures - Balanced Layout */}
+            <div className="grid grid-cols-3 gap-4 mt-auto px-2 text-xs">
+              {/* Left: Parent */}
               <div className="text-center">
-                <p>Mengetahui,</p>
-                <p>Orang Tua/Wali</p>
-                <br />
-                <br />
-                <br />
-                <p className="border-t border-black w-40 mx-auto mt-8"></p>
+                <p className="mb-16">
+                  Mengetahui,
+                  <br />
+                  Orang Tua/Wali
+                </p>
+                <p className="border-b border-black w-32 mx-auto"></p>
               </div>
+
+              {/* Center: Facilitator */}
               <div className="text-center">
-                <p>
+                <p className="mb-1">
                   Kota Belajar,{" "}
                   {new Date().toLocaleDateString("id-ID", {
                     day: "numeric",
@@ -301,26 +342,25 @@ const P5ReportPage = () => {
                     year: "numeric",
                   })}
                 </p>
-                <p>Koordinator Projek</p>
-                <br />
-                <br />
-                <br />
-                <p className="font-bold border-t border-black w-40 mx-auto mt-8 underline">
-                  Guru Fasilitator
+                <p className="mb-16">Guru Fasilitator</p>
+                <p className="font-bold border-b border-black w-32 mx-auto">
+                  ( ........................... )
                 </p>
-                <p>NIP. -</p>
+                <p className="mt-1">NIP. -</p>
               </div>
-            </div>
-            <div className="text-center mt-12">
-              <p>Mengetahui,</p>
-              <p>Kepala Sekolah</p>
-              <br />
-              <br />
-              <br />
-              <p className="font-bold border-t border-black w-40 mx-auto mt-8 underline">
-                Kepala Sekolah, M.Pd.
-              </p>
-              <p>NIP. 19800101 200501 1 001</p>
+
+              {/* Right: Principal */}
+              <div className="text-center">
+                <p className="mb-16">
+                  Mengetahui,
+                  <br />
+                  Kepala Sekolah
+                </p>
+                <p className="font-bold border-b border-black w-32 mx-auto">
+                  Kepala Sekolah, M.Pd.
+                </p>
+                <p className="mt-1">NIP. 19800101 200501 1 001</p>
+              </div>
             </div>
           </div>
         </div>
