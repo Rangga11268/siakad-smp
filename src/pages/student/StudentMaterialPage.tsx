@@ -65,7 +65,6 @@ const StudentMaterialPage = () => {
   useEffect(() => {
     if (user) {
       fetchSubjects();
-      fetchMaterials();
     }
   }, [user]);
 
@@ -103,6 +102,11 @@ const StudentMaterialPage = () => {
         params.gradeLevel = studentGrade;
       }
 
+      if (searchQuery) params.search = searchQuery;
+      if (selectedSubject && selectedSubject !== "all")
+        params.subjectId = selectedSubject;
+      if (selectedType && selectedType !== "all") params.type = selectedType;
+
       const res = await api.get("/learning-material", { params });
       setMaterials(res.data);
     } catch (error) {
@@ -112,15 +116,18 @@ const StudentMaterialPage = () => {
     }
   };
 
-  const filteredMaterials = materials.filter((m) => {
-    const matchSubject =
-      selectedSubject === "all" || m.subject?._id === selectedSubject;
-    const matchType = selectedType === "all" || m.type === selectedType;
-    const matchSearch = m.title
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
-    return matchSubject && matchType && matchSearch;
-  });
+  // Trigger fetch on filter change
+  useEffect(() => {
+    if (user) fetchMaterials();
+  }, [user, selectedSubject, selectedType]);
+
+  // Search debounce effect
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (user) fetchMaterials();
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [user, searchQuery]);
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -247,7 +254,7 @@ const StudentMaterialPage = () => {
         <div className="flex items-center justify-center h-64">
           <SystemRestart className="w-8 h-8 animate-spin text-school-gold" />
         </div>
-      ) : filteredMaterials.length === 0 ? (
+      ) : materials.length === 0 ? (
         <Card className="border-none shadow-md">
           <CardContent className="flex flex-col items-center justify-center py-16 text-slate-500">
             <Book className="w-16 h-16 text-slate-200 mb-4" />
@@ -261,7 +268,7 @@ const StudentMaterialPage = () => {
         </Card>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {filteredMaterials.map((m) => (
+          {materials.map((m) => (
             <Card
               key={m._id}
               className="border-none shadow-lg hover:shadow-xl transition-all group overflow-hidden cursor-pointer"

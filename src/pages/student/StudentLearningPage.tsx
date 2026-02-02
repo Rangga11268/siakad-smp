@@ -230,12 +230,7 @@ const StudentLearningPage = () => {
   const fetchInitialData = async () => {
     setLoading(true);
     try {
-      await Promise.all([
-        fetchSchedules(),
-        fetchTasks(),
-        fetchMaterials(),
-        fetchSubjects(),
-      ]);
+      await Promise.all([fetchSchedules(), fetchTasks(), fetchSubjects()]);
     } catch (error) {
       console.error("Failed to load hub data", error);
     } finally {
@@ -314,12 +309,34 @@ const StudentLearningPage = () => {
         params.gradeLevel = studentGrade;
       }
 
+      // Add filters
+      if (materialSearch) params.search = materialSearch;
+      if (selectedMaterialSubject && selectedMaterialSubject !== "all") {
+        params.subjectId = selectedMaterialSubject;
+      }
+      if (selectedMaterialType && selectedMaterialType !== "all") {
+        params.type = selectedMaterialType;
+      }
+
       const res = await api.get("/learning-material", { params });
       setMaterials(res.data);
     } catch (e) {
       console.error("Materials error", e);
     }
   };
+
+  // Trigger fetch on filter change
+  useEffect(() => {
+    if (user) fetchMaterials();
+  }, [user, selectedMaterialSubject, selectedMaterialType]);
+
+  // Trigger fetch on search change (debounce)
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      if (user) fetchMaterials();
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [user, materialSearch]);
 
   const fetchSubjects = async () => {
     try {
@@ -677,145 +694,119 @@ const StudentLearningPage = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {materials.filter((m) => {
-              const matchSearch = m.title
-                .toLowerCase()
-                .includes(materialSearch.toLowerCase());
-              const matchSubject =
-                selectedMaterialSubject === "all" ||
-                m.subject?._id === selectedMaterialSubject;
-              const matchType =
-                selectedMaterialType === "all" ||
-                m.type === selectedMaterialType;
-              return matchSearch && matchSubject && matchType;
-            }).length === 0 ? (
+            {materials.length === 0 ? (
               <div className="col-span-full py-16 text-center text-slate-400 bg-slate-50 border-2 border-dashed rounded-2xl">
                 <Book className="w-12 h-12 mx-auto mb-3 text-slate-200" />
                 <p className="font-medium">Tidak ada materi yang ditemukan.</p>
               </div>
             ) : (
-              materials
-                .filter((m) => {
-                  const matchSearch = m.title
-                    .toLowerCase()
-                    .includes(materialSearch.toLowerCase());
-                  const matchSubject =
-                    selectedMaterialSubject === "all" ||
-                    m.subject?._id === selectedMaterialSubject;
-                  const matchType =
-                    selectedMaterialType === "all" ||
-                    m.type === selectedMaterialType;
-                  return matchSearch && matchSubject && matchType;
-                })
-                .map((m) => {
-                  const getGradient = (type: string) => {
-                    switch (type) {
-                      case "Materi":
-                        return "from-emerald-500 to-teal-500";
-                      case "Tugas":
-                        return "from-orange-500 to-amber-500";
-                      case "Latihan":
-                        return "from-purple-500 to-violet-500";
-                      case "Video":
-                        return "from-rose-500 to-pink-500";
-                      default:
-                        return "from-slate-500 to-gray-500";
-                    }
-                  };
-                  const getIcon = (type: string) => {
-                    switch (type) {
-                      case "Materi":
-                        return <Book className="w-5 h-5" />;
-                      case "Tugas":
-                        return <ClipboardCheck className="w-5 h-5" />;
-                      case "Latihan":
-                        return <BookStack className="w-5 h-5" />;
-                      case "Video":
-                        return <MediaVideo className="w-5 h-5" />;
-                      default:
-                        return <Page className="w-5 h-5" />;
-                    }
-                  };
-                  const getSourceIcon = (sourceType: string) => {
-                    switch (sourceType) {
-                      case "youtube":
-                        return <Play className="w-4 h-4 text-red-500" />;
-                      case "link":
-                        return <LinkIcon className="w-4 h-4 text-blue-500" />;
-                      default:
-                        return <Page className="w-4 h-4 text-slate-400" />;
-                    }
-                  };
-                  const getBadgeStyle = (type: string) => {
-                    switch (type) {
-                      case "Materi":
-                        return "bg-emerald-100 text-emerald-700 border-emerald-200";
-                      case "Tugas":
-                        return "bg-orange-100 text-orange-700 border-orange-200";
-                      case "Latihan":
-                        return "bg-purple-100 text-purple-700 border-purple-200";
-                      case "Video":
-                        return "bg-rose-100 text-rose-700 border-rose-200";
-                      default:
-                        return "bg-slate-100 text-slate-700 border-slate-200";
-                    }
-                  };
+              materials.map((m) => {
+                const getGradient = (type: string) => {
+                  switch (type) {
+                    case "Materi":
+                      return "from-emerald-500 to-teal-500";
+                    case "Tugas":
+                      return "from-orange-500 to-amber-500";
+                    case "Latihan":
+                      return "from-purple-500 to-violet-500";
+                    case "Video":
+                      return "from-rose-500 to-pink-500";
+                    default:
+                      return "from-slate-500 to-gray-500";
+                  }
+                };
+                const getIcon = (type: string) => {
+                  switch (type) {
+                    case "Materi":
+                      return <Book className="w-5 h-5" />;
+                    case "Tugas":
+                      return <ClipboardCheck className="w-5 h-5" />;
+                    case "Latihan":
+                      return <BookStack className="w-5 h-5" />;
+                    case "Video":
+                      return <MediaVideo className="w-5 h-5" />;
+                    default:
+                      return <Page className="w-5 h-5" />;
+                  }
+                };
+                const getSourceIcon = (sourceType: string) => {
+                  switch (sourceType) {
+                    case "youtube":
+                      return <Play className="w-4 h-4 text-red-500" />;
+                    case "link":
+                      return <LinkIcon className="w-4 h-4 text-blue-500" />;
+                    default:
+                      return <Page className="w-4 h-4 text-slate-400" />;
+                  }
+                };
+                const getBadgeStyle = (type: string) => {
+                  switch (type) {
+                    case "Materi":
+                      return "bg-emerald-100 text-emerald-700 border-emerald-200";
+                    case "Tugas":
+                      return "bg-orange-100 text-orange-700 border-orange-200";
+                    case "Latihan":
+                      return "bg-purple-100 text-purple-700 border-purple-200";
+                    case "Video":
+                      return "bg-rose-100 text-rose-700 border-rose-200";
+                    default:
+                      return "bg-slate-100 text-slate-700 border-slate-200";
+                  }
+                };
 
-                  return (
-                    <Card
-                      key={m._id}
-                      className="group overflow-hidden border-none shadow-lg hover:shadow-xl transition-all cursor-pointer bg-white rounded-2xl"
-                      onClick={() => setPreviewMaterial(m)}
-                    >
-                      <div
-                        className={`h-2 bg-gradient-to-r ${getGradient(m.type)}`}
-                      />
-                      <CardHeader className="pb-2">
-                        <div className="flex justify-between items-start">
-                          <Badge
-                            variant="outline"
-                            className={getBadgeStyle(m.type)}
-                          >
-                            {getIcon(m.type)}
-                            <span className="ml-1">{m.type}</span>
-                          </Badge>
-                          {getSourceIcon(m.sourceType)}
-                        </div>
-                        <CardTitle className="font-serif text-lg line-clamp-2 text-school-navy group-hover:text-school-gold transition-colors mt-2">
-                          {m.title}
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent className="pb-4">
-                        <p className="text-sm text-slate-500 line-clamp-2 mb-3">
-                          {m.description ||
-                            "Akses materi pembelajaran dari guru."}
-                        </p>
-                        <div className="flex flex-wrap gap-2 text-xs mb-3">
-                          <Badge variant="secondary">{m.subject?.name}</Badge>
-                          <Badge variant="secondary">
-                            Kelas {m.gradeLevel}
-                          </Badge>
-                        </div>
-                        <div className="flex items-center justify-between border-t pt-3">
-                          <span className="text-xs text-slate-400">
-                            {m.teacher?.profile?.fullName || "Guru"}
-                          </span>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-8 text-xs rounded-lg"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setPreviewMaterial(m);
-                            }}
-                          >
-                            <Eye className="w-3 h-3 mr-1" /> Lihat
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  );
-                })
+                return (
+                  <Card
+                    key={m._id}
+                    className="group overflow-hidden border-none shadow-lg hover:shadow-xl transition-all cursor-pointer bg-white rounded-2xl"
+                    onClick={() => setPreviewMaterial(m)}
+                  >
+                    <div
+                      className={`h-2 bg-gradient-to-r ${getGradient(m.type)}`}
+                    />
+                    <CardHeader className="pb-2">
+                      <div className="flex justify-between items-start">
+                        <Badge
+                          variant="outline"
+                          className={getBadgeStyle(m.type)}
+                        >
+                          {getIcon(m.type)}
+                          <span className="ml-1">{m.type}</span>
+                        </Badge>
+                        {getSourceIcon(m.sourceType)}
+                      </div>
+                      <CardTitle className="font-serif text-lg line-clamp-2 text-school-navy group-hover:text-school-gold transition-colors mt-2">
+                        {m.title}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pb-4">
+                      <p className="text-sm text-slate-500 line-clamp-2 mb-3">
+                        {m.description ||
+                          "Akses materi pembelajaran dari guru."}
+                      </p>
+                      <div className="flex flex-wrap gap-2 text-xs mb-3">
+                        <Badge variant="secondary">{m.subject?.name}</Badge>
+                        <Badge variant="secondary">Kelas {m.gradeLevel}</Badge>
+                      </div>
+                      <div className="flex items-center justify-between border-t pt-3">
+                        <span className="text-xs text-slate-400">
+                          {m.teacher?.profile?.fullName || "Guru"}
+                        </span>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 text-xs rounded-lg"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setPreviewMaterial(m);
+                          }}
+                        >
+                          <Eye className="w-3 h-3 mr-1" /> Lihat
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })
             )}
           </div>
         </TabsContent>
