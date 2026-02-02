@@ -218,9 +218,14 @@ const StudentLearningPage = () => {
     const indoDay = dayNames[d.getDay()];
     setTodayName(indoDay);
     setSelectedDay(indoDay === "Minggu" ? "Senin" : indoDay);
-
-    fetchInitialData();
   }, []);
+
+  // Fetch data when user is ready
+  useEffect(() => {
+    if (user) {
+      fetchInitialData();
+    }
+  }, [user]);
 
   const fetchInitialData = async () => {
     setLoading(true);

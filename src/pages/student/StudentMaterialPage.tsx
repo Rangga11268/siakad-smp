@@ -63,9 +63,11 @@ const StudentMaterialPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   useEffect(() => {
-    fetchSubjects();
-    fetchMaterials();
-  }, []);
+    if (user) {
+      fetchSubjects();
+      fetchMaterials();
+    }
+  }, [user]);
 
   const fetchSubjects = async () => {
     try {
