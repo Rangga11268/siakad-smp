@@ -1,14 +1,18 @@
 const Attendance = require("../models/Attendance");
 const Class = require("../models/Class");
 const User = require("../models/User");
-const Schedule = require("../models/Schedule"); // Fixed import
+const Schedule = require("../models/Schedule");
 const AcademicYear = require("../models/AcademicYear");
 const mongoose = require("mongoose");
+const CryptoJS = require("crypto-js");
 
-// ... (existing code)
+// Secret key for QR Encryption - In production, put this in .env!
+const QR_SECRET_KEY =
+  process.env.QR_SECRET_KEY || "SIAKAD_SECURE_QR_SECRET_LEGENDARY";
+
+// ... (Existing Functions) ...
 
 // Absen Mapel (Siswa/Guru)
-
 exports.recordBatchAttendance = async (req, res) => {
   try {
     const { classId, date, records, academicYearId, scheduleId, subjectId } =
@@ -312,5 +316,135 @@ exports.getAttendanceBySchedule = async (req, res) => {
     res
       .status(500)
       .json({ message: "Gagal ambil histori absensi", error: error.message });
+  }
+};
+
+// ==========================================
+// QR CODE ATTENDANCE SYSTEM
+// ==========================================
+
+exports.getQRToken = async (req, res) => {
+  try {
+    const studentId = req.user.id;
+    // Payload: ID + Timestamp
+    const payload = JSON.stringify({
+      id: studentId,
+      ts: Date.now(),
+    });
+
+    // Encrypt payload
+    const token = CryptoJS.AES.encrypt(payload, QR_SECRET_KEY).toString();
+
+    res.json({ token });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal generate QR Token", error: error.message });
+  }
+};
+
+exports.scanQR = async (req, res) => {
+  try {
+    const { token } = req.body;
+    // const scannerId = req.user.id; // Teacher who scanned
+
+    if (!token)
+      return res.status(400).json({ message: "Token tidak ditemukan" });
+
+    // 1. Decrypt
+    const bytes = CryptoJS.AES.decrypt(token, QR_SECRET_KEY);
+    let decryptedData = "";
+    try {
+      decryptedData = bytes.toString(CryptoJS.enc.Utf8);
+    } catch (e) {
+      return res.status(400).json({ message: "QR Code rusak/tidak valid!" });
+    }
+
+    if (!decryptedData) {
+      return res
+        .status(400)
+        .json({ message: "QR Code tidak valid atau rusak!" });
+    }
+
+    const { id: studentId, ts } = JSON.parse(decryptedData);
+
+    // 2. Validate Timestamp (Max 60 seconds validity)
+    const now = Date.now();
+    const diff = now - ts;
+    const MAX_AGE = 60 * 1000; // 60 seconds tolerance
+
+    if (diff > MAX_AGE) {
+      return res
+        .status(400)
+        .json({ message: "QR Code sudah kadaluarsa. Minta siswa refresh!" });
+    }
+
+    // 3. Check if Student exists
+    const student = await User.findById(studentId).select("username profile");
+    if (!student)
+      return res.status(404).json({ message: "Siswa tidak ditemukan" });
+
+    // 4. Mark Attendance (Regular Daily Attendance)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const existing = await Attendance.findOne({
+      student: studentId,
+      date: {
+        $gte: today,
+        $lt: new Date(today.getTime() + 24 * 60 * 60 * 1000),
+      },
+      schedule: { $exists: false }, // Only check daily attendance
+    });
+
+    if (existing) {
+      // If already Present, just return success (idempotent)
+      return res.json({
+        message: "Siswa sudah absen hari ini.",
+        alreadyPresent: true,
+        student: {
+          name: student.profile.fullName,
+          nisn: student.profile.nisn,
+          class: student.profile.class,
+        },
+      });
+    }
+
+    // Need Class ID & Active Year
+    const studentClass = await Class.findOne({ name: student.profile.class });
+    if (!studentClass)
+      return res.status(400).json({ message: "Kelas siswa tidak valid" });
+
+    // Active Year
+    const activeYear = await AcademicYear.findOne({ status: "Active" });
+    if (!activeYear)
+      return res.status(500).json({ message: "Tidak ada Tahun Ajaran aktif" });
+
+    // Create Attendance
+    const newAttendance = new Attendance({
+      student: studentId,
+      class: studentClass._id,
+      date: new Date(),
+      status: "Present",
+      academicYear: activeYear._id,
+      note: `QR Scan by ${req.user.username}`,
+      recordedBy: req.user.id,
+    });
+
+    await newAttendance.save();
+
+    res.json({
+      message: "Absensi Berhasil!",
+      student: {
+        name: student.profile.fullName,
+        nisn: student.profile.nisn,
+        class: student.profile.class,
+      },
+    });
+  } catch (error) {
+    console.error("QR Scan Error:", error);
+    res
+      .status(500)
+      .json({ message: "Gagal memproses QR Scan", error: error.message });
   }
 };

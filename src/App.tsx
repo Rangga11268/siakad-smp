@@ -48,6 +48,7 @@ import StudentGradePage from "@/pages/student/StudentGradePage";
 import StudentMaterialPage from "@/pages/student/StudentMaterialPage";
 import StudentReportPage from "@/pages/student/StudentReportPage";
 import TeacherMaterialPage from "@/pages/academic/TeacherMaterialPage";
+import AttendanceScannerPage from "@/pages/attendance/AttendanceScannerPage";
 
 import FinanceDashboard from "@/pages/finance/FinanceDashboard";
 import AssetDashboard from "@/pages/assets/AssetDashboard";
@@ -138,6 +139,8 @@ function App() {
             <Route path="finance" element={<FinanceDashboard />} />
             {/* Assets / Sarpras Routes */}
             <Route path="assets" element={<AssetDashboard />} />
+            {/* Scan QR Route */}
+            <Route path="academic/scan" element={<AttendanceScannerPage />} />
             {/* Content Routes */}
             <Route path="content/news" element={<MasterNewsPage />} />{" "}
             {/* News Management */}
@@ -166,8 +169,6 @@ function App() {
             <Route path="student/library" element={<StudentLibraryPage />} />
             <Route path="student/report" element={<StudentReportPage />} />
           </Route>
-
-          {/* <Route path="/" element={<Navigate to="/login" replace />} /> Note: Root is now LandingPage */}
         </Routes>
       </ErrorBoundary>
       <Toaster />

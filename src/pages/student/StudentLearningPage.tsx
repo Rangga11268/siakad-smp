@@ -17,6 +17,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -44,8 +45,10 @@ import {
   WarningTriangle,
   SystemRestart,
   EditPencil,
+  ScanQrCode,
 } from "iconoir-react";
 import { cn } from "@/lib/utils";
+import StudentQRCard from "@/components/student/StudentQRCard";
 
 // --- Interfaces ---
 interface Assessment {
@@ -432,11 +435,31 @@ const StudentLearningPage = () => {
 
         {/* --- SCHEDULE TAB --- */}
         <TabsContent value="schedule" className="space-y-6">
-          <div className="flex justify-between items-center mb-4 px-2">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4 px-2">
             <h3 className="font-serif text-2xl font-bold text-school-navy flex items-center gap-2">
               <Clock className="w-6 h-6 text-school-gold" /> Jadwal Pelajaran
             </h3>
-            <div className="flex gap-1 overflow-x-auto pb-2 -mx-2 px-2 scrollbar-none">
+
+            <div className="flex items-center gap-3 w-full md:w-auto">
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button className="bg-school-navy text-school-gold hover:bg-school-navy/90 font-bold border-2 border-school-gold shadow-lg shadow-school-gold/20 animate-pulse">
+                    <ScanQrCode className="w-5 h-5 mr-2" /> Tampilkan QR Absen
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Absensi QR Code</DialogTitle>
+                  </DialogHeader>
+                  <StudentQRCard />
+                </DialogContent>
+              </Dialog>
+            </div>
+          </div>
+
+          <div className="flex justify-between items-center mb-4 px-2">
+            <div className="hidden md:block"></div>
+            <div className="flex gap-1 overflow-x-auto pb-2 -mx-2 px-2 scrollbar-none w-full md:w-auto">
               {days.map((d) => (
                 <Button
                   key={d}

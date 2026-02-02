@@ -46,4 +46,19 @@ router.get(
   attendanceController.getAttendanceBySchedule,
 );
 
+// QR Code System
+router.get(
+  "/qr-token",
+  auth,
+  checkRole(["student"]),
+  attendanceController.getQRToken,
+);
+
+router.post(
+  "/qr-scan",
+  auth,
+  checkRole(["admin", "teacher"]),
+  attendanceController.scanQR,
+);
+
 module.exports = router;

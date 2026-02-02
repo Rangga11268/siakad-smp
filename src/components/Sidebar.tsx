@@ -20,6 +20,7 @@ import {
   ReportColumns,
   Community,
   Commodity,
+  ScanQrCode,
 } from "iconoir-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -79,6 +80,12 @@ const Sidebar = () => {
           icon: Calendar,
           path: "/dashboard/student/attendance",
           roles: [], // Removed student role
+        },
+        {
+          title: "Scan Absensi QR",
+          icon: ScanQrCode,
+          path: "/dashboard/academic/scan",
+          roles: ["admin", "teacher"],
         },
         {
           title: "Data Siswa",
