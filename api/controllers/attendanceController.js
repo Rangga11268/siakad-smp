@@ -11,31 +11,50 @@ const mongoose = require("mongoose");
 
 exports.recordBatchAttendance = async (req, res) => {
   try {
-    const { classId, date, records, academicYearId } = req.body;
+    const { classId, date, records, academicYearId, scheduleId, subjectId } =
+      req.body;
     // records = [{ studentId, status, note }]
 
     // Pastikan tanggal diset ke midnight untuk konsistensi
     const attendanceDate = new Date(date);
     attendanceDate.setHours(0, 0, 0, 0);
 
-    const bulkOps = records.map((record) => ({
-      updateOne: {
-        filter: {
-          student: record.studentId,
-          date: attendanceDate,
+    const bulkOps = records.map((record) => {
+      // Build filter
+      const filter = {
+        student: record.studentId,
+        date: attendanceDate,
+      };
+
+      // If subject attendance, include schedule (or subject) in filter
+      if (scheduleId) {
+        filter.schedule = scheduleId;
+      } else {
+        // For daily attendance, ensure we target the record WITHOUT schedule
+        // strictly speaking, we want to find the record where schedule/subject does NOT exist
+        filter.schedule = { $exists: false };
+      }
+
+      // Build update payload
+      const updatePayload = {
+        class: classId,
+        academicYear: academicYearId,
+        status: record.status,
+        note: record.note,
+        recordedBy: req.user.id,
+      };
+
+      if (scheduleId) updatePayload.schedule = scheduleId;
+      if (subjectId) updatePayload.subject = subjectId;
+
+      return {
+        updateOne: {
+          filter: filter,
+          update: { $set: updatePayload },
+          upsert: true,
         },
-        update: {
-          $set: {
-            class: classId,
-            academicYear: academicYearId,
-            status: record.status,
-            note: record.note,
-            recordedBy: req.user.id,
-          },
-        },
-        upsert: true,
-      },
-    }));
+      };
+    });
 
     await Attendance.bulkWrite(bulkOps);
 
@@ -50,18 +69,27 @@ exports.recordBatchAttendance = async (req, res) => {
 // Ambil Absensi Kelas pada Tanggal Tertentu
 exports.getDailyAttendance = async (req, res) => {
   try {
-    const { classId, date } = req.query;
+    const { classId, date, scheduleId } = req.query;
 
     const attendanceDate = new Date(date);
     attendanceDate.setHours(0, 0, 0, 0);
     const nextDay = new Date(attendanceDate);
     nextDay.setDate(nextDay.getDate() + 1);
 
-    // Ambil data absensi yg sudah ada
-    const attendanceRecords = await Attendance.find({
+    const filter = {
       class: classId,
       date: { $gte: attendanceDate, $lt: nextDay },
-    });
+    };
+
+    if (scheduleId) {
+      filter.schedule = scheduleId;
+    } else {
+      // By default, get "Daily" attendance (no schedule linked)
+      filter.schedule = { $exists: false };
+    }
+
+    // Ambil data absensi yg sudah ada
+    const attendanceRecords = await Attendance.find(filter);
 
     res.json(attendanceRecords);
   } catch (error) {
@@ -201,11 +229,9 @@ exports.recordSubjectAttendance = async (req, res) => {
 
     // 1. Validasi Hari
     if (schedule.day !== todayName && !date) {
-      return res
-        .status(400)
-        .json({
-          message: `Jadwal ini untuk hari ${schedule.day}, bukan hari ini.`,
-        });
+      return res.status(400).json({
+        message: `Jadwal ini untuk hari ${schedule.day}, bukan hari ini.`,
+      });
     }
 
     // 2. Validasi Waktu (Hanya untuk Siswa)
@@ -223,18 +249,14 @@ exports.recordSubjectAttendance = async (req, res) => {
       endTime.setHours(endHour, endMin, 0, 0);
 
       if (now < startTime) {
-        return res
-          .status(400)
-          .json({
-            message: "Belum waktunya absen. Silahkan tunggu jadwal dimulai.",
-          });
+        return res.status(400).json({
+          message: "Belum waktunya absen. Silahkan tunggu jadwal dimulai.",
+        });
       }
       if (now > endTime) {
-        return res
-          .status(400)
-          .json({
-            message: "Waktu absen untuk mata pelajaran ini sudah berakhir.",
-          });
+        return res.status(400).json({
+          message: "Waktu absen untuk mata pelajaran ini sudah berakhir.",
+        });
       }
     }
 
