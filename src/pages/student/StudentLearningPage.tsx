@@ -303,16 +303,14 @@ const StudentLearningPage = () => {
         studentGrade = 9;
       }
 
-      const res = await api.get("/learning-material");
-      const allMaterials: Material[] = res.data;
+      // If grade is detected, fetch ONLY specific grade materials
+      const params: any = {};
+      if (studentGrade > 0) {
+        params.gradeLevel = studentGrade;
+      }
 
-      // Filter materials by student's grade level (if grade is determined)
-      const filteredMaterials =
-        studentGrade > 0
-          ? allMaterials.filter((m) => Number(m.gradeLevel) === studentGrade)
-          : allMaterials;
-
-      setMaterials(filteredMaterials);
+      const res = await api.get("/learning-material", { params });
+      setMaterials(res.data);
     } catch (e) {
       console.error("Materials error", e);
     }
