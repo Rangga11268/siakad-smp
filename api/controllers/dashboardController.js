@@ -1,6 +1,6 @@
 const User = require("../models/User");
 const StudentIncident = require("../models/StudentIncident");
-const Billing = require("../models/Billing");
+const Bill = require("../models/Bill");
 const Grade = require("../models/Grade");
 
 exports.getDashboardStats = async (req, res) => {
@@ -14,11 +14,11 @@ exports.getDashboardStats = async (req, res) => {
     });
 
     // 3. Tagihan Belum Lunas (Total Nominal)
-    const unpaidBillings = await Billing.aggregate([
-      { $match: { status: "unpaid" } },
+    const unpaidBills = await Bill.aggregate([
+      { $match: { status: { $in: ["pending", "waiting_verification"] } } },
       { $group: { _id: null, total: { $sum: "$amount" } } },
     ]);
-    const totalUnpaid = unpaidBillings.length > 0 ? unpaidBillings[0].total : 0;
+    const totalUnpaid = unpaidBills.length > 0 ? unpaidBills[0].total : 0;
 
     // 4. Rata-rata Nilai (Semester Ini - Asumsi semua data adalah semester aktif untuk MVP)
     const averageGradeData = await Grade.aggregate([
@@ -57,10 +57,10 @@ exports.getStudentDashboardStats = async (req, res) => {
     });
     const attendanceStatus = attendance ? attendance.status : "Belum Absen";
 
-    // 2. Unpaid Bills
-    const unpaidBills = await Billing.countDocuments({
+    // 2. Unpaid Bills (pending or waiting for verification)
+    const unpaidBillCount = await Bill.countDocuments({
       student: studentId,
-      status: "unpaid",
+      status: { $in: ["pending", "waiting_verification"] },
     });
 
     // 3. Announcements (Latest 3)
@@ -97,7 +97,7 @@ exports.getStudentDashboardStats = async (req, res) => {
 
     res.json({
       attendanceStatus,
-      unpaidBills,
+      unpaidBills: unpaidBillCount,
       announcements,
       pendingTasks,
     });
