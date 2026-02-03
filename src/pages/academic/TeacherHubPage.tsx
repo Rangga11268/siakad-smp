@@ -417,6 +417,63 @@ const TeacherHubPage = () => {
             </CardContent>
           </Card>
         </TabsContent>
+
+        {/* Homeroom Tab - Wali Kelas */}
+        {stats?.homeroomClass && (
+          <TabsContent
+            value="homeroom"
+            className="space-y-6 animate-in slide-in-from-bottom-4 duration-500"
+          >
+            <Card className="border-none shadow-lg bg-gradient-to-br from-emerald-50 to-white">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Group className="w-6 h-6 text-emerald-600" />
+                  Dashboard Wali Kelas {stats.homeroomClass}
+                </CardTitle>
+                <CardDescription>
+                  Kelola dan pantau kelas perwalian Anda
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  <div className="p-4 bg-white rounded-xl border border-slate-100 text-center">
+                    <p className="text-2xl font-bold text-school-navy">
+                      {stats.classStudentCount || 0}
+                    </p>
+                    <p className="text-xs text-slate-500">Total Siswa</p>
+                  </div>
+                  <div className="p-4 bg-white rounded-xl border border-slate-100 text-center">
+                    <p className="text-2xl font-bold text-emerald-600">
+                      {stats.classAttendanceRate || 0}%
+                    </p>
+                    <p className="text-xs text-slate-500">Kehadiran</p>
+                  </div>
+                  <div className="p-4 bg-white rounded-xl border border-slate-100 text-center">
+                    <p className="text-2xl font-bold text-amber-600">
+                      {stats.classAvgGrade || 0}
+                    </p>
+                    <p className="text-xs text-slate-500">Rata-rata Nilai</p>
+                  </div>
+                  <div className="p-4 bg-white rounded-xl border border-slate-100 text-center">
+                    <p className="text-2xl font-bold text-purple-600">
+                      {stats.classPendingSubmissions || 0}
+                    </p>
+                    <p className="text-xs text-slate-500">Tugas Pending</p>
+                  </div>
+                </div>
+
+                <Button
+                  size="lg"
+                  className="w-full bg-emerald-600 hover:bg-emerald-700"
+                  onClick={() => navigate("/dashboard/teacher/homeroom")}
+                >
+                  <Group className="w-5 h-5 mr-2" />
+                  Buka Dashboard Wali Kelas Lengkap
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
       </Tabs>
     </div>
   );

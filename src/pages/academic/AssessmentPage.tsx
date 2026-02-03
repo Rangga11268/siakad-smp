@@ -98,6 +98,9 @@ const AssessmentPage = () => {
     deadline: string;
     type: "assignment" | "material";
     learningGoals: string[];
+    status: "draft" | "published";
+    difficulty: "easy" | "medium" | "hard" | "";
+    allowRevision: boolean;
   }>({
     title: "",
     description: "",
@@ -106,6 +109,9 @@ const AssessmentPage = () => {
     deadline: "",
     type: "assignment",
     learningGoals: [],
+    status: "published",
+    difficulty: "",
+    allowRevision: false,
   });
   const [availableTPs, setAvailableTPs] = useState<any[]>([]);
   const [selectedTxFile, setSelectedTxFile] = useState<File | null>(null);
@@ -196,6 +202,9 @@ const AssessmentPage = () => {
       deadline: "",
       type: "assignment",
       learningGoals: [],
+      status: "published",
+      difficulty: "",
+      allowRevision: false,
     });
     setIsDialogOpen(true);
   };
@@ -268,6 +277,9 @@ const AssessmentPage = () => {
         deadline: "",
         type: "assignment",
         learningGoals: [],
+        status: "published",
+        difficulty: "",
+        allowRevision: false,
       });
       setSelectedTxFile(null);
       fetchAssessments();
@@ -676,20 +688,52 @@ const AssessmentPage = () => {
             </div>
           </div>
 
-          <div className="bg-slate-50 p-4 border-t flex justify-end gap-3">
-            <Button
-              variant="outline"
-              onClick={() => setIsDialogOpen(false)}
-              className="border-slate-300"
-            >
-              Batal
-            </Button>
-            <Button
-              onClick={handleSubmit}
-              className="bg-school-navy hover:bg-school-gold hover:text-school-navy text-white px-8 font-bold shadow-lg"
-            >
-              {isEditMode ? "Simpan Perubahan" : "Publikasikan Penugasan"}
-            </Button>
+          <div className="bg-slate-50 p-4 border-t flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <Checkbox
+                id="allowRevision"
+                checked={newForm.allowRevision}
+                onCheckedChange={(checked) =>
+                  setNewForm({ ...newForm, allowRevision: !!checked })
+                }
+              />
+              <Label
+                htmlFor="allowRevision"
+                className="text-xs text-slate-600 cursor-pointer"
+              >
+                Izinkan Revisi
+              </Label>
+            </div>
+            <div className="flex gap-3">
+              <Button
+                variant="outline"
+                onClick={() => setIsDialogOpen(false)}
+                className="border-slate-300"
+              >
+                Batal
+              </Button>
+              {!isEditMode && (
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setNewForm({ ...newForm, status: "draft" });
+                    setTimeout(() => handleSubmit(), 0);
+                  }}
+                  className="border-amber-300 text-amber-700 hover:bg-amber-50"
+                >
+                  Simpan Draf
+                </Button>
+              )}
+              <Button
+                onClick={() => {
+                  setNewForm({ ...newForm, status: "published" });
+                  setTimeout(() => handleSubmit(), 0);
+                }}
+                className="bg-school-navy hover:bg-school-gold hover:text-school-navy text-white px-8 font-bold shadow-lg"
+              >
+                {isEditMode ? "Simpan Perubahan" : "Publikasikan"}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
