@@ -12,6 +12,10 @@ const userSchema = new mongoose.Schema(
     },
     isActive: { type: Boolean, default: true },
 
+    // Homeroom Teacher (Wali Kelas) fields
+    isHomeroomTeacher: { type: Boolean, default: false },
+    homeroomClass: { type: mongoose.Schema.Types.ObjectId, ref: "Class" },
+
     // UU PDP Compliance
     consentGiven: { type: Boolean, default: false }, // Checkbox saat login pertama
     consentDate: { type: Date },

@@ -21,7 +21,12 @@ router.post(
   auth,
   checkRole(["teacher", "admin"]),
   controller.createAssessment,
-  controller.createAssessment,
+);
+router.post(
+  "/:id/duplicate",
+  auth,
+  checkRole(["teacher", "admin"]),
+  controller.duplicateAssessment,
 );
 router.put(
   "/:id",

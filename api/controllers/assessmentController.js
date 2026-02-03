@@ -1,5 +1,6 @@
 const Assessment = require("../models/Assessment");
 const Submission = require("../models/Submission");
+const notificationHelper = require("./notificationController");
 
 // Create Assessment
 exports.createAssessment = async (req, res) => {
@@ -12,6 +13,14 @@ exports.createAssessment = async (req, res) => {
       deadline,
       attachments,
       type,
+      status = "published",
+      publishAt,
+      closedAt,
+      tags,
+      difficulty,
+      estimatedDuration,
+      allowRevision,
+      maxRevisions,
     } = req.body;
 
     // Fetch Active Academic Year
@@ -26,14 +35,42 @@ exports.createAssessment = async (req, res) => {
       description,
       subject,
       classes,
-      teacher: req.user.id, // from auth middleware
+      teacher: req.user.id,
       deadline,
       attachments,
       type,
       academicYear: activeYear._id,
       semester: activeYear.semester,
+      status,
+      publishAt,
+      closedAt,
+      tags,
+      difficulty,
+      estimatedDuration,
+      allowRevision,
+      maxRevisions,
     });
     await assessment.save();
+
+    // Send notification if published
+    if (status === "published" && classes && classes.length > 0) {
+      const typeLabels = {
+        assignment: "Tugas Baru",
+        exam: "Ujian Baru",
+        quiz: "Kuis Baru",
+        project: "Proyek Baru",
+        material: "Materi Baru",
+      };
+      await notificationHelper.sendToClasses(
+        classes,
+        "assignment_new",
+        typeLabels[type] || "Tugas Baru",
+        `${title} - Deadline: ${deadline ? new Date(deadline).toLocaleDateString("id-ID") : "Tidak ada"}`,
+        `/student/hub`,
+        assessment._id,
+      );
+    }
+
     res.status(201).json(assessment);
   } catch (error) {
     res
@@ -244,5 +281,42 @@ exports.deleteAssessment = async (req, res) => {
     res
       .status(500)
       .json({ message: "Gagal hapus tugas", error: error.message });
+  }
+};
+
+// Duplicate Assessment (Template)
+exports.duplicateAssessment = async (req, res) => {
+  try {
+    const original = await Assessment.findById(req.params.id);
+    if (!original) {
+      return res.status(404).json({ message: "Tugas tidak ditemukan" });
+    }
+
+    // Create copy with new ID and draft status
+    const duplicate = new Assessment({
+      title: `${original.title} (Salinan)`,
+      description: original.description,
+      subject: original.subject,
+      classes: original.classes,
+      teacher: req.user.id,
+      type: original.type,
+      academicYear: original.academicYear,
+      semester: original.semester,
+      attachments: original.attachments,
+      status: "draft", // Always start as draft
+      tags: original.tags,
+      difficulty: original.difficulty,
+      estimatedDuration: original.estimatedDuration,
+      allowRevision: original.allowRevision,
+      maxRevisions: original.maxRevisions,
+      learningGoals: original.learningGoals,
+    });
+
+    await duplicate.save();
+    res.status(201).json(duplicate);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal menduplikasi tugas", error: error.message });
   }
 };

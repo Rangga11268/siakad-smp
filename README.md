@@ -80,4 +80,4 @@ Projek ini menggunakan pendekatan desain **Bento-Grid** dan **Glassmorphism** un
 
 ---
 
-_Dikembangkan dengan ❤️ untuk Satya Cendekia oleh Rangga & Team._
+_Dikembangkan dengan ❤️ Oleh Rangga ._

@@ -20,9 +20,32 @@ const SubmissionSchema = new mongoose.Schema(
     submittedAt: { type: Date, default: Date.now },
     status: {
       type: String,
-      enum: ["submitted", "graded", "late"],
+      enum: ["submitted", "graded", "late", "revision_requested"],
       default: "submitted",
     },
+
+    // Rubric-based grading
+    rubricScores: [
+      {
+        criteriaName: { type: String },
+        score: { type: Number },
+        maxScore: { type: Number },
+        feedback: { type: String },
+      },
+    ],
+
+    // Revision history
+    revisionCount: { type: Number, default: 0 },
+    revisions: [
+      {
+        text: { type: String },
+        files: [{ type: String }],
+        driveLink: { type: String },
+        submittedAt: { type: Date },
+        grade: { type: Number },
+        feedback: { type: String },
+      },
+    ],
   },
   { timestamps: true },
 );
