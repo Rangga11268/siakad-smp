@@ -19,6 +19,14 @@ router.get(
   attendanceController.getDailyAttendance,
 );
 
+// Bulk Daily Attendance (Wali Kelas)
+router.post(
+  "/daily/bulk",
+  auth,
+  checkRole(["admin", "teacher"]),
+  attendanceController.recordBatchAttendance,
+);
+
 // Get Stat (Siswa bisa lihat sendiri, Guru/Admin lihat semua)
 router.get("/stats/:studentId", auth, attendanceController.getStudentSummary);
 

@@ -27,6 +27,7 @@ import StudentLibraryPage from "@/pages/student/StudentLibraryPage";
 import StudentLearningPage from "@/pages/student/StudentLearningPage";
 import TeacherHubPage from "@/pages/academic/TeacherHubPage";
 import HomeroomDashboardPage from "@/pages/academic/HomeroomDashboardPage";
+import HomeroomAttendancePage from "@/pages/academic/HomeroomAttendancePage";
 import P5Dashboard from "@/pages/p5/P5Dashboard";
 import P5AssessmentPage from "@/pages/p5/P5AssessmentPage";
 import P5ReportPage from "@/pages/p5/P5ReportPage";
@@ -150,6 +151,10 @@ function App() {
             <Route
               path="teacher/homeroom"
               element={<HomeroomDashboardPage />}
+            />
+            <Route
+              path="teacher/homeroom/attendance"
+              element={<HomeroomAttendancePage />}
             />
             <Route path="academic/assessment" element={<AssessmentPage />} />
             <Route path="academic/grades" element={<InputGradePage />} />

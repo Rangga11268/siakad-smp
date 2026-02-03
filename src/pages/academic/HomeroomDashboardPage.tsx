@@ -25,10 +25,9 @@ import {
   Calendar,
   Book,
   Check,
-  Xmark,
-  UserBadgeCheck,
   Eye,
   SystemRestart,
+  ArrowLeft,
 } from "iconoir-react";
 import api from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
@@ -135,19 +134,37 @@ const HomeroomDashboardPage = () => {
     <div className="space-y-6">
       {/* Header */}
       <div className="bg-school-navy p-6 rounded-3xl text-white shadow-xl">
-        <div className="flex items-center gap-4">
-          <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
-            <Group className="w-8 h-8" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-white hover:bg-white/20 rounded-xl"
+              onClick={() => navigate("/dashboard/teacher/hub")}
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div className="w-14 h-14 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
+              <Group className="w-7 h-7" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold font-serif">
+                Dashboard Wali Kelas {data.class.name}
+              </h1>
+              <p className="text-white/80 text-sm">
+                {data.class.room && `Ruang ${data.class.room} • `}
+                {data.totalStudents} Siswa Terdaftar
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold">
-              Dashboard Wali Kelas {data.class.name}
-            </h1>
-            <p className="text-white/80">
-              {data.class.room && `Ruang ${data.class.room} • `}
-              {data.totalStudents} Siswa
-            </p>
-          </div>
+          <Button
+            variant="outline"
+            className="border-white/30 text-school-gold hover:bg-white hover:text-school-navy"
+            onClick={() => navigate("/dashboard/teacher/homeroom/attendance")}
+          >
+            <Calendar className="w-4 h-4 mr-2" />
+            Input Absensi
+          </Button>
         </div>
       </div>
 
