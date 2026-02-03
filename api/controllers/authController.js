@@ -136,11 +136,28 @@ exports.updateUser = async (req, res) => {
       user.password = await bcrypt.hash(password, 10);
     }
 
-    // Profile Update (Merge)
+    // Profile Update (Merge) - Safely merge only defined values
     if (profile) {
       // Ensure profile object exists
       if (!user.profile) user.profile = {};
-      user.profile = { ...user.profile, ...profile };
+
+      // Filter out undefined values from incoming profile
+      const cleanProfile = Object.fromEntries(
+        Object.entries(profile).filter(([_, value]) => value !== undefined),
+      );
+
+      // Preserve existing nested objects if not provided in update
+      const existingProfile = user.profile.toObject
+        ? user.profile.toObject()
+        : user.profile;
+      user.profile = {
+        ...existingProfile,
+        ...cleanProfile,
+        // Preserve nested objects unless explicitly provided
+        physical: cleanProfile.physical || existingProfile.physical,
+        family: cleanProfile.family || existingProfile.family,
+        mutations: cleanProfile.mutations || existingProfile.mutations,
+      };
     }
 
     await user.save();

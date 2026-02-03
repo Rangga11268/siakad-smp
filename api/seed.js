@@ -102,6 +102,13 @@ const seedData = async () => {
     );
     console.log("✅ Class 7A created");
 
+    // Update teacher to be homeroom teacher
+    await User.findByIdAndUpdate(teacher._id, {
+      isHomeroomTeacher: true,
+      homeroomClass: class7A._id,
+    });
+    console.log("✅ Guru set as Wali Kelas 7A");
+
     // Siswa - Password: siswa123
     const siswaPassword = await bcrypt.hash("siswa123", 10);
     const siswa = await User.findOneAndUpdate(
