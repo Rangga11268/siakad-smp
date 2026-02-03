@@ -224,6 +224,9 @@ const AssessmentPage = () => {
         (item as any).learningGoals?.map((tg: any) =>
           typeof tg === "object" ? tg._id : tg,
         ) || [],
+      status: (item as any).status || "published",
+      difficulty: (item as any).difficulty || "",
+      allowRevision: (item as any).allowRevision || false,
     });
     setIsDialogOpen(true);
   };
