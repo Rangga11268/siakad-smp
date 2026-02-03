@@ -134,7 +134,7 @@ const HomeroomDashboardPage = () => {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="bg-gradient-to-br from-school-navy via-school-primary to-school-gold p-6 rounded-3xl text-white shadow-xl">
+      <div className="bg-school-navy p-6 rounded-3xl text-white shadow-xl">
         <div className="flex items-center gap-4">
           <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-sm">
             <Group className="w-8 h-8" />
@@ -153,7 +153,7 @@ const HomeroomDashboardPage = () => {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card className="border-none shadow-lg bg-gradient-to-br from-blue-50 to-white">
+        <Card className="border-none shadow-lg bg-white">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
@@ -169,7 +169,7 @@ const HomeroomDashboardPage = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-lg bg-gradient-to-br from-emerald-50 to-white">
+        <Card className="border-none shadow-lg bg-white">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
@@ -185,7 +185,7 @@ const HomeroomDashboardPage = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-lg bg-gradient-to-br from-amber-50 to-white">
+        <Card className="border-none shadow-lg bg-white">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
@@ -201,7 +201,7 @@ const HomeroomDashboardPage = () => {
           </CardContent>
         </Card>
 
-        <Card className="border-none shadow-lg bg-gradient-to-br from-purple-50 to-white">
+        <Card className="border-none shadow-lg bg-white">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>

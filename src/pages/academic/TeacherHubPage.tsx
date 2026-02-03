@@ -424,10 +424,10 @@ const TeacherHubPage = () => {
             value="homeroom"
             className="space-y-6 animate-in slide-in-from-bottom-4 duration-500"
           >
-            <Card className="border-none shadow-lg bg-gradient-to-br from-emerald-50 to-white">
+            <Card className="border-none shadow-lg bg-white">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Group className="w-6 h-6 text-emerald-600" />
+                  <Group className="w-6 h-6 text-school-navy" />
                   Dashboard Wali Kelas {stats.homeroomClass}
                 </CardTitle>
                 <CardDescription>
@@ -464,7 +464,7 @@ const TeacherHubPage = () => {
 
                 <Button
                   size="lg"
-                  className="w-full bg-emerald-600 hover:bg-emerald-700"
+                  className="w-full bg-school-navy hover:bg-school-gold hover:text-school-navy"
                   onClick={() => navigate("/dashboard/teacher/homeroom")}
                 >
                   <Group className="w-5 h-5 mr-2" />
