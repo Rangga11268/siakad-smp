@@ -14,6 +14,14 @@ router.post(
 // Get (Public for auth users)
 router.get("/", auth, scheduleController.getSchedules);
 
+// Update (Admin & Teacher)
+router.put(
+  "/:id",
+  auth,
+  checkRole(["admin", "teacher"]),
+  scheduleController.updateSchedule,
+);
+
 // Delete (Admin & Teacher)
 router.delete(
   "/:id",

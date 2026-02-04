@@ -99,6 +99,83 @@ exports.getSchedules = async (req, res) => {
   }
 };
 
+// Update Schedule
+exports.updateSchedule = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      day,
+      startTime,
+      endTime,
+      subject,
+      class: classId,
+      teacher,
+      academicYear,
+      semester,
+    } = req.body;
+
+    // Check for conflicts (excluding current schedule)
+    const teacherClash = await Schedule.findOne({
+      _id: { $ne: id },
+      teacher,
+      day,
+      academicYear,
+      semester,
+      $or: [
+        { startTime: { $lt: endTime, $gte: startTime } },
+        { endTime: { $gt: startTime, $lte: endTime } },
+        { startTime: { $lte: startTime }, endTime: { $gte: endTime } },
+      ],
+    });
+
+    if (teacherClash) {
+      return res.status(400).json({
+        message: "Guru sudah memiliki jadwal di waktu tersebut.",
+      });
+    }
+
+    const classClash = await Schedule.findOne({
+      _id: { $ne: id },
+      class: classId,
+      day,
+      academicYear,
+      semester,
+      $or: [
+        { startTime: { $lt: endTime, $gte: startTime } },
+        { endTime: { $gt: startTime, $lte: endTime } },
+        { startTime: { $lte: startTime }, endTime: { $gte: endTime } },
+      ],
+    });
+
+    if (classClash) {
+      return res.status(400).json({
+        message: "Kelas sudah memiliki jadwal di waktu tersebut.",
+      });
+    }
+
+    const updatedSchedule = await Schedule.findByIdAndUpdate(
+      id,
+      {
+        day,
+        startTime,
+        endTime,
+        subject,
+        class: classId,
+        teacher,
+        academicYear,
+        semester,
+      },
+      { new: true },
+    );
+
+    res.json(updatedSchedule);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Gagal update jadwal", error: error.message });
+  }
+};
+
 // Delete Schedule
 exports.deleteSchedule = async (req, res) => {
   try {

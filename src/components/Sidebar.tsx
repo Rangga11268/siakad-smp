@@ -73,7 +73,7 @@ const Sidebar = () => {
           title: "Jadwal Pelajaran",
           icon: Calendar,
           path: "/dashboard/academic/schedule",
-          roles: ["admin", "teacher"],
+          roles: ["admin"],
         },
         {
           title: "Absensi Pelajaran",
@@ -85,7 +85,7 @@ const Sidebar = () => {
           title: "Scan Absensi QR",
           icon: ScanQrCode,
           path: "/dashboard/academic/scan",
-          roles: ["admin", "teacher"],
+          roles: ["admin"],
         },
         {
           title: "Data Siswa",
@@ -115,19 +115,19 @@ const Sidebar = () => {
           title: "Tujuan Pembelajaran",
           icon: ClipboardCheck,
           path: "/dashboard/academic/learning-goals",
-          roles: ["admin", "teacher"],
+          roles: ["admin"],
         },
         {
           title: "Jurnal Mengajar",
           icon: Journal,
           path: "/dashboard/academic/journal",
-          roles: ["admin", "teacher"],
+          roles: ["admin"],
         },
         {
           title: "Absensi Harian",
           icon: CheckCircle,
           path: "/dashboard/academic/attendance",
-          roles: ["admin", "teacher"],
+          roles: ["admin"],
         },
         {
           title: "Daftar Tugas",
@@ -157,19 +157,19 @@ const Sidebar = () => {
           title: "Bank Asesmen",
           icon: BookStack,
           path: "/dashboard/academic/assessment",
-          roles: ["teacher", "admin"],
+          roles: ["admin"],
         },
         {
           title: "Input Nilai",
           icon: ClipboardCheck,
           path: "/dashboard/academic/grades",
-          roles: ["teacher", "admin"],
+          roles: ["admin"],
         },
         {
           title: "Bahan Ajar (Guru)",
           icon: Book,
           path: "/dashboard/academic/materials",
-          roles: ["admin", "teacher"],
+          roles: ["admin"],
         },
         {
           title: "Bahan Ajar",
@@ -181,7 +181,7 @@ const Sidebar = () => {
           title: "E-Rapor Siswa",
           icon: Printer,
           path: "/dashboard/academic/report",
-          roles: ["admin", "teacher"],
+          roles: ["admin"],
         },
         {
           title: "E-Rapor Saya",

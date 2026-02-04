@@ -17,6 +17,11 @@ import {
   CheckCircle,
   Journal,
   ClipboardCheck,
+  OpenBook,
+  Building,
+  ScanQrCode,
+  Printer,
+  Book,
 } from "iconoir-react";
 import api from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
@@ -151,6 +156,102 @@ const TeacherHubPage = () => {
           </div>
         </CardContent>
       </Card>
+
+      {/* Menu Lengkap Grid */}
+      <h3 className="font-bold text-xl text-school-navy flex items-center gap-2">
+        <Book className="w-6 h-6 text-school-gold" /> Menu Lengkap
+      </h3>
+      <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        {[
+          {
+            title: "Jadwal Pelajaran",
+            icon: Calendar,
+            path: "/dashboard/academic/schedule",
+            color: "text-blue-500",
+            bg: "bg-blue-50",
+          },
+          {
+            title: "Absensi Siswa",
+            icon: CheckCircle,
+            path: "/dashboard/academic/attendance",
+            color: "text-emerald-500",
+            bg: "bg-emerald-50",
+          },
+          {
+            title: "Input Nilai",
+            icon: ClipboardCheck,
+            path: "/dashboard/academic/grades",
+            color: "text-amber-500",
+            bg: "bg-amber-50",
+          },
+          {
+            title: "Bahan Ajar",
+            icon: BookStack,
+            path: "/dashboard/academic/materials",
+            color: "text-purple-500",
+            bg: "bg-purple-50",
+          },
+          {
+            title: "Bank Asesmen",
+            icon: Book,
+            path: "/dashboard/academic/assessment",
+            color: "text-pink-500",
+            bg: "bg-pink-50",
+          },
+          {
+            title: "Tujuan Pembelajaran",
+            icon: CheckCircle,
+            path: "/dashboard/academic/learning-goals",
+            color: "text-cyan-500",
+            bg: "bg-cyan-50",
+          },
+          {
+            title: "Data Siswa",
+            icon: Group,
+            path: "/dashboard/academic/students",
+            color: "text-indigo-500",
+            bg: "bg-indigo-50",
+          },
+          {
+            title: "Scan QR",
+            icon: ScanQrCode,
+            path: "/dashboard/academic/scan",
+            color: "text-slate-500",
+            bg: "bg-slate-50",
+          },
+          {
+            title: "E-Rapor",
+            icon: Printer,
+            path: "/dashboard/academic/report",
+            color: "text-orange-500",
+            bg: "bg-orange-50",
+          },
+          {
+            title: "Jurnal Mengajar",
+            icon: Journal,
+            path: "/dashboard/academic/journal",
+            color: "text-teal-500",
+            bg: "bg-teal-50",
+          },
+        ].map((item, idx) => (
+          <Card
+            key={idx}
+            className="group hover:shadow-md transition-all cursor-pointer border-none shadow-sm bg-white"
+            onClick={() => navigate(item.path)}
+          >
+            <CardContent className="p-4 flex flex-col items-center text-center gap-3">
+              <div
+                className={`p-3 rounded-full ${item.bg} group-hover:scale-110 transition-transform`}
+              >
+                <item.icon className={`w-6 h-6 ${item.color}`} />
+              </div>
+              <span className="font-bold text-school-navy text-sm">
+                {item.title}
+              </span>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
       {/* Main Content Tabs */}
       <Tabs
