@@ -39,6 +39,7 @@ const Sidebar = () => {
 
   // State for collapsible sections
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    "Ruang Guru": true,
     Akademik: true,
     Administrasi: true,
     Lainnya: false,
@@ -61,32 +62,73 @@ const Sidebar = () => {
       ],
     },
     {
-      label: "Akademik",
+      label: "Ruang Guru",
       items: [
         {
-          title: "Ruang Guru",
-          icon: HomeSimpleDoor, // Using HomeSimpleDoor as placeholder or maybe another icon like Presentation
+          title: "Dashboard Guru",
+          icon: HomeSimpleDoor,
           path: "/dashboard/teacher/hub",
           roles: ["teacher", "admin"],
         },
         {
-          title: "Jadwal Pelajaran",
+          title: "Jadwal Mengajar",
           icon: Calendar,
           path: "/dashboard/academic/schedule",
-          roles: ["admin"],
+          roles: ["teacher", "admin"],
         },
         {
-          title: "Absensi Pelajaran",
-          icon: Calendar,
-          path: "/dashboard/student/attendance",
-          roles: [], // Removed student role
+          title: "Absensi Siswa",
+          icon: CheckCircle,
+          path: "/dashboard/academic/attendance",
+          roles: ["teacher", "admin"],
         },
         {
-          title: "Scan Absensi QR",
+          title: "Jurnal Mengajar",
+          icon: Journal,
+          path: "/dashboard/academic/journal",
+          roles: ["teacher", "admin"],
+        },
+        {
+          title: "Input Nilai",
+          icon: ClipboardCheck,
+          path: "/dashboard/academic/grades",
+          roles: ["teacher", "admin"],
+        },
+        {
+          title: "Bahan Ajar",
+          icon: BookStack,
+          path: "/dashboard/academic/materials",
+          roles: ["teacher", "admin"],
+        },
+        {
+          title: "Bank Asesmen",
+          icon: Book,
+          path: "/dashboard/academic/assessment",
+          roles: ["teacher", "admin"],
+        },
+        {
+          title: "Tujuan Pembelajaran",
+          icon: ClipboardCheck,
+          path: "/dashboard/academic/learning-goals",
+          roles: ["teacher", "admin"],
+        },
+        {
+          title: "E-Rapor",
+          icon: Printer,
+          path: "/dashboard/academic/report",
+          roles: ["teacher", "admin"],
+        },
+        {
+          title: "Scan QR",
           icon: ScanQrCode,
           path: "/dashboard/academic/scan",
-          roles: ["admin"],
+          roles: ["teacher", "admin"],
         },
+      ],
+    },
+    {
+      label: "Akademik",
+      items: [
         {
           title: "Data Siswa",
           icon: Group,
@@ -112,39 +154,21 @@ const Sidebar = () => {
           roles: ["admin"],
         },
         {
-          title: "Tujuan Pembelajaran",
-          icon: ClipboardCheck,
-          path: "/dashboard/academic/learning-goals",
-          roles: ["admin"],
-        },
-        {
-          title: "Jurnal Mengajar",
-          icon: Journal,
-          path: "/dashboard/academic/journal",
-          roles: ["admin"],
-        },
-        {
-          title: "Absensi Harian",
-          icon: CheckCircle,
-          path: "/dashboard/academic/attendance",
-          roles: ["admin"],
+          title: "Absensi Pelajaran",
+          icon: Calendar,
+          path: "/dashboard/student/attendance",
+          roles: [],
         },
         {
           title: "Daftar Tugas",
           icon: BookStack,
           path: "/dashboard/student/assignments",
-          roles: [], // Removed student role
+          roles: [],
         },
         {
           title: "Ruang Belajar",
           icon: Book,
           path: "/dashboard/student/hub",
-          roles: ["student"],
-        },
-        {
-          title: "Perpustakaan",
-          icon: BookStack,
-          path: "/dashboard/student/library",
           roles: ["student"],
         },
         {
@@ -154,34 +178,10 @@ const Sidebar = () => {
           roles: ["student"],
         },
         {
-          title: "Bank Asesmen",
-          icon: BookStack,
-          path: "/dashboard/academic/assessment",
-          roles: ["admin"],
-        },
-        {
-          title: "Input Nilai",
-          icon: ClipboardCheck,
-          path: "/dashboard/academic/grades",
-          roles: ["admin"],
-        },
-        {
-          title: "Bahan Ajar (Guru)",
-          icon: Book,
-          path: "/dashboard/academic/materials",
-          roles: ["admin"],
-        },
-        {
-          title: "Bahan Ajar",
+          title: "Bahan Ajar (Siswa)",
           icon: Book,
           path: "/dashboard/student/materials",
-          roles: [], // Removed student role
-        },
-        {
-          title: "E-Rapor Siswa",
-          icon: Printer,
-          path: "/dashboard/academic/report",
-          roles: ["admin"],
+          roles: [],
         },
         {
           title: "E-Rapor Saya",

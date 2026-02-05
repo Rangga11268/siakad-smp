@@ -30,7 +30,7 @@ import {
   ArrowLeft,
 } from "iconoir-react";
 import api from "@/services/api";
-import { useAuth } from "@/context/AuthContext";
+import HomeroomAttendanceSummary from "./components/HomeroomAttendanceSummary";
 
 interface Student {
   _id: string;
@@ -65,10 +65,14 @@ interface DashboardData {
   };
   avgGrade: number;
   recentAssessments: any[];
+  studentWarnings: {
+    _id: string;
+    name: string;
+    issue: string;
+  }[];
 }
 
 const HomeroomDashboardPage = () => {
-  const { user } = useAuth();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState<DashboardData | null>(null);
@@ -334,6 +338,48 @@ const HomeroomDashboardPage = () => {
                   ))}
                 </div>
               )}
+              <div className="mt-6 space-y-2">
+                <h4 className="font-bold text-sm text-school-navy mb-3">
+                  Peringatan Siswa Hari Ini
+                </h4>
+                {data.studentWarnings && data.studentWarnings.length > 0 ? (
+                  data.studentWarnings.map((warning) => (
+                    <div
+                      key={warning._id}
+                      className="flex items-center justify-between p-3 bg-red-50 border border-red-100 rounded-xl animate-in fade-in slide-in-from-bottom-2"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+                        <div>
+                          <p className="text-sm font-bold text-red-700">
+                            {warning.name}
+                          </p>
+                          <p className="text-xs text-red-500">
+                            {warning.issue}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 text-xs border-red-200 text-red-700 hover:bg-red-100"
+                        onClick={() =>
+                          navigate("/dashboard/teacher/homeroom/attendance")
+                        }
+                      >
+                        Cek Absensi
+                      </Button>
+                    </div>
+                  ))
+                ) : (
+                  <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-xl flex items-center gap-3 text-emerald-700">
+                    <Check className="w-5 h-5 text-emerald-600" />
+                    <span className="text-sm font-medium">
+                      Semua siswa aman terkendali hari ini!
+                    </span>
+                  </div>
+                )}
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
@@ -417,9 +463,9 @@ const HomeroomDashboardPage = () => {
               <CardDescription>Data kehadiran bulan ini</CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-center text-slate-400 py-8">
-                Fitur rekap absensi detail akan segera hadir
-              </p>
+              <CardContent>
+                {activeTab === "attendance" && <HomeroomAttendanceSummary />}
+              </CardContent>
             </CardContent>
           </Card>
         </TabsContent>

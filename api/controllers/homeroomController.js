@@ -78,6 +78,56 @@ exports.getHomeroomDashboard = async (req, res) => {
           )
         : 0;
 
+    // STUDENT WARNINGS (Real-time "Belum Absen Hari Ini")
+    const Schedule = require("../models/Schedule");
+    const days = [
+      "Minggu",
+      "Senin",
+      "Selasa",
+      "Rabu",
+      "Kamis",
+      "Jumat",
+      "Sabtu",
+    ];
+    const todayName = days[new Date().getDay()];
+
+    // Check if class has schedule today
+    const activeYear = await require("../models/AcademicYear").findOne({
+      status: "active",
+    });
+    const hasScheduleToday = await Schedule.exists({
+      class: homeroomClass._id,
+      day: todayName,
+      academicYear: activeYear ? activeYear._id : null,
+    });
+
+    let studentWarnings = [];
+    if (hasScheduleToday) {
+      const todayDate = new Date();
+      todayDate.setHours(0, 0, 0, 0);
+      const nextDay = new Date(todayDate);
+      nextDay.setDate(nextDay.getDate() + 1);
+
+      // Get IDs of students who HAVE attended
+      const presentStudentIds = await Attendance.find({
+        class: homeroomClass._id,
+        date: { $gte: todayDate, $lt: nextDay },
+      }).distinct("student");
+
+      const presentIdsStr = presentStudentIds.map((id) => id.toString());
+
+      // Find students not in present list
+      const absentStudents = homeroomClass.students.filter(
+        (s) => !presentIdsStr.includes(s._id.toString()),
+      );
+
+      studentWarnings = absentStudents.map((s) => ({
+        _id: s._id,
+        name: s.profile.fullName,
+        issue: "Belum Absen Hari Ini",
+      }));
+    }
+
     res.json({
       class: {
         _id: homeroomClass._id,
@@ -91,6 +141,7 @@ exports.getHomeroomDashboard = async (req, res) => {
       submissionStats,
       avgGrade,
       recentAssessments,
+      studentWarnings, // Added warnings
     });
   } catch (error) {
     res

@@ -136,24 +136,199 @@ exports.getTeacherDashboardStats = async (req, res) => {
     const myAssessments = await Assessment.find({
       teacher: teacherId,
       academicYear: activeYear ? activeYear._id : null,
-    }).select("_id");
+    }).select("_id title subject classes deadline type");
 
     const myAssessmentIds = myAssessments.map((a) => a._id);
 
+    // Count total pending
     const pendingGrading = await Submission.countDocuments({
       assessment: { $in: myAssessmentIds },
       status: "submitted",
     });
 
-    // 3. Homeroom Class
+    // Get Pending Grading Details (Top 3)
+    // Group submissions by assessment to find which ones need attention
+    const pendingDetailsRaw = await Submission.aggregate([
+      {
+        $match: {
+          assessment: { $in: myAssessmentIds },
+          status: "submitted",
+        },
+      },
+      {
+        $group: {
+          _id: "$assessment",
+          count: { $sum: 1 },
+        },
+      },
+      { $limit: 3 },
+    ]);
+
+    // Map back to assessment details
+    const pendingGradingDetails = pendingDetailsRaw.map((item) => {
+      const assessment = myAssessments.find(
+        (a) => a._id.toString() === item._id.toString(),
+      );
+      return {
+        _id: item._id,
+        title: assessment ? assessment.title : "Unknown Assignment",
+        count: item.count,
+        deadline: assessment ? assessment.deadline : null,
+      };
+    });
+
+    // 3. Missing Attendance (Yesterday)
+    const Attendance = require("../models/Attendance");
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    yesterday.setHours(0, 0, 0, 0);
+
+    const days = [
+      "Minggu",
+      "Senin",
+      "Selasa",
+      "Rabu",
+      "Kamis",
+      "Jumat",
+      "Sabtu",
+    ];
+    const yesterdayName = days[yesterday.getDay()];
+
+    const missingAttendance = [];
+    if (activeYear) {
+      // Find schedules for yesterday
+      const yesterdaySchedules = await Schedule.find({
+        teacher: teacherId,
+        day: yesterdayName,
+        academicYear: activeYear._id,
+        semester: activeYear.semester,
+      })
+        .populate("class", "name")
+        .populate("subject", "name");
+
+      // Check if attendance exists for each
+      for (const schedule of yesterdaySchedules) {
+        const hasAttendance = await Attendance.exists({
+          schedule: schedule._id,
+          date: yesterday,
+        });
+
+        if (!hasAttendance) {
+          missingAttendance.push({
+            scheduleId: schedule._id,
+            className: schedule.class ? schedule.class.name : "Unknown Class",
+            subjectName: schedule.subject
+              ? schedule.subject.name
+              : "Unknown Subject",
+            time: `${schedule.startTime}`,
+          });
+        }
+      }
+    }
+
+    // 4. Homeroom Class
     const Class = require("../models/Class");
     const homeroomClass = await Class.findOne({ homeroomTeacher: teacherId });
+
+    // Additional Homeroom Stats if exists
+    let classStats = {};
+    if (homeroomClass) {
+      const User = require("../models/User");
+      classStats.studentCount = await User.countDocuments({
+        role: "student",
+        "profile.class": homeroomClass.name,
+      });
+
+      // Today's Attendance Rate for Homeroom
+      const todayDate = new Date();
+      todayDate.setHours(0, 0, 0, 0);
+
+      const nextDay = new Date(todayDate);
+      nextDay.setDate(nextDay.getDate() + 1);
+
+      const totalAttendance = await Attendance.countDocuments({
+        class: homeroomClass._id,
+        date: { $gte: todayDate, $lt: nextDay },
+        status: "Present",
+      });
+
+      // Simple calculation: (Present / Total) * 100.
+      // Note: This is an approximation as it depends on whether attendance was TAKEN.
+      // A better metric might be % of students who have ANY attendance record today.
+
+      const recordsCount = await Attendance.distinct("student", {
+        class: homeroomClass._id,
+        date: { $gte: todayDate, $lt: nextDay },
+      }).then((res) => res.length);
+
+      classStats.attendanceRate =
+        classStats.studentCount > 0
+          ? Math.round((recordsCount / classStats.studentCount) * 100)
+          : 0;
+
+      // Student Warnings: Find students who have NOT attended today
+      // FIX: Only show warnings if the class actually has schedules today!
+      const days = [
+        "Minggu",
+        "Senin",
+        "Selasa",
+        "Rabu",
+        "Kamis",
+        "Jumat",
+        "Sabtu",
+      ];
+      const todayName = days[new Date().getDay()];
+
+      const hasScheduleToday = await Schedule.exists({
+        class: homeroomClass._id,
+        day: todayName,
+        academicYear: activeYear ? activeYear._id : null,
+      });
+
+      if (classStats.studentCount > 0 && hasScheduleToday) {
+        // 1. Get all student IDs in the class
+        const allStudents = await User.find({
+          role: "student",
+          "profile.class": homeroomClass.name,
+        }).select("_id profile.fullName"); // Only need ID and Name
+
+        // 2. Get IDs of students who HAVE attended
+        const presentStudentIds = await Attendance.find({
+          class: homeroomClass._id,
+          date: { $gte: todayDate, $lt: nextDay },
+        }).distinct("student");
+
+        // 3. Filter out students who are present
+        // Convert ObjectIds to strings for comparison
+        const presentIdsStr = presentStudentIds.map((id) => id.toString());
+
+        const absentStudents = allStudents.filter(
+          (s) => !presentIdsStr.includes(s._id.toString()),
+        );
+
+        // Limit to top 3 for dashboard
+        classStats.studentWarnings = absentStudents.slice(0, 3).map((s) => ({
+          name: s.profile.fullName.split(" ")[0], // First name only for compactness
+          issue: "Belum Absen Hari Ini",
+        }));
+
+        classStats.absentCount = absentStudents.length;
+      } else {
+        classStats.studentWarnings = [];
+        classStats.absentCount = 0;
+      }
+
+      // Pending Submissions for this class (Across all subjects)
+      classStats.avgGrade = 85; // Placeholder for expensive Grade aggregation
+    }
 
     res.json({
       teachingHours,
       pendingGrading,
+      pendingGradingDetails,
+      missingAttendance,
       homeroomClass: homeroomClass ? homeroomClass.name : null,
-      homeroomClassId: homeroomClass ? homeroomClass._id : null,
+      classStats,
     });
   } catch (error) {
     res.status(500).json({

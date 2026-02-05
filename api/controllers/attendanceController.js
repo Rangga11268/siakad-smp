@@ -237,7 +237,24 @@ exports.recordSubjectAttendance = async (req, res) => {
       });
     }
 
-    // 2. Validasi Waktu (Hanya untuk Siswa)
+    // 2. Security Check: Pastikan Siswa Benar-benar dari Kelas Tersebut
+    const studentUser = await User.findById(studentId).select("profile.class");
+    const studentClassName = studentUser?.profile?.class;
+
+    // We need to compare Schedule Class Name vs Student Profile Class Name
+    // Schedule stores 'class' as ObjectId. We need to fetch the Class doc or populate it.
+    // We already populated 'subject', let's stick to simple comparison if possible or fetch Class.
+
+    // Better: Fetch class details of the schedule
+    const scheduleClass = await Class.findById(schedule.class);
+
+    if (!scheduleClass || scheduleClass.name !== studentClassName) {
+      return res.status(403).json({
+        message: "Anda tidak terdaftar di kelas ini! Jangan nakal ya. 👮‍♂️",
+      });
+    }
+
+    // 3. Validasi Waktu (Hanya untuk Siswa)
     if (req.user.role === "student") {
       const now = new Date();
       const [startHour, startMin] = schedule.startTime.split(":").map(Number);
