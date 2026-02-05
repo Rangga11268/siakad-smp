@@ -339,7 +339,8 @@ const InputGradePage = () => {
             </Button>
           </CardHeader>
           <CardContent className="p-0">
-            <div className="max-h-[600px] overflow-y-auto">
+            {/* Desktop Table View */}
+            <div className="hidden md:block max-h-[600px] overflow-y-auto">
               <Table>
                 <TableHeader className="bg-school-navy sticky top-0 z-10">
                   <TableRow className="hover:bg-school-navy">
@@ -416,6 +417,68 @@ const InputGradePage = () => {
                   )}
                 </TableBody>
               </Table>
+            </div>
+
+            {/* Mobile Card View */}
+            <div className="md:hidden space-y-4 p-4">
+              {loadingGrades ? (
+                <div className="text-center py-10 text-slate-400">
+                  <SystemRestart className="h-8 w-8 animate-spin mx-auto mb-2" />
+                  <p>Memuat data...</p>
+                </div>
+              ) : students.length === 0 ? (
+                <div className="text-center py-12 px-4 border-2 border-dashed border-slate-200 rounded-xl bg-slate-50/50">
+                  <div className="bg-white p-3 rounded-full w-fit mx-auto shadow-sm mb-3">
+                    <BookStack className="w-6 h-6 text-slate-400" />
+                  </div>
+                  <p className="font-medium text-slate-700">
+                    Kelas masih kosong
+                  </p>
+                  <p className="text-sm text-slate-400 mb-4">
+                    Belum ada siswa yang terdaftar di kelas ink.
+                  </p>
+                </div>
+              ) : (
+                students.map((student, index) => (
+                  <div
+                    key={student._id}
+                    className="bg-white border text-left border-slate-100 rounded-xl p-4 shadow-sm flex items-center justify-between"
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] h-5 bg-slate-50 text-slate-500 border-slate-200"
+                        >
+                          #{index + 1}
+                        </Badge>
+                        <span className="text-xs text-slate-400">
+                          {student.profile?.nisn}
+                        </span>
+                      </div>
+                      <p className="font-bold text-school-navy text-sm line-clamp-1">
+                        {student.profile?.fullName}
+                      </p>
+                    </div>
+                    <div className="w-20">
+                      <Input
+                        type="number"
+                        min="0"
+                        max="100"
+                        className="text-center font-bold text-lg border-slate-200 focus:border-school-gold bg-slate-50"
+                        placeholder="0"
+                        value={grades[student._id] ?? ""}
+                        onChange={(e) =>
+                          setGrades({
+                            ...grades,
+                            [student._id]: parseInt(e.target.value),
+                          })
+                        }
+                      />
+                    </div>
+                  </div>
+                ))
+              )}
             </div>
           </CardContent>
         </Card>

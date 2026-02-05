@@ -634,128 +634,210 @@ const JournalTable = ({
   onEdit?: (journal: any) => void;
 }) => {
   return (
-    <Table>
-      <TableHeader className="bg-school-navy">
-        <TableRow className="hover:bg-school-navy">
-          <TableHead className="text-white font-bold whitespace-nowrap">
-            Tanggal & Jam
-          </TableHead>
-          {showTeacher && (
-            <TableHead className="text-white font-bold">Guru</TableHead>
-          )}
-          <TableHead className="text-white font-bold">Kelas</TableHead>
-          <TableHead className="text-white font-bold">Mapel</TableHead>
-          <TableHead className="text-white font-bold max-w-[200px]">
-            Materi / Topik
-          </TableHead>
-          <TableHead className="text-white font-bold">Lampiran</TableHead>
-          <TableHead className="text-white font-bold">Catatan</TableHead>
-          {onEdit && (
-            <TableHead className="text-white font-bold">Aksi</TableHead>
-          )}
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {loading ? (
-          <TableRow>
-            <TableCell colSpan={onEdit ? 8 : 7} className="text-center h-24">
-              <div className="flex flex-col items-center justify-center text-school-gold">
-                <SystemRestart className="h-6 w-6 animate-spin mb-2" />
-                <p className="text-sm text-slate-500">Memuat data jurnal...</p>
-              </div>
-            </TableCell>
-          </TableRow>
-        ) : journals.length === 0 ? (
-          <TableRow>
-            <TableCell
-              colSpan={onEdit ? 8 : 7}
-              className="text-center h-24 text-slate-500"
-            >
-              <div className="flex flex-col items-center justify-center">
-                <Book className="h-8 w-8 text-slate-200 mb-2" />
-                <p>Belum ada data jurnal yang tersimpan.</p>
-              </div>
-            </TableCell>
-          </TableRow>
-        ) : (
-          journals.map((j: any) => (
-            <TableRow
-              key={j._id}
-              className="hover:bg-slate-50 border-b border-slate-100"
-            >
-              <TableCell className="whitespace-nowrap font-medium text-school-navy">
-                <div className="flex flex-col">
-                  <span className="flex items-center gap-1">
-                    <Calendar className="h-3 w-3 text-slate-400" />
-                    {new Date(j.date).toLocaleDateString("id-ID", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </span>
-                  <span className="text-xs text-slate-400 mt-1">
-                    {j.startTime} - {j.endTime}
-                  </span>
-                </div>
-              </TableCell>
+    <div className="space-y-4">
+      {/* Desktop Table */}
+      <div className="hidden md:block overflow-x-auto">
+        <Table>
+          <TableHeader className="bg-school-navy">
+            <TableRow className="hover:bg-school-navy">
+              <TableHead className="text-white font-bold whitespace-nowrap">
+                Tanggal & Jam
+              </TableHead>
               {showTeacher && (
-                <TableCell>
-                  <div className="font-semibold text-slate-700">
-                    {j.teacher?.profile?.fullName || j.teacher?.username}
-                  </div>
-                </TableCell>
+                <TableHead className="text-white font-bold">Guru</TableHead>
               )}
-              <TableCell>
-                <span className="inline-flex items-center rounded-md border px-2 py-1 text-xs font-bold border-blue-200 bg-blue-50 text-blue-700">
-                  {j.class?.name || "-"}
-                </span>
-              </TableCell>
-              <TableCell className="font-medium">
-                {j.subject?.name || "-"}
-              </TableCell>
-              <TableCell
-                className="max-w-[200px] truncate font-medium text-slate-600"
-                title={j.topic}
-              >
-                {j.topic}
-              </TableCell>
-              <TableCell>
-                {j.attachment ? (
-                  <a
-                    href={`http://localhost:5000${j.attachment}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center px-2 py-1 rounded bg-slate-100 text-slate-600 hover:bg-school-navy hover:text-white transition-colors text-xs font-medium"
-                  >
-                    Unduh File
-                  </a>
-                ) : (
-                  "-"
-                )}
-              </TableCell>
-              <TableCell
-                className="max-w-[200px] truncate text-slate-500 text-sm italic"
-                title={j.notes}
-              >
-                {j.notes || "-"}
-              </TableCell>
+              <TableHead className="text-white font-bold">Kelas</TableHead>
+              <TableHead className="text-white font-bold">Mapel</TableHead>
+              <TableHead className="text-white font-bold max-w-[200px]">
+                Materi / Topik
+              </TableHead>
+              <TableHead className="text-white font-bold">Lampiran</TableHead>
+              <TableHead className="text-white font-bold">Catatan</TableHead>
               {onEdit && (
-                <TableCell>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onEdit(j)}
-                    className="text-orange-500 hover:text-orange-700 hover:bg-orange-50"
-                  >
-                    Edit
-                  </Button>
-                </TableCell>
+                <TableHead className="text-white font-bold">Aksi</TableHead>
               )}
             </TableRow>
+          </TableHeader>
+          <TableBody>
+            {loading ? (
+              <TableRow>
+                <TableCell
+                  colSpan={onEdit ? 8 : 7}
+                  className="text-center h-24"
+                >
+                  <div className="flex flex-col items-center justify-center text-school-gold">
+                    <SystemRestart className="h-6 w-6 animate-spin mb-2" />
+                    <p className="text-sm text-slate-500">
+                      Memuat data jurnal...
+                    </p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : journals.length === 0 ? (
+              <TableRow>
+                <TableCell
+                  colSpan={onEdit ? 8 : 7}
+                  className="text-center h-24 text-slate-500"
+                >
+                  <div className="flex flex-col items-center justify-center">
+                    <Book className="h-8 w-8 text-slate-200 mb-2" />
+                    <p>Belum ada data jurnal yang tersimpan.</p>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ) : (
+              journals.map((j: any) => (
+                <TableRow
+                  key={j._id}
+                  className="hover:bg-slate-50 border-b border-slate-100"
+                >
+                  <TableCell className="whitespace-nowrap font-medium text-school-navy">
+                    <div className="flex flex-col">
+                      <span className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3 text-slate-400" />
+                        {new Date(j.date).toLocaleDateString("id-ID", {
+                          day: "numeric",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </span>
+                      <span className="text-xs text-slate-400 mt-1">
+                        {j.startTime} - {j.endTime}
+                      </span>
+                    </div>
+                  </TableCell>
+                  {showTeacher && (
+                    <TableCell>
+                      <div className="font-semibold text-slate-700">
+                        {j.teacher?.profile?.fullName || j.teacher?.username}
+                      </div>
+                    </TableCell>
+                  )}
+                  <TableCell>
+                    <span className="inline-flex items-center rounded-md border px-2 py-1 text-xs font-bold border-blue-200 bg-blue-50 text-blue-700">
+                      {j.class?.name || "-"}
+                    </span>
+                  </TableCell>
+                  <TableCell className="font-medium">
+                    {j.subject?.name || "-"}
+                  </TableCell>
+                  <TableCell
+                    className="max-w-[200px] truncate font-medium text-slate-600"
+                    title={j.topic}
+                  >
+                    {j.topic}
+                  </TableCell>
+                  <TableCell>
+                    {j.attachment ? (
+                      <a
+                        href={`http://localhost:5000${j.attachment}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center px-2 py-1 rounded bg-slate-100 text-slate-600 hover:bg-school-navy hover:text-white transition-colors text-xs font-medium"
+                      >
+                        Unduh File
+                      </a>
+                    ) : (
+                      "-"
+                    )}
+                  </TableCell>
+                  <TableCell
+                    className="max-w-[200px] truncate text-slate-500 text-sm italic"
+                    title={j.notes}
+                  >
+                    {j.notes || "-"}
+                  </TableCell>
+                  {onEdit && (
+                    <TableCell>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onEdit(j)}
+                        className="text-orange-500 hover:text-orange-700 hover:bg-orange-50"
+                      >
+                        Edit
+                      </Button>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Mobile Card List */}
+      <div className="md:hidden space-y-4 px-1">
+        {loading ? (
+          <div className="text-center py-10 text-slate-400">
+            <SystemRestart className="h-8 w-8 animate-spin mx-auto mb-2" />
+            <p>Memuat data...</p>
+          </div>
+        ) : journals.length === 0 ? (
+          <div className="text-center py-10 text-slate-400 border-2 border-dashed rounded-xl">
+            <Book className="h-8 w-8 text-slate-300 mx-auto mb-2" />
+            <p>Belum ada data jurnal.</p>
+          </div>
+        ) : (
+          journals.map((j: any) => (
+            <div
+              key={j._id}
+              className="bg-white border text-left border-slate-100 rounded-xl p-4 shadow-sm space-y-3"
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="inline-flex items-center rounded-md border px-1.5 py-0.5 text-[10px] font-bold border-blue-200 bg-blue-50 text-blue-700">
+                      {j.class?.name || "-"}
+                    </span>
+                    <span className="text-xs text-slate-500 ">
+                      {j.subject?.name}
+                    </span>
+                  </div>
+                  <h4 className="font-bold text-school-navy text-sm line-clamp-2">
+                    {j.topic}
+                  </h4>
+                </div>
+                {onEdit && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 w-8 p-0 text-slate-400"
+                    onClick={() => onEdit(j)}
+                  >
+                    <Clock className="w-4 h-4" />
+                  </Button>
+                )}
+              </div>
+
+              <div className="flex items-center gap-4 text-xs text-slate-500 border-t border-slate-50 pt-3">
+                <span className="flex items-center gap-1">
+                  <Calendar className="w-3 h-3" />
+                  {new Date(j.date).toLocaleDateString("id-ID", {
+                    day: "numeric",
+                    month: "short",
+                  })}
+                </span>
+                <span className="flex items-center gap-1">
+                  <Clock className="w-3 h-3" />
+                  {j.startTime} - {j.endTime}
+                </span>
+              </div>
+
+              {onEdit && (
+                <Button
+                  onClick={() => onEdit(j)}
+                  variant="outline"
+                  className="w-full text-xs h-8 border-orange-200 text-orange-700 hover:bg-orange-50"
+                >
+                  Edit Jurnal
+                </Button>
+              )}
+            </div>
           ))
         )}
-      </TableBody>
-    </Table>
+      </div>
+    </div>
   );
 };
 
