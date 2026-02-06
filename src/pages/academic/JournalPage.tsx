@@ -34,10 +34,20 @@ import {
   Book,
   Presentation,
   Page,
+  CheckCircle,
 } from "iconoir-react";
 import api from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
 import { useAuth } from "@/context/AuthContext";
+import { useNavigate, useLocation } from "react-router-dom";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 interface JournalForm {
   classId: string;
@@ -55,6 +65,10 @@ interface JournalForm {
 const JournalPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [showSuccessDialog, setShowSuccessDialog] = useState(false);
+  const [savedJournal, setSavedJournal] = useState<any>(null);
 
   // Data Lists
   const [classes, setClasses] = useState<any[]>([]);
@@ -81,6 +95,22 @@ const JournalPage = () => {
   const [materials, setMaterials] = useState<any[]>([]); // Available materials
   const [editingJournal, setEditingJournal] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("entry");
+
+  // Auto-fill from navigation state (e.g. from Dashboard)
+  useEffect(() => {
+    if (location.state) {
+      const { classId, subjectId } = location.state;
+      if (classId || subjectId) {
+        setFormData((prev) => ({
+          ...prev,
+          classId: classId || prev.classId,
+          subjectId: subjectId || prev.subjectId,
+        }));
+        // Ensure we are on the entry tab
+        setActiveTab("entry");
+      }
+    }
+  }, [location.state]);
 
   useEffect(() => {
     fetchMasterData();
@@ -144,7 +174,10 @@ const JournalPage = () => {
       await api.post("/journal", submitData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-      toast({ title: "Berhasil", description: "Jurnal mengajar tersimpan!" });
+      // toast({ title: "Berhasil", description: "Jurnal mengajar tersimpan!" });
+
+      setSavedJournal({ ...formData });
+      setShowSuccessDialog(true);
 
       // Reset essential fields
       setFormData((prev) => ({
@@ -617,6 +650,60 @@ const JournalPage = () => {
           </TabsContent>
         )}
       </Tabs>
+
+      <Dialog open={showSuccessDialog} onOpenChange={setShowSuccessDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-school-navy">
+              <CheckCircle className="h-6 w-6 text-green-500" />
+              <span>Jurnal Tersimpan!</span>
+            </DialogTitle>
+            <DialogDescription>
+              Data jurnal mengajar berhasil disimpan.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <div className="flex items-start gap-3 rounded-lg border border-blue-100 bg-blue-50 p-4">
+              <div className="rounded-md bg-white p-1 shadow-sm">
+                <Book className="h-5 w-5 text-blue-500" />
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-school-navy">
+                  Ingin isi absensi sekarang?
+                </h4>
+                <p className="mt-1 text-xs text-slate-500">
+                  Sistem dapat mengarahkan Anda ke halaman absensi.
+                </p>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowSuccessDialog(false)}
+            >
+              Nanti Saja
+            </Button>
+            <Button
+              className="bg-school-navy text-white hover:bg-school-gold hover:text-school-navy"
+              onClick={() => {
+                setShowSuccessDialog(false);
+                if (savedJournal) {
+                  navigate("/dashboard/academic/attendance", {
+                    state: {
+                      classId: savedJournal.classId,
+                      date: savedJournal.date,
+                      subjectId: savedJournal.subjectId,
+                    },
+                  });
+                }
+              }}
+            >
+              Ya, Isi Absensi
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -34,7 +34,10 @@ import api from "@/services/api";
 import { useToast } from "@/components/ui/use-toast";
 import { cn } from "@/lib/utils";
 
+import { useLocation } from "react-router-dom"; // Added useLocation
+
 const AttendancePage = () => {
+  const location = useLocation(); // Hook for location state
   const [activeTab, setActiveTab] = useState("daily");
 
   // Shared State
@@ -56,11 +59,38 @@ const AttendancePage = () => {
   const [dayName, setDayName] = useState("");
   const { toast } = useToast();
 
+  // Handle Navigation State (Pre-fill from Journal)
+  useEffect(() => {
+    if (location.state) {
+      const { classId, date: stateDate, subjectId } = location.state;
+      if (classId) setSelectedClass(classId);
+      if (stateDate) setDate(stateDate);
+      if (classId || subjectId) setActiveTab("subject"); // Default to subject tab if coming from journal
+    }
+  }, [location.state]);
+
+  // Auto-select Schedule if subjectId is provided (wait for schedules to load)
+  useEffect(() => {
+    if (location.state?.subjectId && schedules.length > 0) {
+      const matchingSchedule = schedules.find(
+        (s: any) =>
+          (typeof s.subject === "object" ? s.subject._id : s.subject) ===
+          location.state.subjectId,
+      );
+      if (matchingSchedule) {
+        setSelectedSchedule(matchingSchedule._id);
+      }
+    }
+  }, [schedules, location.state]);
+
   useEffect(() => {
     fetchClasses(date);
-    setStudents([]);
-    setSelectedClass("");
-    setSelectedSchedule("");
+    // Don't reset if we have location state
+    if (!location.state) {
+      setStudents([]);
+      setSelectedClass("");
+      setSelectedSchedule("");
+    }
   }, [date]);
 
   // Fetch Schedules when Class Changes (for Mapel Tab)

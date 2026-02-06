@@ -320,6 +320,82 @@ exports.getTeacherDashboardStats = async (req, res) => {
 
       // Pending Submissions for this class (Across all subjects)
       classStats.avgGrade = 85; // Placeholder for expensive Grade aggregation
+      // 5. At Risk Students (For Homeroom Only)
+      if (homeroomClass && activeYear) {
+        // Get all students in homeroom
+        const students = await User.find({
+          role: "student",
+          "profile.class": homeroomClass.name,
+        }).select("_id profile.fullName");
+
+        const studentIds = students.map((s) => s._id);
+
+        // A. Attendance Risk (Count Absences > 3)
+        // Groups by student and counts total non-present statuses
+        const absentees = await Attendance.aggregate([
+          {
+            $match: {
+              student: { $in: studentIds },
+              status: { $in: ["Sick", "Permission", "Alpha"] },
+              academicYear: activeYear._id,
+            },
+          },
+          { $group: { _id: "$student", count: { $sum: 1 } } },
+          { $match: { count: { $gt: 3 } } },
+        ]);
+
+        // B. Academic Risk (Average Grade < 75)
+        // Calculates average of all grades for each student
+        const lowGraders = await Grade.aggregate([
+          {
+            $match: {
+              student: { $in: studentIds },
+              academicYear: activeYear._id,
+            },
+          },
+          { $group: { _id: "$student", avg: { $avg: "$score" } } },
+          { $match: { avg: { $lt: 75 } } },
+        ]);
+
+        // Unite the risks
+        const riskMap = {};
+
+        // Process Attendance Risks
+        absentees.forEach((a) => {
+          riskMap[a._id] = {
+            type: "attendance",
+            count: a.count,
+            detail: `${a.count}x Absen (S/I/A)`,
+          };
+        });
+
+        // Process Academic Risks
+        lowGraders.forEach((g) => {
+          const avg = parseFloat(g.avg.toFixed(1));
+          if (riskMap[g._id]) {
+            riskMap[g._id].type = "both"; // Both risks
+            riskMap[g._id].detail += ` • Nilai Rata-rata: ${avg}`;
+          } else {
+            riskMap[g._id] = {
+              type: "academic",
+              count: avg,
+              detail: `Nilai Rata-rata: ${avg}`,
+            };
+          }
+        });
+
+        // Format for frontend
+        classStats.atRiskStudents = Object.keys(riskMap).map((sid) => {
+          const student = students.find((s) => s._id.toString() === sid);
+          return {
+            id: sid,
+            name: student ? student.profile.fullName : "Unknown",
+            ...riskMap[sid],
+          };
+        });
+      } else {
+        classStats.atRiskStudents = [];
+      }
     }
 
     res.json({

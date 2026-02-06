@@ -207,7 +207,20 @@ const TeacherHubPage = () => {
 
                 <Button
                   className="w-full bg-school-navy hover:bg-school-gold hover:text-school-navy group transition-all"
-                  onClick={() => navigate("/dashboard/academic/journal")}
+                  onClick={() =>
+                    navigate("/dashboard/academic/journal", {
+                      state: {
+                        classId:
+                          typeof upNext?.class === "object"
+                            ? upNext?.class?._id
+                            : upNext?.class,
+                        subjectId:
+                          typeof upNext?.subject === "object"
+                            ? upNext?.subject?._id
+                            : upNext?.subject,
+                      },
+                    })
+                  }
                 >
                   Mulai Kelas
                   <NavArrowRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
@@ -396,7 +409,18 @@ const TeacherHubPage = () => {
                           variant="ghost"
                           className="rounded-full"
                           onClick={() =>
-                            navigate("/dashboard/academic/journal")
+                            navigate("/dashboard/academic/journal", {
+                              state: {
+                                classId:
+                                  typeof schedule.class === "object"
+                                    ? schedule.class?._id
+                                    : schedule.class,
+                                subjectId:
+                                  typeof schedule.subject === "object"
+                                    ? schedule.subject?._id
+                                    : schedule.subject,
+                              },
+                            })
                           }
                         >
                           <NavArrowRight className="w-5 h-5 text-slate-400" />
@@ -483,49 +507,72 @@ const TeacherHubPage = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <h4 className="font-bold text-sm text-school-navy mb-2">
-                        Peringatan Siswa
+                      <h4 className="font-bold text-sm text-school-navy mb-2 flex items-center gap-2">
+                        <WarningTriangle className="w-4 h-4 text-red-500" />
+                        Siswa Perlu Perhatian (At Risk)
                       </h4>
 
-                      {stats?.classStats?.studentWarnings?.length > 0 ? (
-                        stats.classStats.studentWarnings
-                          .map((warning: any, idx: number) => (
-                            <div
-                              key={idx}
-                              className="flex items-center justify-between p-3 bg-red-50 border border-red-100 rounded-lg"
-                            >
-                              <div className="flex items-center gap-3">
-                                <div className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                                <div>
-                                  <p className="text-xs font-bold text-red-700">
-                                    {stats.classStats.absentCount} Siswa Belum
-                                    Absen
-                                  </p>
-                                  <p className="text-[10px] text-red-500">
-                                    {warning.name} &{" "}
-                                    {stats.classStats.absentCount - 1} lainnya
-                                  </p>
-                                </div>
-                              </div>
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                className="h-7 text-xs border-red-200 text-red-700 hover:bg-red-100"
-                                onClick={() =>
-                                  navigate("/dashboard/teacher/homeroom")
-                                }
+                      {stats?.classStats?.atRiskStudents?.length > 0 ? (
+                        <div className="grid gap-3">
+                          {stats.classStats.atRiskStudents.map(
+                            (student: any, idx: number) => (
+                              <div
+                                key={idx}
+                                className="flex items-center justify-between p-3 bg-red-50 border border-red-100 rounded-lg"
                               >
-                                Cek
-                              </Button>
-                            </div>
-                          ))
-                          .slice(0, 1) // Just show one summary card if there are issues
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold text-xs border border-red-200">
+                                    {student.name.charAt(0)}
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-bold text-red-700">
+                                      {student.name}
+                                    </p>
+                                    <div className="flex flex-wrap gap-1 mt-1">
+                                      {(student.type === "attendance" ||
+                                        student.type === "both") && (
+                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-200 text-red-800 font-medium">
+                                          Absensi &gt; 3
+                                        </span>
+                                      )}
+                                      {(student.type === "academic" ||
+                                        student.type === "both") && (
+                                        <span className="text-[10px] px-1.5 py-0.5 rounded bg-orange-200 text-orange-800 font-medium">
+                                          Nilai &lt; 75
+                                        </span>
+                                      )}
+                                    </div>
+                                    <p className="text-[10px] text-red-500 mt-1 italic">
+                                      {student.detail}
+                                    </p>
+                                  </div>
+                                </div>
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-8 text-xs border-red-200 text-red-700 hover:bg-red-100"
+                                  onClick={() =>
+                                    navigate("/dashboard/teacher/homeroom")
+                                  }
+                                >
+                                  Detail
+                                </Button>
+                              </div>
+                            ),
+                          )}
+                        </div>
                       ) : (
-                        <div className="p-3 bg-emerald-50 border border-emerald-100 rounded-lg flex items-center gap-3">
-                          <CheckCircle className="w-5 h-5 text-emerald-600" />
-                          <p className="text-xs text-emerald-700 font-medium">
-                            Semua siswa hadir hari ini!
-                          </p>
+                        <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-xl flex flex-col items-center text-center gap-2">
+                          <CheckCircle className="w-8 h-8 text-emerald-500" />
+                          <div>
+                            <p className="text-sm font-bold text-emerald-700">
+                              Tidak Ada Siswa Berisiko
+                            </p>
+                            <p className="text-xs text-emerald-600">
+                              Semua siswa memiliki absensi & nilai yang baik.
+                              Pertahankan!
+                            </p>
+                          </div>
                         </div>
                       )}
                     </div>
