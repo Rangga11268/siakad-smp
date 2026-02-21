@@ -17,6 +17,7 @@ import StudentDetailPage from "@/pages/admin/StudentDetailPage";
 import MasterTeacherPage from "@/pages/admin/MasterTeacherPage";
 import MasterNewsPage from "./pages/admin/MasterNewsPage";
 import InputGradePage from "@/pages/academic/InputGradePage";
+import TeacherRemedialPage from "@/pages/academic/TeacherRemedialPage";
 import AssessmentPage from "@/pages/academic/AssessmentPage";
 import StudentAssignmentPage from "@/pages/student/StudentAssignmentPage";
 import StudentBillPage from "@/pages/student/StudentBillPage";
@@ -158,6 +159,7 @@ function App() {
             />
             <Route path="academic/assessment" element={<AssessmentPage />} />
             <Route path="academic/grades" element={<InputGradePage />} />
+            <Route path="academic/remedial" element={<TeacherRemedialPage />} />
             <Route
               path="academic/materials"
               element={<TeacherMaterialPage />}

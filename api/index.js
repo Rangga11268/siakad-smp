@@ -95,6 +95,7 @@ app.use("/api/finance", require("./routes/financeRoutes")); // New Finance Route
 app.use("/api/learning-material", require("./routes/learningMaterialRoutes"));
 app.use("/api/homeroom", require("./routes/homeroomRoutes"));
 app.use("/api/notifications", require("./routes/notificationRoutes"));
+app.use("/api/remedial", require("./routes/remedialRoutes"));
 app.get("/", (req, res) => {
   res.send({ message: "Welcome to SIAKAD SMP API" });
 });

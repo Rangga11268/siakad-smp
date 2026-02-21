@@ -22,6 +22,7 @@ import {
   Trophy,
   User,
   Printer,
+  RefreshDouble,
 } from "iconoir-react";
 import api from "@/services/api";
 import { useAuth } from "@/context/AuthContext";
@@ -699,6 +700,14 @@ const TeacherHubPage = () => {
                 onClick={() => navigate("/dashboard/academic/materials")}
               >
                 <BookStack className="w-3 h-3 mr-2" /> Materi
+              </Button>
+              <Button
+                variant="outline"
+                className="bg-white/5 border-white/10 hover:bg-white/10 text-xs justify-start col-span-2"
+                onClick={() => navigate("/dashboard/academic/remedial")}
+              >
+                <RefreshDouble className="w-3 h-3 mr-2" /> Tindak Lanjut
+                Remedial
               </Button>
             </CardContent>
           </Card>
