@@ -30,6 +30,18 @@ import {
   ArrowLeft,
 } from "iconoir-react";
 import api from "@/services/api";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+} from "recharts";
+
 import HomeroomAttendanceSummary from "./components/HomeroomAttendanceSummary";
 
 interface Student {
@@ -78,9 +90,20 @@ const HomeroomDashboardPage = () => {
   const [data, setData] = useState<DashboardData | null>(null);
   const [activeTab, setActiveTab] = useState("overview");
 
+  // Analytics States
+  const [trendData, setTrendData] = useState<any[]>([]);
+  const [heatmapData, setHeatmapData] = useState<any[]>([]);
+  const [loadingAnalytics, setLoadingAnalytics] = useState(false);
+
   useEffect(() => {
     fetchDashboard();
   }, []);
+
+  useEffect(() => {
+    if (activeTab === "analytics") {
+      fetchAnalytics();
+    }
+  }, [activeTab]);
 
   const fetchDashboard = async () => {
     try {
@@ -94,6 +117,23 @@ const HomeroomDashboardPage = () => {
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAnalytics = async () => {
+    if (trendData.length > 0) return; // Already fetched
+    try {
+      setLoadingAnalytics(true);
+      const [trendRes, heatmapRes] = await Promise.all([
+        api.get("/homeroom/analytics/trend"),
+        api.get("/homeroom/analytics/heatmap"),
+      ]);
+      setTrendData(trendRes.data);
+      setHeatmapData(heatmapRes.data);
+    } catch (error) {
+      console.error("Failed to load analytics", error);
+    } finally {
+      setLoadingAnalytics(false);
     }
   };
 
@@ -249,6 +289,12 @@ const HomeroomDashboardPage = () => {
             Ringkasan
           </TabsTrigger>
           <TabsTrigger
+            value="analytics"
+            className="data-[state=active]:bg-white rounded-lg text-school-navy font-bold"
+          >
+            Analitik Progres
+          </TabsTrigger>
+          <TabsTrigger
             value="students"
             className="data-[state=active]:bg-white rounded-lg"
           >
@@ -382,6 +428,148 @@ const HomeroomDashboardPage = () => {
               </div>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="analytics" className="mt-6 space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Card className="border-none shadow-lg">
+              <CardHeader>
+                <CardTitle>Tren Belajar Siswa</CardTitle>
+                <CardDescription>
+                  Rata-rata nilai kelas dari waktu ke waktu
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-80">
+                {loadingAnalytics ? (
+                  <div className="w-full h-full flex justify-center items-center">
+                    <SystemRestart className="animate-spin text-slate-300 w-8 h-8" />
+                  </div>
+                ) : trendData.length === 0 ? (
+                  <div className="w-full h-full flex justify-center items-center text-slate-400">
+                    Belum ada data nilai cukup untuk tren.
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart
+                      data={trendData}
+                      margin={{ top: 5, right: 30, left: 0, bottom: 5 }}
+                    >
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        vertical={false}
+                        stroke="#e2e8f0"
+                      />
+                      <XAxis
+                        dataKey="month"
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: "#64748b", fontSize: 12 }}
+                        dy={10}
+                      />
+                      <YAxis
+                        domain={[0, 100]}
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: "#64748b", fontSize: 12 }}
+                        dx={-10}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: "8px",
+                          border: "none",
+                          boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                        }}
+                        formatter={(value) => [`${value}`, "Rata-rata Nilai"]}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey="average"
+                        stroke="#2563eb"
+                        strokeWidth={3}
+                        dot={{
+                          r: 4,
+                          fill: "#2563eb",
+                          strokeWidth: 2,
+                          stroke: "#fff",
+                        }}
+                        activeDot={{ r: 6 }}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
+
+            <Card className="border-none shadow-lg">
+              <CardHeader>
+                <CardTitle>Heatmap Mata Pelajaran</CardTitle>
+                <CardDescription>
+                  Performa rata-rata kelas per mata pelajaran
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="h-80">
+                {loadingAnalytics ? (
+                  <div className="w-full h-full flex justify-center items-center">
+                    <SystemRestart className="animate-spin text-slate-300 w-8 h-8" />
+                  </div>
+                ) : heatmapData.length === 0 ? (
+                  <div className="w-full h-full flex justify-center items-center text-slate-400">
+                    Belum ada data nilai mata pelajaran.
+                  </div>
+                ) : (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={heatmapData}
+                      layout="vertical"
+                      margin={{ top: 5, right: 30, left: 10, bottom: 5 }}
+                    >
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        horizontal={false}
+                        stroke="#e2e8f0"
+                      />
+                      <XAxis
+                        type="number"
+                        domain={[0, 100]}
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{ fill: "#64748b", fontSize: 12 }}
+                      />
+                      <YAxis
+                        type="category"
+                        dataKey="subject"
+                        width={90}
+                        axisLine={false}
+                        tickLine={false}
+                        tick={{
+                          fill: "#475569",
+                          fontSize: 12,
+                          fontWeight: 500,
+                        }}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          borderRadius: "8px",
+                          border: "none",
+                          boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                        }}
+                        formatter={(value: any, name: any, props: any) => [
+                          `${value}`,
+                          "Rata-rata",
+                        ]}
+                      />
+                      <Bar
+                        dataKey="average"
+                        fill="#f59e0b"
+                        radius={[0, 4, 4, 0]}
+                        barSize={24}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                )}
+              </CardContent>
+            </Card>
+          </div>
         </TabsContent>
 
         <TabsContent value="students" className="mt-6">

@@ -18,4 +18,8 @@ router.get("/grades", homeroomController.getClassGradesSummary);
 // Student Detail
 router.get("/student/:studentId", homeroomController.getStudentDetail);
 
+// Analytics
+router.get("/analytics/trend", homeroomController.getStudentPerformanceTrend);
+router.get("/analytics/heatmap", homeroomController.getSubjectHeatmap);
+
 module.exports = router;

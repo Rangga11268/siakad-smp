@@ -318,3 +318,112 @@ exports.getStudentDetail = async (req, res) => {
       .json({ message: "Gagal memuat detail siswa", error: error.message });
   }
 };
+
+// Get Student Performance Trend (Average Grade over Time)
+exports.getStudentPerformanceTrend = async (req, res) => {
+  try {
+    const teacherId = req.user.id;
+    const teacher = await User.findById(teacherId);
+
+    if (!teacher.isHomeroomTeacher || !teacher.homeroomClass) {
+      return res.status(403).json({ message: "Anda bukan wali kelas" });
+    }
+
+    const homeroomClass = await Class.findById(teacher.homeroomClass);
+    const studentIds = homeroomClass.students;
+
+    // Fetch grades for the active academic year
+    const activeYear = await require("../models/AcademicYear").findOne({
+      status: "active",
+    });
+    if (!activeYear) {
+      return res.json([]);
+    }
+
+    const grades = await Grade.find({ student: { $in: studentIds } })
+      .populate({ path: "assessment", match: { academicYear: activeYear._id } })
+      .sort({ createdAt: 1 }); // Chronological order
+
+    // Process data to group by Month/Week or just chronological grouped by Assessment Date
+    // We will group by Month-Year for a simpler trend
+    const trendMap = {};
+
+    grades.forEach((grade) => {
+      if (!grade.assessment) return; // Skip if assessment didn't match academic year
+
+      const date = new Date(grade.createdAt);
+      const monthYear = `${date.toLocaleString("id-ID", { month: "short" })} ${date.getFullYear()}`;
+
+      if (!trendMap[monthYear]) {
+        trendMap[monthYear] = { month: monthYear, totalScore: 0, count: 0 };
+      }
+      trendMap[monthYear].totalScore += grade.score;
+      trendMap[monthYear].count += 1;
+    });
+
+    const trendData = Object.values(trendMap).map((data) => ({
+      month: data.month,
+      average: Math.round(data.totalScore / data.count),
+    }));
+
+    res.json(trendData);
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        message: "Gagal memuat tren performa siswa",
+        error: error.message,
+      });
+  }
+};
+
+// Get Subject Heatmap (Average score per subject for the class)
+exports.getSubjectHeatmap = async (req, res) => {
+  try {
+    const teacherId = req.user.id;
+    const teacher = await User.findById(teacherId);
+
+    if (!teacher.isHomeroomTeacher || !teacher.homeroomClass) {
+      return res.status(403).json({ message: "Anda bukan wali kelas" });
+    }
+
+    const homeroomClass = await Class.findById(teacher.homeroomClass);
+    const studentIds = homeroomClass.students;
+
+    const grades = await Grade.find({ student: { $in: studentIds } }).populate({
+      path: "assessment",
+      populate: { path: "subject", select: "name" },
+    });
+
+    const subjectMap = {};
+
+    grades.forEach((grade) => {
+      if (!grade.assessment || !grade.assessment.subject) return;
+      const subjectName = grade.assessment.subject.name;
+
+      if (!subjectMap[subjectName]) {
+        subjectMap[subjectName] = {
+          subject: subjectName,
+          totalScore: 0,
+          count: 0,
+        };
+      }
+      subjectMap[subjectName].totalScore += grade.score;
+      subjectMap[subjectName].count += 1;
+    });
+
+    const heatmapData = Object.values(subjectMap).map((data) => ({
+      subject: data.subject,
+      average: Math.round(data.totalScore / data.count),
+    }));
+
+    res.json(heatmapData);
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        message: "Gagal memuat heatmap mata pelajaran",
+        error: error.message,
+      });
+  }
+};
