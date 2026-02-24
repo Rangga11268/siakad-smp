@@ -57,7 +57,13 @@ const Sidebar = () => {
           title: "Dashboard",
           icon: HomeSimpleDoor,
           path: "/dashboard",
-          roles: ["admin", "teacher", "student", "parent"],
+          roles: ["admin", "teacher", "student"], // Standard dashboard
+        },
+        {
+          title: "Beranda Orang Tua",
+          icon: HomeSimpleDoor,
+          path: "/dashboard/parent/hub",
+          roles: ["parent"],
         },
       ],
     },

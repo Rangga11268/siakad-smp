@@ -41,6 +41,7 @@ import LearningGoalPage from "@/pages/academic/LearningGoalPage";
 import AttendancePage from "@/pages/academic/AttendancePage";
 import JournalPage from "@/pages/academic/JournalPage";
 import ReportCardPage from "@/pages/academic/ReportCardPage";
+import ParentDashboardPage from "@/pages/parent/ParentDashboardPage";
 import PPDBRegisterPage from "@/pages/public/PPDBRegisterPage";
 import PPDBInfoPage from "@/pages/public/PPDBInfoPage";
 import PPDBStatusPage from "./pages/public/PPDBStatusPage";
@@ -180,6 +181,8 @@ function App() {
             <Route path="student/uks" element={<StudentUksPage />} />
             <Route path="student/library" element={<StudentLibraryPage />} />
             <Route path="student/report" element={<StudentReportPage />} />
+            {/* Parent Routes */}
+            <Route path="parent/hub" element={<ParentDashboardPage />} />
           </Route>
         </Routes>
       </ErrorBoundary>
